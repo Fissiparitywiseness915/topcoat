@@ -2,7 +2,7 @@ use std::borrow::Cow;
 
 use proc_macro::{Delimiter, TokenStream, TokenTree};
 use quote::quote;
-use topcoat_view::token::{Span, Token, TokenKind};
+use topcoat_view::parse::{Parser, Span, Token, TokenKind};
 
 #[proc_macro]
 pub fn view(tokens: TokenStream) -> TokenStream {
@@ -55,12 +55,14 @@ pub fn view(tokens: TokenStream) -> TokenStream {
     }
 
     let mut converter = Convert { result: Vec::new() };
-    match converter.convert(tokens) {
-        Ok(()) => {}
+    let tokens = match converter.convert(tokens) {
+        Ok(()) => converter.result,
         Err(err) => return err,
     };
 
-    let debug = format!("{:?}", converter.result);
+    let cst = Parser::new(&tokens).parse_root();
+
+    let debug = format!("{:#?}", cst);
 
     quote! { println!("{}", #debug); }.into()
 }

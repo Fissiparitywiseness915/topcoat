@@ -55,4 +55,16 @@ impl<'a> Token<'a> {
             span,
         }
     }
+
+    pub fn kind(&self) -> TokenKind {
+        self.kind
+    }
+
+    pub fn text(&self) -> &str {
+        &self.text
+    }
+
+    pub fn span(&self) -> Span {
+        self.span
+    }
 }

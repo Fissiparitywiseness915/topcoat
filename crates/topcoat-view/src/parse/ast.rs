@@ -1,1 +1,1 @@
-pub struct View<'a> {}
+pub struct View {}
