@@ -16,3 +16,7 @@ unsafe_code = "deny"
 topcoat = { path = "crates/topcoat" }
 topcoat-macro = { path = "crates/topcoat-macro" }
 topcoat-view = { path = "crates/topcoat-view" }
+
+proc-macro2 = "1.0.106"
+quote = "1.0.45"
+syn = { version = "2.0.117", features = ["parsing"] }
