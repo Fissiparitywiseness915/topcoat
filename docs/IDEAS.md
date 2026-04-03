@@ -26,7 +26,7 @@ fn my_button(button_attrs: topcoat::dom::button::Attrs) {
 }
 
 #[component]
-async fn events() -> Result<Html, anyhow::Error> {
+async fn events() -> Result<Html, topcoat::Error> {
     let user = require_auth().await?;
 
     let db = use_db();
