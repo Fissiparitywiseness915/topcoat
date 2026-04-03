@@ -1,7 +1,7 @@
 [workspace]
 resolver = "2"
 members = [
-    "crates/topcoat", "crates/topcoat-dom",
+    "crates/topcoat", "crates/topcoat-axum", "crates/topcoat-cli", "crates/topcoat-dom",
     "crates/topcoat-macro",
     "crates/topcoat-view",
 

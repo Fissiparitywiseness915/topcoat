@@ -1,0 +1,20 @@
+[package]
+name = "topcoat-cli"
+version = "0.1.0"
+edition = "2024"
+default-run = "topcoat"
+
+[[bin]]
+name = "topcoat"
+path = "src/bin/topcoat.rs"
+
+[[bin]]
+name = "cargo-topcoat"
+path = "src/bin/cargo_topcoat.rs"
+
+[dependencies]
+clap = { version = "4.6.0", features = ["derive"] }
+tokio = { version = "1.51.0", features = ["rt-multi-thread", "macros"] }
+
+[lints]
+workspace = true

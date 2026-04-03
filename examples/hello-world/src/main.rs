@@ -1,3 +1,5 @@
+use topcoat::view::View;
+
 fn main() {
     let rendered = topcoat::dom::render(&topcoat::view! {
         html {
@@ -6,7 +8,7 @@ fn main() {
             }
             body {
                 "hi"
-                b { "carl" }
+                b class="cool" { "carl" }
             }
         }
     });
