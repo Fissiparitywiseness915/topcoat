@@ -1,5 +1,6 @@
 [workspace]
 resolver = "2"
+default-members = ["examples/hello-world"]
 members = [
     "crates/topcoat",
     "crates/topcoat-axum",

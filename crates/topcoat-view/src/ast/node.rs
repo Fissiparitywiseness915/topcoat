@@ -13,7 +13,7 @@ pub enum Node {
 impl Node {
     pub fn write(&self, writer: &mut ViewWriter) {
         match self {
-            Self::Text(inner) => writer.push_str(&inner.value()),
+            Self::Text(inner) => writer.push_escaped(&inner.value()),
             Self::Element(inner) => inner.write(writer),
         }
     }

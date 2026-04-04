@@ -4,8 +4,10 @@ mod node;
 mod parse_option;
 mod view;
 
-pub use attribute::*;
-pub use element::*;
-pub use node::*;
-pub use parse_option::*;
-pub use view::*;
+use attribute::*;
+use element::*;
+use node::*;
+use parse_option::*;
+use view::*;
+
+pub use view::View;

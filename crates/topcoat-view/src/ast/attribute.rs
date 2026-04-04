@@ -17,7 +17,7 @@ impl Attribute {
         let value = self.value.value();
         writer.push_str(&name);
         writer.push_str("=\"");
-        writer.push_str(&value);
+        writer.push_escaped(&value);
         writer.push_str("\"");
     }
 }

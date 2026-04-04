@@ -26,7 +26,7 @@ impl ToTokens for View {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let mut writer = ViewWriter::new();
         for node in &self.nodes {
-            node.write(writer);
+            node.write(&mut writer);
         }
         writer.to_tokens(tokens);
     }
@@ -52,8 +52,25 @@ impl ViewWriter {
         }
     }
 
+    pub fn push(&mut self, ch: char) {
+        self.static_segment.push(ch);
+    }
+
     pub fn push_str(&mut self, string: &str) {
         self.static_segment.push_str(string);
+    }
+
+    pub fn push_escaped(&mut self, string: &str) {
+        for c in string.chars() {
+            match c {
+                '&' => self.push_str("&amp;"),
+                '<' => self.push_str("&lt;"),
+                '>' => self.push_str("&gt;"),
+                '"' => self.push_str("&quot;"),
+                '\'' => self.push_str("&#x27;"),
+                _ => self.push(c),
+            }
+        }
     }
 
     pub fn push_expr(&mut self, expr: TokenStream) {

@@ -1,6 +1,6 @@
 use proc_macro::TokenStream;
 use quote::quote;
-use topcoat_view::View;
+use topcoat_view::ast::View;
 
 #[proc_macro]
 pub fn view(tokens: TokenStream) -> TokenStream {
