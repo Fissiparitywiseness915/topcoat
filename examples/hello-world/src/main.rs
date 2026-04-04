@@ -1,7 +1,7 @@
 use topcoat::view::View;
 
 fn main() {
-    let rendered = topcoat::dom::render(&topcoat::view! {
+    let rendered = topcoat::view! {
         html {
             head {
                 title { "hello world" }
@@ -11,6 +11,6 @@ fn main() {
                 b class="cool" { "carl" }
             }
         }
-    });
+    };
     println!("{}", rendered);
 }

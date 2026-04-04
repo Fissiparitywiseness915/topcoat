@@ -1,16 +1,30 @@
-use proc_macro2::TokenStream;
-use quote::{ToTokens, quote};
 use syn::{
     Ident, braced,
     parse::{Parse, ParseStream},
 };
 
-use crate::parse::{Attributes, Node, ParseOption};
+use crate::ast::{Attributes, Node, ParseOption, ViewWriter};
 
 pub struct Element {
     name: Ident,
     attributes: Attributes,
     body: ElementBody,
+}
+
+impl Element {
+    pub fn write(&self, writer: &mut ViewWriter) {
+        writer.push_str("<");
+        let name = self.name.to_string();
+        writer.push_str(&name);
+        self.attributes.write(writer);
+        writer.push_str(">");
+
+        self.body.write(writer);
+
+        writer.push_str("</");
+        writer.push_str(&name);
+        writer.push_str(">");
+    }
 }
 
 impl Parse for Element {
@@ -29,21 +43,17 @@ impl ParseOption for Element {
     }
 }
 
-impl ToTokens for Element {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        let name = &self.name.to_string();
-        let attributes = &self.attributes;
-        let body = &self.body;
-        quote! {
-            ::topcoat::view::Element::new(#name.into(), #attributes, #body)
-        }
-        .to_tokens(tokens);
-    }
-}
-
 pub struct ElementBody {
     _brace: syn::token::Brace,
     children: Vec<Node>,
+}
+
+impl ElementBody {
+    pub fn write(&self, writer: &mut ViewWriter) {
+        for child in &self.children {
+            child.write(writer);
+        }
+    }
 }
 
 impl Parse for ElementBody {
@@ -59,15 +69,5 @@ impl Parse for ElementBody {
                 children
             },
         })
-    }
-}
-
-impl ToTokens for ElementBody {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        let children = &self.children;
-        quote! {
-            vec![#(#children),*]
-        }
-        .to_tokens(tokens);
     }
 }

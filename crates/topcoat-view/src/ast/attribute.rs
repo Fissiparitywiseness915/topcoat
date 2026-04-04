@@ -1,16 +1,25 @@
-use proc_macro2::TokenStream;
-use quote::{ToTokens, quote};
 use syn::{
     Ident, LitStr, Token,
     parse::{Parse, ParseStream},
 };
 
-use crate::parse::ParseOption;
+use crate::ast::{ParseOption, ViewWriter};
 
 pub struct Attribute {
     name: Ident,
     _eq: Token![=],
     value: LitStr,
+}
+
+impl Attribute {
+    pub fn write(&self, writer: &mut ViewWriter) {
+        let name = self.name.to_string();
+        let value = self.value.value();
+        writer.push_str(&name);
+        writer.push_str("=\"");
+        writer.push_str(&value);
+        writer.push_str("\"");
+    }
 }
 
 impl Parse for Attribute {
@@ -29,19 +38,17 @@ impl ParseOption for Attribute {
     }
 }
 
-impl ToTokens for Attribute {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        let name = self.name.to_string();
-        let value = &self.value;
-        quote! {
-            ::topcoat::view::Attribute::new(#name.into(), #value.into())
-        }
-        .to_tokens(tokens)
-    }
-}
-
 pub struct Attributes {
     items: Vec<Attribute>,
+}
+
+impl Attributes {
+    pub fn write(&self, writer: &mut ViewWriter) {
+        for item in &self.items {
+            writer.push_str(" ");
+            item.write(writer);
+        }
+    }
 }
 
 impl Parse for Attributes {
@@ -51,15 +58,5 @@ impl Parse for Attributes {
             items.push(attribute);
         }
         Ok(Self { items })
-    }
-}
-
-impl ToTokens for Attributes {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        let items = &self.items;
-        quote! {
-            ::topcoat::view::Attributes::new(vec![#(#items),*])
-        }
-        .to_tokens(tokens);
     }
 }
