@@ -2,7 +2,7 @@ use proc_macro2::TokenStream;
 use quote::ToTokens;
 use syn::parse::{Parse, ParseStream};
 
-use crate::{ast::node::Node, view_writer::ViewWriter};
+use crate::{ast::node::Node, output::ViewWriter};
 
 pub struct View {
     nodes: Vec<Node>,

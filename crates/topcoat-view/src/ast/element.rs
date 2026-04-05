@@ -5,7 +5,7 @@ use syn::{
 
 use crate::{
     ast::{Attributes, ParseOption, node_block::NodeBlock},
-    view_writer::ViewWriter,
+    output::ViewWriter,
 };
 
 pub struct Element {

@@ -5,7 +5,7 @@ use syn::{
 
 use crate::{
     ast::{NodeBlock, parse_option::ParseOption},
-    view_writer::{ViewWriter, ViewWriterIf},
+    output::{ViewWriter, ViewWriterIf},
 };
 
 pub struct NodeIf {

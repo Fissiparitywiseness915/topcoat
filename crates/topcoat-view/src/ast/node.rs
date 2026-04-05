@@ -5,7 +5,7 @@ use syn::{
 
 use crate::{
     ast::{Element, NodeExpr, NodeIf, ParseOption},
-    view_writer::ViewWriter,
+    output::ViewWriter,
 };
 
 pub enum Node {

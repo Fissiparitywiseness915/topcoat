@@ -3,7 +3,7 @@ use syn::{
     parse::{Parse, ParseStream},
 };
 
-use crate::{ast::ParseOption, view_writer::ViewWriter};
+use crate::{ast::ParseOption, output::ViewWriter};
 
 pub struct Attribute {
     name: Ident,
