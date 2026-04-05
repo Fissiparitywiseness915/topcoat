@@ -1,17 +1,17 @@
 fn main() {
+    let names = ["carl", "julien", "joey"];
+
     let content = topcoat::view! {
         html {
             head {
                 title { "hello world" }
             }
             body {
-                if 5 > 6 {
-                    i { "hi" }
-                } else {
-                    "bye"
+                for name in names {
+                    div {
+                        "hello " (name)
+                    }
                 }
-                " "
-                b class="cool" { "carl & friends" }
             }
         }
     };

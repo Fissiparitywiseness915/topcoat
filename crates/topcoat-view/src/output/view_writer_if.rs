@@ -1,0 +1,96 @@
+use std::ops::{Deref, DerefMut};
+
+use quote::quote;
+use syn::Expr;
+
+use crate::output::ViewWriter;
+
+pub(crate) struct ViewWriterIf<'a> {
+    parent: Option<&'a mut ViewWriter>,
+    cond: &'a Expr,
+    writer: ViewWriter,
+}
+
+impl<'a> ViewWriterIf<'a> {
+    pub(super) fn new(parent: &'a mut ViewWriter, cond: &'a Expr) -> Self {
+        Self {
+            parent: Some(parent),
+            cond,
+            writer: ViewWriter::new(),
+        }
+    }
+
+    pub fn begin_else(mut self) -> ViewWriterElse<'a> {
+        let writer = self.flush();
+        ViewWriterElse::new(writer)
+    }
+
+    fn flush(&mut self) -> &'a mut ViewWriter {
+        let parent = self.parent.take().expect("was already flushed");
+        let cond = self.cond;
+        self.writer.flush();
+        let body = &self.writer.tokens;
+        self.writer.tokens = quote! { if #cond { #body } };
+        self.writer.merge_into(parent);
+        parent
+    }
+}
+
+impl Deref for ViewWriterIf<'_> {
+    type Target = ViewWriter;
+
+    fn deref(&self) -> &Self::Target {
+        &self.writer
+    }
+}
+
+impl DerefMut for ViewWriterIf<'_> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.writer
+    }
+}
+
+impl Drop for ViewWriterIf<'_> {
+    fn drop(&mut self) {
+        if self.parent.is_some() {
+            self.flush();
+        }
+    }
+}
+
+pub(crate) struct ViewWriterElse<'a> {
+    parent: &'a mut ViewWriter,
+    writer: ViewWriter,
+}
+
+impl<'a> ViewWriterElse<'a> {
+    pub(super) fn new(parent: &'a mut ViewWriter) -> Self {
+        Self {
+            parent,
+            writer: ViewWriter::new(),
+        }
+    }
+}
+
+impl Deref for ViewWriterElse<'_> {
+    type Target = ViewWriter;
+
+    fn deref(&self) -> &Self::Target {
+        &self.writer
+    }
+}
+
+impl DerefMut for ViewWriterElse<'_> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.writer
+    }
+}
+
+impl Drop for ViewWriterElse<'_> {
+    fn drop(&mut self) {
+        self.writer.flush();
+        let tokens = &self.writer.tokens;
+        self.writer.tokens = quote! { else { #tokens } };
+        self.writer.merge_into(self.parent);
+    }
+}

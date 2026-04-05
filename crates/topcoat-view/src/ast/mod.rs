@@ -3,6 +3,7 @@ mod element;
 mod node;
 mod node_block;
 mod node_expr;
+mod node_for_loop;
 mod node_if;
 mod parse_option;
 mod view;
@@ -12,6 +13,7 @@ use element::*;
 use node::*;
 use node_block::*;
 use node_expr::*;
+use node_for_loop::*;
 use node_if::*;
 use parse_option::*;
 

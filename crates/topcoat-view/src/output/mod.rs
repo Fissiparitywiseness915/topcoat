@@ -1,12 +1,16 @@
-use std::ops::{Deref, DerefMut};
+mod view_writer_for_loop;
+mod view_writer_if;
+
+pub use view_writer_for_loop::*;
+pub use view_writer_if::*;
 
 use proc_macro2::TokenStream;
 use quote::{ToTokens, quote};
-use syn::Expr;
+use syn::{Expr, Pat};
 
 #[derive(Default)]
 pub(crate) struct ViewWriter {
-    tokens: TokenStream,
+    pub(self) tokens: TokenStream,
     static_segment: String,
     static_len: usize,
 }
@@ -54,6 +58,17 @@ impl ViewWriter {
     pub fn begin_if<'a>(&'a mut self, cond: &'a Expr) -> ViewWriterIf<'a> {
         ViewWriterIf::new(self, cond)
     }
+
+    pub fn begin_for_loop<'a>(&'a mut self, pat: &'a Pat, expr: &'a Expr) -> ViewWriterForLoop<'a> {
+        ViewWriterForLoop::new(self, pat, expr)
+    }
+
+    pub(self) fn merge_into(&mut self, parent: &mut Self) {
+        parent.flush();
+        self.flush();
+        parent.static_len += self.static_len;
+        self.tokens.to_tokens(&mut parent.tokens);
+    }
 }
 
 impl ToTokens for ViewWriter {
@@ -78,98 +93,5 @@ impl ToTokens for ViewWriter {
             writer.finish()
         }}
         .to_tokens(tokens);
-    }
-}
-
-macro_rules! impl_deref {
-    ($ident:ident) => {
-        impl Deref for $ident<'_> {
-            type Target = ViewWriter;
-
-            fn deref(&self) -> &Self::Target {
-                self.writer
-            }
-        }
-
-        impl DerefMut for $ident<'_> {
-            fn deref_mut(&mut self) -> &mut Self::Target {
-                self.writer
-            }
-        }
-    };
-}
-
-pub(crate) struct ViewWriterIf<'a> {
-    writer: Option<&'a mut ViewWriter>,
-    cond: &'a Expr,
-    tokens: TokenStream,
-}
-
-impl<'a> ViewWriterIf<'a> {
-    fn new(writer: &'a mut ViewWriter, cond: &'a Expr) -> Self {
-        Self {
-            writer: Some(writer),
-            cond,
-            tokens: TokenStream::new(),
-        }
-    }
-
-    pub fn begin_else(mut self) -> ViewWriterElse<'a> {
-        let writer = self.flush();
-        ViewWriterElse::new(writer)
-    }
-
-    fn flush(&mut self) -> &'a mut ViewWriter {
-        let writer = self.writer.take().expect("was already flushed");
-        writer.flush();
-        let cond = self.cond;
-        let body = &self.tokens;
-        quote! { if #cond { #body } }.to_tokens(&mut writer.tokens);
-        writer
-    }
-}
-
-impl Deref for ViewWriterIf<'_> {
-    type Target = ViewWriter;
-
-    fn deref(&self) -> &Self::Target {
-        self.writer.as_ref().unwrap()
-    }
-}
-
-impl DerefMut for ViewWriterIf<'_> {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        self.writer.as_mut().unwrap()
-    }
-}
-
-impl Drop for ViewWriterIf<'_> {
-    fn drop(&mut self) {
-        if self.writer.is_some() {
-            self.flush();
-        }
-    }
-}
-
-pub(crate) struct ViewWriterElse<'a> {
-    writer: &'a mut ViewWriter,
-    tokens: TokenStream,
-}
-
-impl<'a> ViewWriterElse<'a> {
-    fn new(writer: &'a mut ViewWriter) -> Self {
-        Self {
-            writer,
-            tokens: TokenStream::new(),
-        }
-    }
-}
-
-impl_deref!(ViewWriterElse);
-
-impl Drop for ViewWriterElse<'_> {
-    fn drop(&mut self) {
-        let body = &self.tokens;
-        quote! { else { #body } }.to_tokens(&mut self.writer.tokens);
     }
 }
