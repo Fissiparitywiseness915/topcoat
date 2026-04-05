@@ -9,14 +9,14 @@ use crate::{
 };
 
 pub struct NodeIf {
-    if_token: Token![if],
-    cond: syn::Expr,
-    then_branch: NodeBlock,
-    else_branch: Option<NodeElse>,
+    pub if_token: Token![if],
+    pub cond: syn::Expr,
+    pub then_branch: NodeBlock,
+    pub else_branch: Option<NodeElse>,
 }
 
 impl NodeIf {
-    pub fn write(&self, writer: &mut ViewWriter) {
+    pub(crate) fn write(&self, writer: &mut ViewWriter) {
         let mut writer = writer.begin_if(&self.cond);
         self.then_branch.write(&mut writer);
         if let Some(else_branch) = self.else_branch.as_ref() {

@@ -17,7 +17,7 @@ pub struct NodeForLoop {
 }
 
 impl NodeForLoop {
-    pub fn write(&self, writer: &mut ViewWriter) {
+    pub(crate) fn write(&self, writer: &mut ViewWriter) {
         let mut writer = writer.begin_for_loop(&self.pat, &self.expr);
         self.body.write(&mut writer);
     }

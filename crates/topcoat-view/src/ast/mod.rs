@@ -9,14 +9,13 @@ mod node_match;
 mod parse_option;
 mod view;
 
-use attribute::*;
-use element::*;
-use node::*;
-use node_block::*;
-use node_expr::*;
-use node_for_loop::*;
-use node_if::*;
-use node_match::*;
-use parse_option::*;
-
-pub use view::View;
+pub use attribute::*;
+pub use element::*;
+pub use node::*;
+pub use node_block::*;
+pub use node_expr::*;
+pub use node_for_loop::*;
+pub use node_if::*;
+pub use node_match::*;
+pub use parse_option::*;
+pub use view::*;

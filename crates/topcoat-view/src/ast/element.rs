@@ -9,13 +9,13 @@ use crate::{
 };
 
 pub struct Element {
-    name: Ident,
-    attributes: Attributes,
-    body: NodeBlock,
+    pub name: Ident,
+    pub attributes: Attributes,
+    pub body: NodeBlock,
 }
 
 impl Element {
-    pub fn write(&self, writer: &mut ViewWriter) {
+    pub(crate) fn write(&self, writer: &mut ViewWriter) {
         writer.push_str("<");
         let name = self.name.to_string();
         writer.push_str(&name);

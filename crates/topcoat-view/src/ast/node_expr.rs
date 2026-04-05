@@ -7,12 +7,12 @@ use syn::{
 use crate::{ast::parse_option::ParseOption, output::ViewWriter};
 
 pub struct NodeExpr {
-    _paren: syn::token::Paren,
-    expr: syn::Expr,
+    pub paren: syn::token::Paren,
+    pub expr: syn::Expr,
 }
 
 impl NodeExpr {
-    pub fn write(&self, writer: &mut ViewWriter) {
+    pub(crate) fn write(&self, writer: &mut ViewWriter) {
         let expr = &self.expr;
         writer.push_expr(quote! { &#expr });
     }
@@ -22,7 +22,7 @@ impl Parse for NodeExpr {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let content;
         Ok(Self {
-            _paren: parenthesized!(content in input),
+            paren: parenthesized!(content in input),
             expr: content.parse()?,
         })
     }

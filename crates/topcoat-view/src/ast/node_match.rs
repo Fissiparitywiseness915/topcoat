@@ -12,14 +12,14 @@ use crate::{
 };
 
 pub struct NodeMatch {
-    match_token: Token![match],
-    expr: Box<Expr>,
-    brace_token: Brace,
-    arms: Vec<NodeMatchArm>,
+    pub match_token: Token![match],
+    pub expr: Box<Expr>,
+    pub brace_token: Brace,
+    pub arms: Vec<NodeMatchArm>,
 }
 
 impl NodeMatch {
-    pub fn write(&self, writer: &mut ViewWriter) {
+    pub(crate) fn write(&self, writer: &mut ViewWriter) {
         let mut writer = writer.begin_match(&self.expr);
         for arm in &self.arms {
             arm.write(&mut writer);
@@ -52,15 +52,15 @@ impl ParseOption for NodeMatch {
 }
 
 pub struct NodeMatchArm {
-    pat: Pat,
-    guard: Option<(Token![if], Box<Expr>)>,
-    fat_arrow_token: Token![=>],
-    body: Box<Node>,
-    comma: Option<Token![,]>,
+    pub pat: Pat,
+    pub guard: Option<(Token![if], Box<Expr>)>,
+    pub fat_arrow_token: Token![=>],
+    pub body: Box<Node>,
+    pub comma: Option<Token![,]>,
 }
 
 impl NodeMatchArm {
-    pub fn write<'a>(&'a self, writer: &mut ViewWriterMatch<'a>) {
+    pub(crate) fn write<'a>(&'a self, writer: &mut ViewWriterMatch<'a>) {
         let mut writer = writer.begin_arm(
             &self.pat,
             self.guard.as_ref().map(|(_, guard)| guard.deref()),

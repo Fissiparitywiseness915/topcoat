@@ -5,7 +5,7 @@ use syn::parse::{Parse, ParseStream};
 use crate::{ast::node::Node, output::ViewWriter};
 
 pub struct View {
-    nodes: Vec<Node>,
+    pub nodes: Vec<Node>,
 }
 
 impl Parse for View {

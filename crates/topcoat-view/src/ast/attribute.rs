@@ -6,13 +6,13 @@ use syn::{
 use crate::{ast::ParseOption, output::ViewWriter};
 
 pub struct Attribute {
-    name: Ident,
-    _eq: Token![=],
-    value: LitStr,
+    pub name: Ident,
+    pub eq: Token![=],
+    pub value: LitStr,
 }
 
 impl Attribute {
-    pub fn write(&self, writer: &mut ViewWriter) {
+    pub(crate) fn write(&self, writer: &mut ViewWriter) {
         let name = self.name.to_string();
         let value = self.value.value();
         writer.push_str(&name);
@@ -26,7 +26,7 @@ impl Parse for Attribute {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         Ok(Self {
             name: input.parse()?,
-            _eq: input.parse()?,
+            eq: input.parse()?,
             value: input.parse()?,
         })
     }
@@ -39,11 +39,11 @@ impl ParseOption for Attribute {
 }
 
 pub struct Attributes {
-    items: Vec<Attribute>,
+    pub items: Vec<Attribute>,
 }
 
 impl Attributes {
-    pub fn write(&self, writer: &mut ViewWriter) {
+    pub(crate) fn write(&self, writer: &mut ViewWriter) {
         for item in &self.items {
             writer.push_str(" ");
             item.write(writer);
