@@ -5,6 +5,12 @@ use syn::Expr;
 
 use crate::output::ViewWriter;
 
+impl ViewWriter {
+    pub fn begin_if<'a>(&'a mut self, cond: &'a Expr) -> ViewWriterIf<'a> {
+        ViewWriterIf::new(self, cond)
+    }
+}
+
 pub(crate) struct ViewWriterIf<'a> {
     parent: Option<&'a mut ViewWriter>,
     cond: &'a Expr,

@@ -5,6 +5,12 @@ use syn::{Expr, Pat};
 
 use crate::output::ViewWriter;
 
+impl ViewWriter {
+    pub fn begin_for_loop<'a>(&'a mut self, pat: &'a Pat, expr: &'a Expr) -> ViewWriterForLoop<'a> {
+        ViewWriterForLoop::new(self, pat, expr)
+    }
+}
+
 pub(crate) struct ViewWriterForLoop<'a> {
     parent: &'a mut ViewWriter,
     writer: ViewWriter,

@@ -1,12 +1,16 @@
 use syn::{
     braced,
     parse::{Parse, ParseStream},
+    token::Brace,
 };
 
-use crate::{ast::Node, output::ViewWriter};
+use crate::{
+    ast::{Node, parse_option::ParseOption},
+    output::ViewWriter,
+};
 
 pub struct NodeBlock {
-    _brace: syn::token::Brace,
+    _brace: Brace,
     children: Vec<Node>,
 }
 
@@ -31,5 +35,11 @@ impl Parse for NodeBlock {
                 children
             },
         })
+    }
+}
+
+impl ParseOption for NodeBlock {
+    fn peek(input: ParseStream) -> bool {
+        input.peek(Brace)
     }
 }

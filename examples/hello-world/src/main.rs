@@ -1,21 +1,13 @@
 fn main() {
-    let names = ["carl", "julien", "joey"];
+    let name = "carl";
 
     let content = topcoat::view! {
-        html {
-            head {
-                title { "hello world" }
-            }
-            body {
-                for name in names {
-                    if name.len() < 5 {
-                        div {
-                            "hello " (name)
-                        }
-                    } else {
-                        "im " (name)
-                    }
-                }
+        div {
+            match name {
+                "carl" => b { "hi carl" },
+                "joey" => b { "hi joey" },
+                "julien" => b { "im julien" },
+                _ => {},
             }
         }
     };

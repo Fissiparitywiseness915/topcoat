@@ -1,12 +1,13 @@
 mod view_writer_for_loop;
 mod view_writer_if;
+mod view_writer_match;
 
-pub use view_writer_for_loop::*;
-pub use view_writer_if::*;
+pub(crate) use view_writer_for_loop::*;
+pub(crate) use view_writer_if::*;
+pub(crate) use view_writer_match::*;
 
 use proc_macro2::TokenStream;
 use quote::{ToTokens, quote};
-use syn::{Expr, Pat};
 
 #[derive(Default)]
 pub(crate) struct ViewWriter {
@@ -53,14 +54,6 @@ impl ViewWriter {
     pub fn push_expr(&mut self, expr: TokenStream) {
         self.flush();
         quote! { writer.push_fragment(#expr); }.to_tokens(&mut self.tokens);
-    }
-
-    pub fn begin_if<'a>(&'a mut self, cond: &'a Expr) -> ViewWriterIf<'a> {
-        ViewWriterIf::new(self, cond)
-    }
-
-    pub fn begin_for_loop<'a>(&'a mut self, pat: &'a Pat, expr: &'a Expr) -> ViewWriterForLoop<'a> {
-        ViewWriterForLoop::new(self, pat, expr)
     }
 
     pub(self) fn merge_into(&mut self, parent: &mut Self) {
