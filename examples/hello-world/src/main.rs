@@ -1,3 +1,6 @@
+#[topcoat::component]
+fn button() {}
+
 fn main() {
     let content = topcoat::view! {
         <html>
