@@ -1,15 +1,14 @@
-use topcoat::{component, view, view::View};
+mod app;
+mod components;
 
-#[component]
-async fn button<'a>(id: &'a str, child: View) -> View {
-    view! {
-        <button id=(id) class="button">(child)</button>
-    }
-}
+use topcoat::{view, view::View};
 
 #[tokio::main]
 async fn main() {
-    let router = topcoat::router::Router::new();
+    let router = app::router();
+    let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
+    topcoat::axum::serve(listener, router).await.unwrap();
+
     let content = view! {
         <html>
             <head>
@@ -17,10 +16,10 @@ async fn main() {
             </head>
             <body id="test">
                 <form
-                    action=async || {
-                        // runs on server
-                        println!("{}, {}", email, password);
-                    }
+                    // action=async || {
+                    //     // runs on server
+                    //     println!("{}, {}", email, password);
+                    // }
                 >
                     <input name="email" />
                     <input name="password" />

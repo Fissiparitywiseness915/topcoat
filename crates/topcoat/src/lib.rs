@@ -13,3 +13,7 @@ pub mod router {
 pub mod view {
     pub use topcoat_view::runtime::*;
 }
+
+pub mod axum {
+    pub use axum::*;
+}

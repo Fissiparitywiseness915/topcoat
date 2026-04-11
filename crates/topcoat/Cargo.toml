@@ -8,5 +8,7 @@ topcoat-macro.workspace = true
 topcoat-router.workspace = true
 topcoat-view.workspace = true
 
+axum.workspace = true
+
 [lints]
 workspace = true
