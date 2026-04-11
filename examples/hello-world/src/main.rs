@@ -1,7 +1,7 @@
 // mod app;
 // mod components;
 
-use topcoat::{View, axum::routing::get, view};
+use topcoat::{axum::routing::get, view};
 
 #[tokio::main]
 async fn main() {
@@ -22,8 +22,8 @@ async fn main() {
                             //     println!("{}, {}", email, password);
                             // }
                         >
-                            <input name="email" />
-                            <input name="password" />
+                            <input name="email">
+                            <input name="password">
                         </form>
                     </body>
                 </html>
