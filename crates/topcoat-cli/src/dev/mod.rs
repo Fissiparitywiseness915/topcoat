@@ -89,7 +89,7 @@ fn make_spinner(message: &str) -> ProgressBar {
 }
 
 async fn build_and_run(initial: bool, dev_url: &str) -> Option<Child> {
-    let label = if initial { "Building" } else { "Rebuilding" };
+    let label = if initial { "building" } else { "rebuilding" };
     let spinner = make_spinner(label);
 
     let output = Command::new("cargo")
