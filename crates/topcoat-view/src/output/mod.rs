@@ -23,7 +23,7 @@ impl ViewWriter {
     fn flush(&mut self) {
         if !self.static_segment.is_empty() {
             let static_segment = &self.static_segment;
-            quote! { writer.push_fragment(#static_segment); }.to_tokens(&mut self.tokens);
+            quote! { writer.push_fragment_unescaped(#static_segment); }.to_tokens(&mut self.tokens);
             self.capacity += self.static_segment.len();
             self.static_segment.clear();
         }
@@ -33,21 +33,26 @@ impl ViewWriter {
         self.static_segment.push(ch);
     }
 
-    pub fn push_str(&mut self, string: &str) {
+    pub fn push_str_unescaped(&mut self, string: &str) {
         self.static_segment.push_str(string);
     }
 
-    pub fn push_escaped(&mut self, string: &str) {
+    pub fn push_str(&mut self, string: &str) {
         for c in string.chars() {
             match c {
-                '&' => self.push_str("&amp;"),
-                '<' => self.push_str("&lt;"),
-                '>' => self.push_str("&gt;"),
-                '"' => self.push_str("&quot;"),
-                '\'' => self.push_str("&#x27;"),
+                '&' => self.push_str_unescaped("&amp;"),
+                '<' => self.push_str_unescaped("&lt;"),
+                '>' => self.push_str_unescaped("&gt;"),
+                '"' => self.push_str_unescaped("&quot;"),
+                '\'' => self.push_str_unescaped("&#x27;"),
                 _ => self.push(c),
             }
         }
+    }
+
+    pub fn push_expr_unescaped(&mut self, expr: TokenStream) {
+        self.flush();
+        quote! { writer.push_fragment_unescaped(#expr); }.to_tokens(&mut self.tokens);
     }
 
     pub fn push_expr(&mut self, expr: TokenStream) {
@@ -73,7 +78,7 @@ impl ToTokens for ViewWriter {
         let buffer = &self.tokens;
         let capacity = self.capacity + static_segment.len();
         let final_segment = (!static_segment.is_empty()).then(|| {
-            quote! { writer.push_fragment(#static_segment); }
+            quote! { writer.push_fragment_unescaped(#static_segment); }
         });
         quote! {{
             let mut writer = ::topcoat::ViewWriter::with_capacity(#capacity);

@@ -53,6 +53,20 @@ impl ViewWriter {
 
     #[inline]
     pub fn push_fragment(&mut self, fragment: impl Fragment) {
+        for c in fragment.as_str().chars() {
+            match c {
+                '&' => self.buf.push_str("&amp;"),
+                '<' => self.buf.push_str("&lt;"),
+                '>' => self.buf.push_str("&gt;"),
+                '"' => self.buf.push_str("&quot;"),
+                '\'' => self.buf.push_str("&#x27;"),
+                _ => self.buf.push(c),
+            }
+        }
+    }
+
+    #[inline]
+    pub fn push_fragment_unescaped(&mut self, fragment: impl Fragment) {
         self.buf.push_str(fragment.as_str());
     }
 
