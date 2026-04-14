@@ -1,15 +1,36 @@
 use std::fmt::Write;
 
+/// An HTML-aware writer that escapes text content by default.
+///
+/// `Formatter` wraps any [`std::fmt::Write`] destination and provides paired
+/// escaped/unescaped methods for writing strings and characters. The escaped
+/// variants handle the five characters that are meaningful in HTML:
+///
+/// | Character | Escaped as |
+/// |-----------|------------|
+/// | `&`       | `&amp;`    |
+/// | `<`       | `&lt;`     |
+/// | `>`       | `&gt;`     |
+/// | `"`       | `&quot;`   |
+/// | `'`       | `&#x27;`   |
+///
+/// Use the escaped methods ([`write_str`](Self::write_str),
+/// [`write_char`](Self::write_char)) for user-provided or dynamic content, and
+/// the unescaped methods ([`write_str_unescaped`](Self::write_str_unescaped),
+/// [`write_char_unescaped`](Self::write_char_unescaped)) for trusted markup
+/// like tags and attributes.
 pub struct Formatter<'a> {
     write: &'a mut dyn Write,
 }
 
 impl<'a> Formatter<'a> {
+    /// Creates a new `Formatter` that writes into the given destination.
     #[inline]
     pub fn new(write: &'a mut dyn Write) -> Self {
         Self { write }
     }
 
+    /// Writes a single character, escaping it if it is HTML-significant.
     #[inline]
     pub fn write_char(&mut self, c: char) -> std::fmt::Result {
         match c {
@@ -22,11 +43,18 @@ impl<'a> Formatter<'a> {
         }
     }
 
+    /// Writes a single character without escaping. Use for trusted content only.
     #[inline]
     pub fn write_char_unescaped(&mut self, c: char) -> std::fmt::Result {
         self.write.write_char(c)
     }
 
+    /// Writes a string, escaping any HTML-significant characters.
+    ///
+    /// Scans for safe spans and flushes them in bulk, only falling back to
+    /// per-entity writes when a special character is encountered. This avoids
+    /// the overhead of writing one character at a time for strings that are
+    /// mostly (or entirely) safe.
     #[inline]
     pub fn write_str(&mut self, s: &str) -> std::fmt::Result {
         let bytes = s.as_bytes();
@@ -56,6 +84,7 @@ impl<'a> Formatter<'a> {
         Ok(())
     }
 
+    /// Writes a string without escaping. Use for trusted markup like tags and attributes.
     #[inline]
     pub fn write_str_unescaped(&mut self, s: &str) -> std::fmt::Result {
         self.write.write_str(s)
