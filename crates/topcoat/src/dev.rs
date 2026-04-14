@@ -28,7 +28,7 @@ pub async fn script(child: View) -> View {
 
     view! {
         <script>
-            (format!(r#"
+            (crate::Escaped::new_unchecked(format!(r#"
 (function() {{
   function connect() {{
     var ws = new WebSocket("{url}");
@@ -48,7 +48,7 @@ pub async fn script(child: View) -> View {
   }}
   connect();
 }})();
-"#))
+"#)))
         </script>
     }
 }
