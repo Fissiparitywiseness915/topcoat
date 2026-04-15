@@ -9,7 +9,7 @@ use syn::parse::{Parse, ParseStream};
 ///
 /// ```rust
 /// use syn::{Token, parse::{Parse, ParseStream}};
-/// use kosame_dsl::parse_option::ParseOption;
+/// use topcoat_view::ast::ParseOption;
 ///
 /// struct MyStruct {
 ///     token: Token![as],

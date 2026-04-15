@@ -40,7 +40,7 @@ impl ToTokens for Layout {
 
         quote! {
             #[allow(non_upper_case_globals)]
-            const #ident: ::topcoat::router::layout::Layout = ::topcoat::router::layout::Layout::new(
+            const #ident: ::topcoat::router::Layout = ::topcoat::router::Layout::new(
                 file!(),
                 "",
                 |page| {
@@ -50,5 +50,9 @@ impl ToTokens for Layout {
             );
         }
         .to_tokens(tokens);
+
+        if cfg!(feature = "discover") {
+            quote! { ::topcoat::inventory::submit! { #ident } }.to_tokens(tokens);
+        }
     }
 }

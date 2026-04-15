@@ -24,3 +24,6 @@ pub mod view {
 }
 
 pub use serve::serve;
+
+#[cfg(feature = "discover")]
+pub use inventory;

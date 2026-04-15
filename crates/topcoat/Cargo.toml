@@ -3,6 +3,15 @@ name = "topcoat"
 version = "0.1.0"
 edition = "2024"
 
+[features]
+default = ["discover"]
+
+discover = [
+	"dep:inventory",
+	"topcoat-macro/discover",
+	"topcoat-router/discover",
+]
+
 [dependencies]
 topcoat-macro.workspace = true
 topcoat-router.workspace = true
@@ -10,6 +19,7 @@ topcoat-view = { workspace = true, features = ["axum"] }
 
 axum.workspace = true
 futures-util.workspace = true
+inventory = { workspace = true, optional = true }
 tokio.workspace = true
 tokio-tungstenite.workspace = true
 

@@ -32,3 +32,6 @@ impl Layout {
         (self.render)(slot)
     }
 }
+
+#[cfg(feature = "discover")]
+inventory::collect!(Layout);

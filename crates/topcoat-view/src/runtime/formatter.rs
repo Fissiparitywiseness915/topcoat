@@ -132,7 +132,7 @@ mod tests {
     fn unescaped_passthrough() {
         let mut buf = String::new();
         let mut f = Formatter::new(&mut buf);
-        f.write_str_unescaped("<b>raw</b>").unwrap();
+        f.write_str_unescaped("<b>raw</b>");
         assert_eq!(buf, "<b>raw</b>");
     }
 }

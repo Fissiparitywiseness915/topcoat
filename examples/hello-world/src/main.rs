@@ -1,5 +1,5 @@
 use topcoat::{
-    router::{layout, layout::Slot, page},
+    router::{Slot, layout, page},
     view::{View, view},
 };
 
@@ -46,11 +46,7 @@ async fn contact_page() -> View {
 
 #[tokio::main]
 async fn main() {
-    let topcoat_router = topcoat::router::Router::new()
-        .layout(layout)
-        .page(home_page)
-        .page(about_page)
-        .page(contact_page);
+    let topcoat_router = topcoat::router::Router::new().discover();
 
     let axum_router = axum::Router::new()
         .merge(topcoat_router)

@@ -30,3 +30,6 @@ impl Page {
         (self.render)()
     }
 }
+
+#[cfg(feature = "discover")]
+inventory::collect!(Page);

@@ -47,7 +47,7 @@ impl ToTokens for Page {
 
         quote! {
             #[allow(non_upper_case_globals)]
-            const #ident: ::topcoat::router::page::Page = ::topcoat::router::page::Page::new(
+            const #ident: ::topcoat::router::Page = ::topcoat::router::Page::new(
                 file!(),
                 #path,
                 || {
@@ -57,5 +57,9 @@ impl ToTokens for Page {
             );
         }
         .to_tokens(tokens);
+
+        if cfg!(feature = "discover") {
+            quote! { ::topcoat::inventory::submit! { #ident } }.to_tokens(tokens);
+        }
     }
 }

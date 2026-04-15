@@ -1,6 +1,5 @@
 [workspace]
 resolver = "2"
-default-members = ["examples/hello-world"]
 members = [
     "crates/topcoat",
     "crates/topcoat-axum",
@@ -31,6 +30,7 @@ futures-util = "0.3"
 heck = "0.5.0"
 http = "1.4.0"
 indicatif = "0.18"
+inventory = "0.3.24"
 notify = "8.1.0"
 proc-macro2 = "1.0.106"
 quote = "1.0.45"
