@@ -1,5 +1,3 @@
-mod layout;
-
-pub fn router() -> topcoat::axum::Router {
-    topcoat::router!()
+pub fn router() -> topcoat::router::Router {
+    topcoat::router::file_router!()
 }

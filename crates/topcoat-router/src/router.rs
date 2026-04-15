@@ -1,9 +1,12 @@
+use std::borrow::Cow;
+
 use axum::routing::get;
 
 use crate::{layout::Layout, page::Page};
 
 #[derive(Default)]
 pub struct Router {
+    file_root: Option<Cow<'static, str>>,
     pages: Vec<Page>,
     layouts: Vec<Layout>,
 }
@@ -11,6 +14,12 @@ pub struct Router {
 impl Router {
     pub fn new() -> Self {
         Default::default()
+    }
+
+    #[doc(hidden)]
+    pub fn file_root(mut self, file_root: impl Into<Cow<'static, str>>) -> Self {
+        self.file_root = Some(file_root.into());
+        self
     }
 
     pub fn page(mut self, page: Page) -> Self {

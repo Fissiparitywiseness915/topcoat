@@ -1,3 +1,4 @@
+mod file_router;
 mod layout;
 mod page;
 mod router;

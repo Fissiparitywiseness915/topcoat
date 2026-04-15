@@ -1,3 +1,5 @@
+mod app;
+
 use topcoat::{
     router::{Slot, layout, page},
     view::{View, view},
@@ -46,7 +48,7 @@ async fn contact_page() -> View {
 
 #[tokio::main]
 async fn main() {
-    let topcoat_router = topcoat::router::Router::new().discover();
+    let topcoat_router = app::router();
 
     let axum_router = axum::Router::new()
         .merge(topcoat_router)
