@@ -50,6 +50,12 @@ where
     }
 }
 
+impl<T> From<Option<T>> for QuoteOption<T> {
+    fn from(value: Option<T>) -> Self {
+        QuoteOption::new(value)
+    }
+}
+
 impl<'a, T> From<&'a Option<T>> for QuoteOption<&'a T> {
     fn from(value: &'a Option<T>) -> Self {
         QuoteOption::new(value.as_ref())

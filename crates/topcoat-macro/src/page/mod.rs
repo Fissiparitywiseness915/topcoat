@@ -5,6 +5,8 @@ use syn::{
     parse::{Parse, ParseStream},
 };
 
+use crate::quote_option::QuoteOption;
+
 pub struct PageAttr {
     path: Option<LitStr>,
 }
@@ -43,7 +45,7 @@ impl ToTokens for Page {
         let item = &self.1.item;
         let ident = &item.sig.ident;
 
-        let path = path.unwrap();
+        let path = QuoteOption::from(path);
 
         quote! {
             #[allow(non_upper_case_globals)]

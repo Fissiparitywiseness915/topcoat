@@ -1,6 +1,7 @@
 mod component;
 mod layout;
 mod page;
+mod quote_option;
 mod route;
 
 use proc_macro::TokenStream;

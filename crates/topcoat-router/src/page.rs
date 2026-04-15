@@ -5,14 +5,14 @@ use topcoat_view::runtime::View;
 #[derive(Clone)]
 pub struct Page {
     file: &'static str,
-    path: &'static str,
+    path: Option<&'static str>,
     render: fn() -> Pin<Box<dyn Future<Output = View> + Send>>,
 }
 
 impl Page {
     pub const fn new(
         file: &'static str,
-        path: &'static str,
+        path: Option<&'static str>,
         render: fn() -> Pin<Box<dyn Future<Output = View> + Send>>,
     ) -> Self {
         Self { file, path, render }
@@ -22,7 +22,7 @@ impl Page {
         self.file
     }
 
-    pub fn path(&self) -> &'static str {
+    pub fn path(&self) -> Option<&'static str> {
         self.path
     }
 

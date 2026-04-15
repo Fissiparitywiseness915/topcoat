@@ -51,7 +51,7 @@ impl From<Router> for axum::Router {
         for page in value.pages {
             let layouts = value.layouts.clone();
             result = result.route(
-                page.path(),
+                page.path().unwrap(),
                 get(async move || {
                     let mut result = page.render();
                     for layout in layouts {

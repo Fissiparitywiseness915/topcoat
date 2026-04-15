@@ -1,15 +1,21 @@
 use proc_macro2::TokenStream;
 use quote::{ToTokens, quote};
 use syn::{
-    ItemFn,
+    ItemFn, LitStr,
     parse::{Parse, ParseStream},
 };
 
-pub struct LayoutAttr {}
+use crate::quote_option::QuoteOption;
+
+pub struct LayoutAttr {
+    path: Option<LitStr>,
+}
 
 impl Parse for LayoutAttr {
-    fn parse(_: ParseStream) -> syn::Result<Self> {
-        Ok(Self {})
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        Ok(Self {
+            path: input.peek(LitStr).then(|| input.parse()).transpose()?,
+        })
     }
 }
 
@@ -35,14 +41,17 @@ impl Layout {
 
 impl ToTokens for Layout {
     fn to_tokens(&self, tokens: &mut TokenStream) {
+        let path = self.0.path.as_ref();
         let item = &self.1.item;
         let ident = &item.sig.ident;
+
+        let path = QuoteOption::from(path);
 
         quote! {
             #[allow(non_upper_case_globals)]
             const #ident: ::topcoat::router::Layout = ::topcoat::router::Layout::new(
                 file!(),
-                "",
+                #path,
                 |page| {
                     #item
                     Box::pin(#ident(page))

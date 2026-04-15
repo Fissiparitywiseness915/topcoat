@@ -7,14 +7,14 @@ pub type Slot = Pin<Box<dyn Future<Output = View> + Send>>;
 #[derive(Clone)]
 pub struct Layout {
     file: &'static str,
-    path: &'static str,
+    path: Option<&'static str>,
     render: fn(slot: Slot) -> Pin<Box<dyn Future<Output = View> + Send>>,
 }
 
 impl Layout {
     pub const fn new(
         file: &'static str,
-        path: &'static str,
+        path: Option<&'static str>,
         render: fn(slot: Slot) -> Pin<Box<dyn Future<Output = View> + Send>>,
     ) -> Self {
         Self { file, path, render }
@@ -24,7 +24,7 @@ impl Layout {
         self.file
     }
 
-    pub fn path(&self) -> &'static str {
+    pub fn path(&self) -> Option<&'static str> {
         self.path
     }
 
