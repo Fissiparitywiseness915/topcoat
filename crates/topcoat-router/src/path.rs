@@ -77,6 +77,10 @@ impl<'a> FromIterator<Segment<'a>> for PathBuf {
             use std::fmt::Write;
             write!(buf, "/{segment}").unwrap();
         }
+        // Root route is represented as "/" in axum.
+        if buf.is_empty() {
+            buf += "/";
+        }
         Self { inner: buf }
     }
 }
