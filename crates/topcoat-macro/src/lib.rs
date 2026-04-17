@@ -3,6 +3,7 @@ mod layout;
 mod page;
 mod quote_option;
 mod route;
+mod segment;
 
 use proc_macro::TokenStream;
 use quote::quote;
@@ -42,4 +43,12 @@ pub fn layout(attr: TokenStream, item: TokenStream) -> TokenStream {
     let item = syn::parse_macro_input!(item as layout::LayoutItem);
     let layout = layout::Layout::new(attr, item);
     quote! { #layout }.into()
+}
+
+#[proc_macro_attribute]
+pub fn segment(attr: TokenStream, item: TokenStream) -> TokenStream {
+    let attr = syn::parse_macro_input!(attr as segment::SegmentAttr);
+    let item = syn::parse_macro_input!(item as segment::SegmentItem);
+    let segment = segment::Segment::new(attr, item);
+    quote! { #segment }.into()
 }

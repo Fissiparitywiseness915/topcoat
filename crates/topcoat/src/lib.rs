@@ -12,7 +12,7 @@ pub mod component {
 }
 
 pub mod router {
-    pub use topcoat_macro::{layout, page, route};
+    pub use topcoat_macro::{layout, page, route, segment};
 
     pub use topcoat_router::*;
 }

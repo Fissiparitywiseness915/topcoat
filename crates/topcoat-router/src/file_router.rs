@@ -1,4 +1,4 @@
-use crate::{PathBuf, Router, Segment};
+use crate::{PathBuf, PathSegment, Router};
 
 #[cfg(feature = "discover")]
 #[macro_export]
@@ -33,9 +33,9 @@ impl Router {
             .skip(1)
             .map(|s| {
                 if s.starts_with("_") {
-                    Segment::Group(s)
+                    PathSegment::Group(s)
                 } else {
-                    Segment::Static(s)
+                    PathSegment::Static(s)
                 }
             })
             .collect()
