@@ -1,8 +1,8 @@
-use std::pin::Pin;
+use std::{borrow::Cow, pin::Pin};
 
 use topcoat_view::runtime::View;
 
-use crate::Slot;
+use crate::{Layout, Path, Slot};
 
 #[derive(Debug, Clone)]
 pub struct FileLayout {
@@ -16,6 +16,14 @@ impl FileLayout {
         render: fn(slot: Slot) -> Pin<Box<dyn Future<Output = View> + Send>>,
     ) -> Self {
         Self { file, render }
+    }
+
+    pub fn into_layout(self, path: Cow<'static, Path>) -> Layout {
+        Layout::new(path, self.render)
+    }
+
+    pub fn file(&self) -> &'static str {
+        self.file
     }
 }
 

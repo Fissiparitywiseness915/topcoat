@@ -41,24 +41,27 @@ impl Layout {
 
 impl ToTokens for Layout {
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        let path = self.0.path.as_ref();
+        let attr = &self.0;
         let item = &self.1.item;
         let ident = &item.sig.ident;
 
-        let path = QuoteOption::from(path);
+        let render = quote! {
+            |slot| {
+                #item
+                Box::pin(#ident(slot))
+            }
+        };
 
-        quote! {
-            #[allow(non_upper_case_globals)]
-            const #ident: ::topcoat::router::Layout = ::topcoat::router::Layout::new(
-                file!(),
-                #path,
-                |page| {
-                    #item
-                    Box::pin(#ident(page))
-                }
-            );
-        }
-        .to_tokens(tokens);
+        match attr.path.as_ref() {
+            Some(path) => quote! {
+                #[allow(non_upper_case_globals)]
+                const #ident: ::topcoat::router::Layout = ::topcoat::router::Layout::new(#path, #render);
+            },
+            None => quote! {
+                #[allow(non_upper_case_globals)]
+                const #ident: ::topcoat::router::FileLayout = ::topcoat::router::FileLayout::new(file!(), #render);
+            }
+        }.to_tokens(tokens);
 
         if cfg!(feature = "discover") {
             quote! { ::topcoat::inventory::submit! { #ident } }.to_tokens(tokens);

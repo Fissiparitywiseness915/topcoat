@@ -1,4 +1,8 @@
-use std::{borrow::Borrow, fmt::Display, ops::Deref};
+use std::{
+    borrow::{Borrow, Cow},
+    fmt::{Display, Write},
+    ops::{AddAssign, Deref},
+};
 
 use ref_cast::RefCast;
 
@@ -10,33 +14,30 @@ pub struct Path {
 
 impl Path {
     pub fn new<S: AsRef<str> + ?Sized>(s: &S) -> &Self {
-        let inner = s.as_ref();
-        if !inner.starts_with("/") {
-            panic!("paths must start with \"/\"");
-        }
-        Self::ref_cast(inner)
+        Self::ref_cast(s.as_ref())
     }
 
     pub fn segments(&self) -> impl Iterator<Item = PathSegment<'_>> {
         self.inner.split("/").skip(1).map(PathSegment::new)
     }
 
-    pub fn to_axum_path(&self) -> String {
-        self.segments()
-            .filter(|s| !s.is_group())
-            .collect::<PathBuf>()
-            .inner
+    pub fn to_axum_path(&self) -> Cow<'static, str> {
+        if self.inner.is_empty() {
+            return Cow::Borrowed("/");
+        }
+        Cow::Owned(
+            self.segments()
+                .filter(|s| !s.is_group())
+                .collect::<PathBuf>()
+                .inner,
+        )
     }
 
     pub fn starts_with(&self, other: &Path) -> bool {
-        if self.inner.len() > other.inner.len() {
+        if self.inner.len() < other.inner.len() {
             return false;
         }
         return self.segments().zip(other.segments()).all(|(a, b)| a == b);
-    }
-
-    pub fn as_str(&self) -> &str {
-        &self.inner
     }
 }
 
@@ -56,9 +57,15 @@ impl ToOwned for Path {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Default, Clone, PartialEq, Eq, Hash)]
 pub struct PathBuf {
     inner: String,
+}
+
+impl PathBuf {
+    pub fn new() -> Self {
+        Default::default()
+    }
 }
 
 impl Borrow<Path> for PathBuf {
@@ -75,18 +82,19 @@ impl Deref for PathBuf {
     }
 }
 
+impl AddAssign<PathSegment<'_>> for PathBuf {
+    fn add_assign(&mut self, rhs: PathSegment<'_>) {
+        write!(self.inner, "/{rhs}").unwrap();
+    }
+}
+
 impl<'a> FromIterator<PathSegment<'a>> for PathBuf {
     fn from_iter<T: IntoIterator<Item = PathSegment<'a>>>(iter: T) -> Self {
-        let mut buf = String::new();
+        let mut buf = PathBuf::new();
         for segment in iter {
-            use std::fmt::Write;
-            write!(buf, "/{segment}").unwrap();
+            buf += segment;
         }
-        // Root route is represented as "/" in axum.
-        if buf.is_empty() {
-            buf += "/";
-        }
-        Self { inner: buf }
+        buf
     }
 }
 
@@ -126,6 +134,9 @@ impl<'a> PathSegment<'a> {
             assert_valid_ident(inner, "group", s);
             PathSegment::Group(inner)
         } else {
+            if s.is_empty() {
+                panic!("invalid segment: empty string");
+            }
             if s.contains('{') || s.contains('}') || s.contains('(') || s.contains(')') {
                 panic!("invalid segment: unexpected brackets in `{s}`");
             }

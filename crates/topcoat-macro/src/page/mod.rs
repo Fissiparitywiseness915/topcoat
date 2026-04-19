@@ -41,24 +41,27 @@ impl Page {
 
 impl ToTokens for Page {
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        let path = self.0.path.as_ref();
+        let attr = &self.0;
         let item = &self.1.item;
         let ident = &item.sig.ident;
 
-        let path = QuoteOption::from(path);
+        let render = quote! {
+            || {
+                #item
+                Box::pin(#ident())
+            }
+        };
 
-        quote! {
-            #[allow(non_upper_case_globals)]
-            const #ident: ::topcoat::router::Page = ::topcoat::router::Page::new(
-                file!(),
-                #path,
-                || {
-                    #item
-                    Box::pin(#ident())
-                }
-            );
-        }
-        .to_tokens(tokens);
+        match attr.path.as_ref() {
+            Some(path) => quote! {
+                #[allow(non_upper_case_globals)]
+                const #ident: ::topcoat::router::Page = ::topcoat::router::Page::new(#path, #render);
+            },
+            None => quote! {
+                #[allow(non_upper_case_globals)]
+                const #ident: ::topcoat::router::FilePage = ::topcoat::router::FilePage::new(file!(), #render);
+            }
+        }.to_tokens(tokens);
 
         if cfg!(feature = "discover") {
             quote! { ::topcoat::inventory::submit! { #ident } }.to_tokens(tokens);

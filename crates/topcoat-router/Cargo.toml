@@ -10,6 +10,7 @@ discover = ["dep:inventory"]
 topcoat-view.workspace = true
 
 axum.workspace = true
+heck.workspace = true
 http.workspace = true
 inventory = { workspace = true, optional = true }
 ref-cast.workspace = true
