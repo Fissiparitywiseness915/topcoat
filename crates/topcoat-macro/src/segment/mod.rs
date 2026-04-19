@@ -1,4 +1,6 @@
-use proc_macro2::TokenStream;
+use std::collections::HashSet;
+
+use proc_macro2::{Span, TokenStream};
 use quote::{ToTokens, quote};
 use syn::{
     Ident, LitStr, Token,
@@ -6,27 +8,49 @@ use syn::{
     punctuated::Punctuated,
 };
 
+use crate::quote_option::QuoteOption;
+
 pub struct Segment {
     attrs: Punctuated<SegmentAttr, Token![,]>,
 }
 
 impl Parse for Segment {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        Ok(Self {
-            attrs: input.parse_terminated(SegmentAttr::parse, Token![,])?,
-        })
+        let attrs: Punctuated<SegmentAttr, Token![,]> =
+            input.parse_terminated(SegmentAttr::parse, Token![,])?;
+
+        // Check for duplicates.
+        let mut keys = HashSet::new();
+        for attr in attrs.iter() {
+            if !keys.insert(attr.keyword()) {
+                return Err(syn::Error::new(
+                    attr.span(),
+                    format_args!("duplicate attribute `{}`", attr.keyword()),
+                ));
+            }
+        }
+
+        Ok(Self { attrs })
     }
 }
 
 impl ToTokens for Segment {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         if cfg!(feature = "discover") {
+            let kind = QuoteOption::new(
+                self.attrs
+                    .iter()
+                    .find_map(SegmentAttr::kind)
+                    .map(|kind| quote! { ::topcoat::router::SegmentKind::#kind }),
+            );
+            let rename = QuoteOption::new(self.attrs.iter().find_map(SegmentAttr::rename));
+
             quote! {
                 ::topcoat::inventory::submit! {
                     ::topcoat::router::Segment::new(
                         file!(),
-                        None,
-                        None,
+                        #kind,
+                        #rename,
                     )
                 }
             }
@@ -53,6 +77,36 @@ pub enum SegmentAttr {
         eq_token: Token![=],
         value: LitStr,
     },
+}
+
+impl SegmentAttr {
+    fn keyword(&self) -> &'static str {
+        match self {
+            Self::Kind { .. } => "kind",
+            Self::Rename { .. } => "rename",
+        }
+    }
+
+    fn span(&self) -> Span {
+        match self {
+            Self::Kind { kind_kw, .. } => kind_kw.span,
+            Self::Rename { rename_kw, .. } => rename_kw.span,
+        }
+    }
+
+    fn kind(&self) -> Option<&Ident> {
+        match self {
+            Self::Kind { value, .. } => Some(value),
+            _ => None,
+        }
+    }
+
+    fn rename(&self) -> Option<&LitStr> {
+        match self {
+            Self::Rename { value, .. } => Some(value),
+            _ => None,
+        }
+    }
 }
 
 impl Parse for SegmentAttr {

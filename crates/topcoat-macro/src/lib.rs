@@ -47,6 +47,6 @@ pub fn layout(attr: TokenStream, item: TokenStream) -> TokenStream {
 
 #[proc_macro]
 pub fn segment(tokens: TokenStream) -> TokenStream {
-    let segment = syn::parse_macro_input!(segment as segment::Segment);
+    let segment = syn::parse_macro_input!(tokens as segment::Segment);
     quote! { #segment }.into()
 }

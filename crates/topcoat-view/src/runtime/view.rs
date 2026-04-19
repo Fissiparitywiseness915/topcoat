@@ -16,6 +16,7 @@ use std::fmt;
 /// <!-- Invalid: unclosed tag would corrupt the parent document -->
 /// <div>Hello
 /// ```
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct View {
     pub(super) buf: Cow<'static, str>,
 }

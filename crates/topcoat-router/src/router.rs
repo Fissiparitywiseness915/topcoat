@@ -2,13 +2,14 @@ use std::borrow::Cow;
 
 use axum::routing::get;
 
-use crate::{layout::Layout, page::Page};
+use crate::{Layout, Page, Segment};
 
 #[derive(Default)]
 pub struct Router {
     pub(crate) file_root: Option<Cow<'static, str>>,
     pub(crate) pages: Vec<Page>,
     pub(crate) layouts: Vec<Layout>,
+    pub(crate) segments: Vec<Segment>,
 }
 
 impl Router {
@@ -41,6 +42,14 @@ impl Router {
         self
     }
 
+    pub fn segment(mut self, segment: Segment) -> Self {
+        if self.file_root.is_none() {
+            panic!("segments may only be used in a file router")
+        }
+        self.segments.push(segment);
+        self
+    }
+
     #[cfg(feature = "discover")]
     pub fn discover(mut self) -> Self {
         for page in inventory::iter::<Page>().cloned() {
@@ -48,6 +57,11 @@ impl Router {
         }
         for layout in inventory::iter::<Layout>().cloned() {
             self = self.layout(layout);
+        }
+        if self.file_root.is_some() {
+            for segment in inventory::iter::<Segment>().cloned() {
+                self = self.segment(segment);
+            }
         }
         self
     }
@@ -60,10 +74,10 @@ impl From<Router> for axum::Router {
         for page in &value.pages {
             let page = page.clone();
             let layouts = value.layouts.clone();
-            let path = page
-                .path()
-                .map(Cow::Borrowed)
-                .unwrap_or_else(|| Cow::Owned(value.path_from_file(page.file())));
+            let path = page.path().map_or_else(
+                || Cow::Owned(value.path_from_file(page.file())),
+                Cow::Borrowed,
+            );
 
             result = result.route(
                 &path.to_axum_path(),
