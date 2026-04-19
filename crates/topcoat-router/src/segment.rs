@@ -1,4 +1,6 @@
-use std::borrow::Cow;
+use std::{borrow::Cow, collections::HashMap};
+
+use crate::file_router::canonical_module_path;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum SegmentKind {
@@ -39,3 +41,27 @@ impl Segment {
 
 #[cfg(feature = "discover")]
 inventory::collect!(Segment);
+
+#[derive(Default)]
+pub struct Segments {
+    segments: HashMap<&'static str, Segment>,
+}
+
+impl Segments {
+    pub fn new() -> Self {
+        Default::default()
+    }
+
+    pub fn register(&mut self, segment: Segment) {
+        self.segments
+            .insert(canonical_module_path(segment.file), segment);
+    }
+
+    pub fn get(&self, canonical_module_path: &str) -> Option<&Segment> {
+        self.segments.get(canonical_module_path)
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.segments.is_empty()
+    }
+}

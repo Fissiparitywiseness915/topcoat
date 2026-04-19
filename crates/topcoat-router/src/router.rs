@@ -2,14 +2,15 @@ use std::borrow::Cow;
 
 use axum::routing::get;
 
-use crate::{Layout, Page, Segment};
+use crate::{Layout, Page, Segment, Segments};
 
 #[derive(Default)]
 pub struct Router {
     pub(crate) file_root: Option<Cow<'static, str>>,
+    pub(crate) segments: Segments,
+
     pub(crate) pages: Vec<Page>,
     pub(crate) layouts: Vec<Layout>,
-    pub(crate) segments: Vec<Segment>,
 }
 
 impl Router {
@@ -17,10 +18,14 @@ impl Router {
         Default::default()
     }
 
+    fn is_empty(&self) -> bool {
+        self.segments.is_empty() && self.pages.is_empty() && self.layouts.is_empty()
+    }
+
     #[doc(hidden)]
     pub fn file_root(mut self, file_root: impl Into<Cow<'static, str>>) -> Self {
         assert!(
-            self.segments.is_empty() && self.pages.is_empty() && self.layouts.is_empty(),
+            self.is_empty(),
             "`file_root` must be called before registering any resource"
         );
         self.file_root = Some(file_root.into());
@@ -33,7 +38,11 @@ impl Router {
             self.file_root.is_some(),
             "segments may only be used as part of a file router"
         );
-        self.segments.push(segment);
+        assert!(
+            self.is_empty(),
+            "`segment` must be called before registering any resource"
+        );
+        self.segments.register(segment);
         self
     }
 

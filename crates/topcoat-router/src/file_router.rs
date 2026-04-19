@@ -42,7 +42,7 @@ impl Router {
     }
 }
 
-fn canonical_module_path(path: &str) -> &str {
+pub fn canonical_module_path(path: &str) -> &str {
     let path = path.strip_suffix(".rs").unwrap_or(path);
     let path = path.strip_suffix("/mod").unwrap_or(path);
     path.strip_suffix("\\mod").unwrap_or(path)
