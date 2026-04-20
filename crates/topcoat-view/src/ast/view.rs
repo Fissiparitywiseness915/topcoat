@@ -35,6 +35,8 @@ impl ToTokens for View {
 #[cfg(feature = "pretty")]
 impl crate::pretty::PrettyPrint for View {
     fn pretty_print(&self, printer: &mut crate::pretty::Printer<'_>) {
+        // Nodes in a view are simply space separated, or line separated if there is not enough
+        // space horizontally.
         for (index, node) in self.nodes.iter().enumerate() {
             node.pretty_print(printer);
             if index < self.nodes.len() - 1 {
