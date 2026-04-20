@@ -15,7 +15,7 @@ use crate::output::ViewWriter;
 pub enum ElementName {
     Ident(Ident),
     LitStr(LitStr),
-    Expr { paren: Paren, expr: Expr },
+    Expr { paren: Paren, expr: Box<Expr> },
 }
 
 impl ElementName {
