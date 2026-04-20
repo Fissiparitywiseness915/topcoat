@@ -2,6 +2,29 @@ use syn::{spanned::Spanned, visit::Visit};
 
 use super::{MARGIN, Macro, pretty_print_str};
 
+pub fn pretty_print_rust_str(input: &str) -> Result<String, Vec<syn::Error>> {
+    let mut output = String::new();
+
+    let file = syn::parse_file(input).map_err(|error| vec![error])?;
+    let mut visitor = Visitor::default();
+    visitor.visit_file(&file);
+
+    if !visitor.errors.is_empty() {
+        return Err(visitor.errors);
+    }
+
+    let mut current_index = 0;
+    for replacement in visitor.replacements {
+        output.push_str(&input[current_index..replacement.start]);
+        output.push_str(&replacement.replacement);
+        current_index = replacement.end;
+    }
+
+    output.push_str(&input[current_index..]);
+
+    Ok(output)
+}
+
 pub(super) struct Replace {
     pub(super) start: usize,
     pub(super) end: usize,
