@@ -32,12 +32,25 @@ async fn layout(slot: Slot) -> View {
                 "current page: "
                 (slot.await)
 
+        match 5 {
+                6 => <div>"hi"</div>,
+                7 => {
+            <br>
+            <span>"bye"</span>
+        },
+
+            }
+
 
                 if true {
                 "hello"
             } else {
                 <div>"bye"</div>
             }
+
+            for kek in pip {
+            <div>"hi"</div>
+        }
             </body>
         </html>
     }

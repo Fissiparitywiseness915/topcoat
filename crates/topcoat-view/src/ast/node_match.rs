@@ -51,6 +51,30 @@ impl ParseOption for NodeMatch {
     }
 }
 
+#[cfg(feature = "pretty")]
+impl crate::pretty::PrettyPrint for NodeMatch {
+    fn pretty_print(&self, printer: &mut crate::pretty::Printer<'_>) {
+        use crate::pretty::{BreakMode, Delim};
+
+        self.match_token.pretty_print(printer);
+
+        " ".pretty_print(printer);
+        // todo
+        " ".pretty_print(printer);
+
+        self.brace_token
+            .pretty_print(printer, Some(BreakMode::Consistent), |printer| {
+                for (index, arm) in self.arms.iter().enumerate() {
+                    arm.pretty_print(printer);
+                    if index < self.arms.len() - 1 {
+                        printer.scan_force_break();
+                        printer.scan_break();
+                    }
+                }
+            });
+    }
+}
+
 pub struct NodeMatchArm {
     pub pat: Pat,
     pub guard: Option<(Token![if], Box<Expr>)>,
@@ -92,5 +116,23 @@ impl Parse for NodeMatchArm {
                 }
             },
         })
+    }
+}
+
+#[cfg(feature = "pretty")]
+impl crate::pretty::PrettyPrint for NodeMatchArm {
+    fn pretty_print(&self, printer: &mut crate::pretty::Printer<'_>) {
+        // todo
+        " ".pretty_print(printer);
+        self.fat_arrow_token.pretty_print(printer);
+        " ".pretty_print(printer);
+        self.body.pretty_print(printer);
+        if !self.body.is_block() {
+            if let Some(comma) = &self.comma {
+                comma.pretty_print(printer);
+            } else {
+                ",".pretty_print(printer);
+            }
+        }
     }
 }

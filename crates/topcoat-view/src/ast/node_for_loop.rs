@@ -42,6 +42,20 @@ impl ParseOption for NodeForLoop {
     }
 }
 
+#[cfg(feature = "pretty")]
+impl crate::pretty::PrettyPrint for NodeForLoop {
+    fn pretty_print(&self, printer: &mut crate::pretty::Printer<'_>) {
+        self.for_token.pretty_print(printer);
+        " ".pretty_print(printer);
+        // TODO
+        " ".pretty_print(printer);
+        self.in_token.pretty_print(printer);
+        // TODO
+        " ".pretty_print(printer);
+        self.body.pretty_print(printer);
+    }
+}
+
 pub struct NodeContinue {
     pub expr_continue: ExprContinue,
     pub semi_token: Token![;],
@@ -74,6 +88,7 @@ impl ParseOption for NodeContinue {
 impl crate::pretty::PrettyPrint for NodeContinue {
     fn pretty_print(&self, printer: &mut crate::pretty::Printer<'_>) {
         // TODO
+        self.semi_token.pretty_print(printer);
     }
 }
 
@@ -102,5 +117,13 @@ impl Parse for NodeBreak {
 impl ParseOption for NodeBreak {
     fn peek(input: ParseStream) -> bool {
         input.peek(Token![break])
+    }
+}
+
+#[cfg(feature = "pretty")]
+impl crate::pretty::PrettyPrint for NodeBreak {
+    fn pretty_print(&self, printer: &mut crate::pretty::Printer<'_>) {
+        // TODO
+        self.semi_token.pretty_print(printer);
     }
 }

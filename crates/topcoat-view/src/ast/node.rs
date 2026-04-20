@@ -44,6 +44,14 @@ impl Node {
             Self::Block(inner) => inner.write(writer),
         }
     }
+
+    /// Returns `true` if the node is [`Block`].
+    ///
+    /// [`Block`]: Node::Block
+    #[must_use]
+    pub fn is_block(&self) -> bool {
+        matches!(self, Self::Block(..))
+    }
 }
 
 impl Parse for Node {
@@ -100,10 +108,12 @@ impl crate::pretty::PrettyPrint for Node {
             Self::Component(inner) => inner.pretty_print(printer),
             Self::Expr(inner) => inner.pretty_print(printer),
             Self::If(inner) => inner.pretty_print(printer),
+            Self::Let(inner) => inner.pretty_print(printer),
+            Self::ForLoop(inner) => inner.pretty_print(printer),
+            Self::Continue(inner) => inner.pretty_print(printer),
+            Self::Break(inner) => inner.pretty_print(printer),
+            Self::Match(inner) => inner.pretty_print(printer),
             Self::Block(inner) => inner.pretty_print(printer),
-            _ => {
-                // TODO
-            }
         }
     }
 }
