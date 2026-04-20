@@ -85,18 +85,19 @@ impl From<Router> for axum::Router {
         let mut result = axum::Router::new();
 
         for page in value.pages {
-            let layouts: Vec<_> = value
+            let mut layouts: Vec<_> = value
                 .layouts
                 .iter()
                 .filter(|layout| page.path().starts_with(layout.path()))
                 .cloned()
                 .collect();
+            layouts.sort_by_key(|layout| layout.path().len());
 
             result = result.route(
                 &page.path().to_axum_path(),
                 get(async move || {
                     let mut result = page.render();
-                    for layout in layouts {
+                    for layout in layouts.iter().rev() {
                         result = layout.render(result);
                     }
                     result.await

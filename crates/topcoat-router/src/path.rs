@@ -119,6 +119,14 @@ impl Path {
         }
         return self.segments().zip(other.segments()).all(|(a, b)| a == b);
     }
+
+    /// Returns the string backing this path.
+    ///
+    /// This length is in bytes, not [`char`]s or graphemes. In other words,
+    /// it might not be what a human considers the length of the string.
+    pub fn len(&self) -> usize {
+        self.inner.len()
+    }
 }
 
 impl Display for Path {
