@@ -44,6 +44,7 @@ async fn layout(slot: Slot) -> View {
 
                 if {
         let kek = 5;
+        view! { <!DOCTYPE   html><div>"hi"</div>};
 
 
         // big if true

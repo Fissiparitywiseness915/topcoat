@@ -6,6 +6,8 @@ use std::{
 use quote::ToTokens;
 use syn::spanned::Spanned;
 
+use crate::pretty::pretty_print_rust_str;
+
 use super::{PrettyPrint, Printer, TextMode};
 
 impl PrettyPrint for syn::Expr {
@@ -27,9 +29,9 @@ impl PrettyPrint for syn::Expr {
             .wait_with_output()
             .expect("failed to run rustfmt on nested rust expression");
         let output = String::from_utf8(output.stdout).expect("rustfmt output must be utf8");
+        let output = pretty_print_rust_str(&output).unwrap();
         let stripped = output.strip_prefix("const _: () = ").unwrap();
         let stripped = stripped.strip_suffix(";\n").unwrap();
-        let output = stripped.to_owned();
         output.pretty_print(printer);
     }
 }

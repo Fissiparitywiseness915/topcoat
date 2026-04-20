@@ -40,6 +40,12 @@ impl<'ast> Visit<'ast> for Visitor {
         self.indent -= 1;
     }
 
+    fn visit_block(&mut self, node: &'ast syn::Block) {
+        self.indent += 1;
+        syn::visit::visit_block(self, node);
+        self.indent -= 1;
+    }
+
     fn visit_macro(&mut self, i: &'ast syn::Macro) {
         let name = &i.path.segments.last().expect("paths cannot be empty").ident;
         let span = i.delimiter.span().span();
