@@ -13,18 +13,39 @@ pub trait Fragment {
     fn fmt_unescaped(&self, f: &mut Formatter<'_>);
 }
 
-impl<T> Fragment for T
-where
-    T: AsRef<str> + ?Sized,
-{
+impl Fragment for str {
     #[inline]
     fn fmt(&self, f: &mut Formatter<'_>) {
-        f.write_str(self.as_ref())
+        f.write_str(self)
     }
 
     #[inline]
     fn fmt_unescaped(&self, f: &mut Formatter<'_>) {
-        f.write_str_unescaped(self.as_ref())
+        f.write_str_unescaped(self)
+    }
+}
+
+impl Fragment for &str {
+    #[inline]
+    fn fmt(&self, f: &mut Formatter<'_>) {
+        f.write_str(self)
+    }
+
+    #[inline]
+    fn fmt_unescaped(&self, f: &mut Formatter<'_>) {
+        f.write_str_unescaped(self)
+    }
+}
+
+impl Fragment for String {
+    #[inline]
+    fn fmt(&self, f: &mut Formatter<'_>) {
+        f.write_str(self)
+    }
+
+    #[inline]
+    fn fmt_unescaped(&self, f: &mut Formatter<'_>) {
+        f.write_str_unescaped(self)
     }
 }
 
@@ -40,6 +61,34 @@ impl Fragment for View {
         f.write_str_unescaped(&self.buf)
     }
 }
+
+macro_rules! impl_with_display {
+    ($ty:ty) => {
+        impl Fragment for $ty {
+            #[inline]
+            fn fmt(&self, f: &mut Formatter<'_>) {
+                f.write_str(&self.to_string())
+            }
+
+            #[inline]
+            fn fmt_unescaped(&self, f: &mut Formatter<'_>) {
+                f.write_str_unescaped(&self.to_string())
+            }
+        }
+    };
+}
+
+impl_with_display!(i8);
+impl_with_display!(i16);
+impl_with_display!(i32);
+impl_with_display!(i64);
+impl_with_display!(i128);
+impl_with_display!(u8);
+impl_with_display!(u16);
+impl_with_display!(u32);
+impl_with_display!(u64);
+impl_with_display!(u128);
+impl_with_display!(bool);
 
 /// A wrapper that marks a fragment as already escaped / trusted.
 ///

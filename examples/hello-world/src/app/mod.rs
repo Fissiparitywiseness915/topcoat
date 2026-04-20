@@ -34,7 +34,7 @@ async fn layout(slot: Slot) -> View {
                 (slot.await)
 
         match 5 {
-                6|8 => <div>"hi"</div>,
+                5|8 => <div>(x)</div>,
                 7 => {
             <br>
             <span>"bye"</span>
