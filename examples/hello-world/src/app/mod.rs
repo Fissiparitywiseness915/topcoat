@@ -15,7 +15,10 @@ async fn layout(slot: Slot) -> View {
     view! {
         <!DOCTYPE html>
         <html>
-            <head><title>"hello world"</title> [topcoat::dev::script /]</head>
+            <head>
+                <title>"hello world"</title>
+                [topcoat::dev::script /]
+            </head>
             <body>
                 <nav>
                     <a href="/">"home"</a>

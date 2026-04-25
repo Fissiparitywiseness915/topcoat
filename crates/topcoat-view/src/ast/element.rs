@@ -163,6 +163,9 @@ impl crate::pretty::PrettyPrint for Element {
                         printer.scan_trivia(true, true);
                     }
                 }
+                if children.len() > 1 {
+                    printer.scan_force_break();
+                }
                 printer.scan_indent(-1);
                 printer.scan_break();
                 closing_tag.pretty_print(printer);
