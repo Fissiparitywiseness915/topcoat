@@ -1,7 +1,7 @@
 use proc_macro2::TokenStream;
 use quote::{ToTokens, quote};
 use syn::{
-    ItemFn, LitStr,
+    FnArg, ItemFn, LitStr, Pat,
     parse::{Parse, ParseStream},
 };
 
@@ -19,13 +19,35 @@ impl Parse for PageAttr {
 
 pub struct PageItem {
     item: ItemFn,
+    has_cx: bool,
 }
 
 impl Parse for PageItem {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        Ok(Self {
-            item: input.parse()?,
-        })
+        let item: ItemFn = input.parse()?;
+        let mut has_cx = false;
+        for arg in &item.sig.inputs {
+            match arg {
+                FnArg::Receiver(r) => {
+                    return Err(syn::Error::new_spanned(
+                        r,
+                        "page functions cannot take a `self` receiver",
+                    ));
+                }
+                FnArg::Typed(pat_type) => match &*pat_type.pat {
+                    Pat::Ident(pi) if pi.ident == "cx" => {
+                        has_cx = true;
+                    }
+                    _ => {
+                        return Err(syn::Error::new_spanned(
+                            pat_type,
+                            "page functions only accept an optional `cx: &Cx` parameter",
+                        ));
+                    }
+                },
+            }
+        }
+        Ok(Self { item, has_cx })
     }
 }
 
@@ -43,10 +65,19 @@ impl ToTokens for Page {
         let item = &self.1.item;
         let ident = &item.sig.ident;
 
-        let render = quote! {
-            || {
-                #item
-                Box::pin(#ident())
+        let render = if self.1.has_cx {
+            quote! {
+                || Box::pin(async {
+                    #item
+                    ::topcoat::router::with_context(|cx| #ident(cx)).await
+                })
+            }
+        } else {
+            quote! {
+                || {
+                    #item
+                    Box::pin(#ident())
+                }
             }
         };
 

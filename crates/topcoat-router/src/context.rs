@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use axum::extract::RawPathParams;
 use http::request::Parts;
 use tokio::task_local;
@@ -9,7 +11,7 @@ pub struct Cx {
 }
 
 task_local! {
-    static CX: Cx;
+    static CX: Arc<Cx>;
 }
 
 pub(crate) async fn scope_context<F: Future>(
@@ -17,14 +19,15 @@ pub(crate) async fn scope_context<F: Future>(
     params: RawPathParams,
     f: F,
 ) -> F::Output {
-    CX.scope(Cx { parts, params }, f).await
+    CX.scope(Arc::new(Cx { parts, params }), f).await
 }
 
 pub async fn with_context<F, R>(f: F) -> R
 where
-    F: FnOnce(&Cx) -> R,
+    F: AsyncFnOnce(&Cx) -> R,
 {
-    CX.with(f)
+    let cx = CX.with(Arc::clone);
+    f(&cx).await
 }
 
 #[inline]
