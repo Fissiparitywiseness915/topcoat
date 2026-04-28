@@ -2,6 +2,10 @@ use proc_macro2::extra::DelimSpan;
 
 use crate::pretty::{BreakMode, PrettyPrint, Printer};
 
+/// A balanced pair of delimiters (`()`, `[]` or `{}`) that wraps a body of
+/// content. The default `pretty_print` implementation handles the open/close
+/// tokens, indentation and break behavior; the inner body is supplied by the
+/// caller via the `f` closure.
 pub trait Delim {
     fn pretty_print(
         &self,

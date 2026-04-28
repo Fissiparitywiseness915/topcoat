@@ -9,6 +9,8 @@ use crate::{
     output::ViewWriter,
 };
 
+/// A `for pat in expr { ... }` loop in view-body position. The body is
+/// rendered once per iteration.
 pub struct NodeForLoop {
     pub for_token: Token![for],
     pub pat: Box<Pat>,
@@ -57,6 +59,7 @@ impl crate::pretty::PrettyPrint for NodeForLoop {
     }
 }
 
+/// A `continue;` statement. Parsed for completeness but currently rejected.
 pub struct NodeContinue {
     pub expr_continue: ExprContinue,
     pub semi_token: Token![;],
@@ -93,6 +96,7 @@ impl crate::pretty::PrettyPrint for NodeContinue {
     }
 }
 
+/// A `break;` statement. Parsed for completeness but currently rejected.
 pub struct NodeBreak {
     pub expr_break: ExprBreak,
     pub semi_token: Token![;],

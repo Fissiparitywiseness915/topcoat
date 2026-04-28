@@ -6,8 +6,12 @@ use crate::pretty::{
     BeginToken, BreakMode, BreakToken, TextMode, TextToken, Token, TokenBuffer, Trivia, TriviaKind,
 };
 
+/// The target line width. Groups whose collapsed length exceeds this break.
 pub const MARGIN: isize = 89;
+/// Number of spaces added per indent level.
 pub const INDENT: isize = 4;
+/// Floor on the printer's available space so that deeply nested content keeps
+/// breaking onto its own lines instead of running off the right margin.
 pub const MIN_SPACE: isize = 60;
 
 #[derive(Debug)]
@@ -15,6 +19,10 @@ struct PrintFrame {
     group_break: bool,
 }
 
+/// The pretty-printing engine. Implements a Wadler/Oppen-style two-pass
+/// algorithm: callers feed in a stream of tokens (text, breaks, group
+/// boundaries) via the `scan_*` methods, and the printer decides which breaks
+/// to render based on the available width.
 pub struct Printer<'a> {
     trivia: &'a [Trivia<'a>],
     tokens: TokenBuffer<'a>,

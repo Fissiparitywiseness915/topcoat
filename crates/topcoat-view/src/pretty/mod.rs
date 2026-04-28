@@ -20,6 +20,11 @@ pub use visitor::*;
 
 use syn::parse::Parse;
 
+/// Parses `source_text` as `T` and pretty-prints it back, preserving the
+/// surrounding comments and whitespace from the source.
+///
+/// `initial_space` is the number of columns left on the first line; `initial_indent`
+/// is the indentation level the formatter starts at (in [`INDENT`]-wide steps).
 pub fn pretty_print_str<T>(
     source_text: &str,
     initial_space: isize,
@@ -36,6 +41,8 @@ where
     Ok(printer.eof())
 }
 
+/// Pretty-prints an already-parsed AST. Unlike [`pretty_print_str`], this
+/// has no source text to consult, so trivia (comments, blank lines) is lost.
 pub fn pretty_print_ast<T>(ast: &T) -> String
 where
     T: PrettyPrint,
@@ -45,6 +52,9 @@ where
     printer.eof()
 }
 
+/// Implemented by anything that knows how to emit itself as formatted text
+/// through a [`Printer`]. The printer takes care of line breaking and
+/// indentation; implementors only describe the desired layout.
 pub trait PrettyPrint {
     fn pretty_print(&self, printer: &mut Printer<'_>);
 }

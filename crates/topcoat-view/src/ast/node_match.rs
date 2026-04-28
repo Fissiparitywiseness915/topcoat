@@ -11,6 +11,7 @@ use crate::{
     output::{ViewWriter, ViewWriterMatch},
 };
 
+/// A `match expr { ... }` expression in view-body position.
 pub struct NodeMatch {
     pub match_token: Token![match],
     pub expr: Box<Expr>,
@@ -75,6 +76,7 @@ impl crate::pretty::PrettyPrint for NodeMatch {
     }
 }
 
+/// A single arm of a [`NodeMatch`]: `pat (if guard)? => body`.
 pub struct NodeMatchArm {
     pub pat: Pat,
     pub guard: Option<(Token![if], Box<Expr>)>,

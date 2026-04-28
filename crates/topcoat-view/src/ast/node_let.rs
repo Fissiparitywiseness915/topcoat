@@ -6,6 +6,8 @@ use syn::{
 
 use crate::{ast::parse_option::ParseOption, output::ViewWriter};
 
+/// A `let pat = expr;` binding in view-body position. The binding is in scope
+/// for all sibling nodes that follow it.
 pub struct NodeLet {
     pub expr_let: ExprLet,
     pub semi_token: Token![;],

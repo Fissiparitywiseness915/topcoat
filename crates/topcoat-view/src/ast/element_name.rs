@@ -11,6 +11,9 @@ use syn::{
 
 use crate::output::ViewWriter;
 
+/// The name appearing in an [`Element`](super::Element)'s tag. May be a plain
+/// identifier (`div`), a string literal (`"my-tag"`), or a parenthesized Rust
+/// expression that resolves to the tag name at runtime.
 #[derive(PartialEq, Eq)]
 pub enum ElementName {
     Ident(Ident),
@@ -19,6 +22,8 @@ pub enum ElementName {
 }
 
 impl ElementName {
+    /// The tag name as a string when it is statically known. Returns `None` for
+    /// expression-valued names, which can only be resolved at runtime.
     pub fn string_name(&self) -> Option<String> {
         match self {
             Self::Ident(inner) => Some(inner.to_string()),
@@ -27,6 +32,7 @@ impl ElementName {
         }
     }
 
+    /// The source span covering the name.
     pub fn span(&self) -> Span {
         match self {
             Self::Ident(inner) => inner.span(),
@@ -43,6 +49,10 @@ impl ElementName {
         }
     }
 
+    /// Returns `true` if this name is one of the HTML void elements (`br`,
+    /// `img`, `input`, …) — those that take no closing tag and no children.
+    /// Only matches identifier names; string and expression names always
+    /// return `false`.
     pub fn is_void_element(&self) -> bool {
         const VOID_ELEMENTS: &[&str] = &[
             "area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "source",
@@ -58,6 +68,8 @@ impl ElementName {
         }
     }
 
+    /// Returns the underlying expression if this name was written as
+    /// `(expr)`, otherwise `None`.
     pub fn expr(&self) -> Option<&Expr> {
         match self {
             Self::Expr { expr, .. } => Some(expr),

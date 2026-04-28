@@ -6,6 +6,9 @@ use syn::{
 
 use crate::{ast::parse_option::ParseOption, output::ViewWriter};
 
+/// A parenthesized Rust expression embedded as a child node, e.g. `(name)` or
+/// `(slot.await)`. The value is rendered through
+/// [`Fragment`](crate::runtime::Fragment) (i.e. escaped by default).
 pub struct NodeExpr {
     pub paren: syn::token::Paren,
     pub expr: syn::Expr,

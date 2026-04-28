@@ -2,6 +2,11 @@ use syn::{spanned::Spanned, visit::Visit};
 
 use super::{MARGIN, Macro, pretty_print_str};
 
+/// Reformats `view!` invocations found inside a Rust source file.
+///
+/// Parses `input` as a `syn::File`, walks every macro invocation, and replaces
+/// the contents of any `view! { ... }` call with the pretty-printed version.
+/// All other code is passed through unchanged.
 pub fn pretty_print_rust_str(input: &str) -> Result<String, Vec<syn::Error>> {
     let mut output = String::new();
 

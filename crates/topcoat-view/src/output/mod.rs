@@ -8,6 +8,12 @@ pub(crate) use view_writer_match::*;
 use proc_macro2::TokenStream;
 use quote::{ToTokens, quote};
 
+/// Builds the `TokenStream` that a `view!` invocation expands to.
+///
+/// Adjacent literal markup is concatenated into `static_segment` and flushed as
+/// a single write whenever a dynamic chunk (expression, control flow) appears.
+/// `capacity` accumulates the lower bound of bytes the rendered view will need
+/// so the runtime can pre-allocate the output buffer.
 #[derive(Default)]
 pub(crate) struct ViewWriter {
     pub(self) tokens: TokenStream,

@@ -2,6 +2,7 @@ use proc_macro2::LineColumn;
 
 use super::Span;
 
+/// The kind of source-text trivia captured by [`Lexer`].
 #[derive(Debug, Clone, PartialEq)]
 pub enum TriviaKind {
     LineComment,
@@ -9,6 +10,10 @@ pub enum TriviaKind {
     Whitespace,
 }
 
+/// A single chunk of comment or whitespace, with its original source span.
+///
+/// The pretty printer threads these through so that comments and significant
+/// blank lines from the source are reproduced in the formatted output.
 #[derive(Debug, Clone, PartialEq)]
 pub struct Trivia<'a> {
     pub span: Span,
@@ -17,6 +22,7 @@ pub struct Trivia<'a> {
 }
 
 impl Trivia<'_> {
+    /// The number of `\n` characters contained in the trivia's source text.
     #[must_use]
     pub fn newlines(&self) -> usize {
         self.content.chars().filter(|item| *item == '\n').count()

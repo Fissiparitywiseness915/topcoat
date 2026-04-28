@@ -4,6 +4,8 @@ use syn::parse::{Parse, ParseStream};
 
 use crate::{ast::node::Node, output::ViewWriter};
 
+/// The parsed body of a `view!` invocation. Lowers to a
+/// [`runtime::View`](crate::runtime::View).
 pub struct View {
     pub nodes: Vec<Node>,
 }

@@ -5,6 +5,7 @@ use syn::{
 
 use crate::ast::{Attributes, ElementName, ParseOption};
 
+/// An element's opening tag: `<name attr=value ...>`.
 pub struct OpeningTag {
     pub lt: Token![<],
     pub name: ElementName,
@@ -41,6 +42,7 @@ impl crate::pretty::PrettyPrint for OpeningTag {
     }
 }
 
+/// An element's closing tag: `</name>`.
 pub struct ClosingTag {
     pub lt: Token![<],
     pub slash: Token![/],

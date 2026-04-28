@@ -9,6 +9,8 @@ use crate::{
     output::ViewWriter,
 };
 
+/// A brace-delimited group of nodes: `{ ...nodes... }`. Used as the body of
+/// `if`, `for` and `match` arms.
 pub struct NodeBlock {
     pub brace: Brace,
     pub children: Vec<Node>,

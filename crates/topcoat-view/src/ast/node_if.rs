@@ -8,6 +8,7 @@ use crate::{
     output::{ViewWriter, ViewWriterIf},
 };
 
+/// An `if cond { ... } else { ... }` chain in view-body position.
 pub struct NodeIf {
     pub if_token: Token![if],
     pub cond: syn::Expr,
@@ -54,6 +55,7 @@ impl crate::pretty::PrettyPrint for NodeIf {
     }
 }
 
+/// The trailing `else if ...` or `else { ... }` of a [`NodeIf`].
 pub enum NodeElse {
     ElseIf {
         else_token: Token![else],

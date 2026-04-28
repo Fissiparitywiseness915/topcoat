@@ -12,6 +12,8 @@ use crate::{
     output::ViewWriter,
 };
 
+/// An HTML element. `Void` covers the HTML void elements (`<br>`, `<img>`, …)
+/// which take no closing tag and no children.
 // Optimize for the common case (normal elements).
 #[allow(clippy::large_enum_variant)]
 pub enum Element {
@@ -26,6 +28,7 @@ pub enum Element {
 }
 
 impl Element {
+    /// The element's tag name.
     pub fn name(&self) -> &ElementName {
         match self {
             Self::Normal { opening_tag, .. } => &opening_tag.name,
@@ -33,6 +36,7 @@ impl Element {
         }
     }
 
+    /// The attributes on the opening tag.
     pub fn attributes(&self) -> &Attributes {
         match self {
             Self::Normal { opening_tag, .. } => &opening_tag.attributes,
@@ -40,6 +44,7 @@ impl Element {
         }
     }
 
+    /// The element's children. Always empty for void elements.
     pub fn children(&self) -> &[Node] {
         match self {
             Self::Normal { children, .. } => children,

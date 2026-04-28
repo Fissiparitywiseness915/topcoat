@@ -8,6 +8,8 @@ use syn::{
 
 use crate::{ast::ParseOption, output::ViewWriter};
 
+/// A single `name=value` attribute on an [`Element`](super::Element) or
+/// [`Component`](super::Component).
 pub struct Attribute {
     pub name: Ident,
     pub eq: Token![=],
@@ -49,6 +51,8 @@ impl crate::pretty::PrettyPrint for Attribute {
     }
 }
 
+/// The right-hand side of an attribute. Either a parenthesized Rust expression
+/// (`class=(some_expr)`) or a string literal (`class="foo"`).
 pub enum AttributeValue {
     Expr { paren: Paren, expr: Box<Expr> },
     LitStr(LitStr),
@@ -104,6 +108,7 @@ impl crate::pretty::PrettyPrint for AttributeValue {
     }
 }
 
+/// The full list of attributes attached to a single tag.
 pub struct Attributes {
     pub items: Vec<Attribute>,
 }

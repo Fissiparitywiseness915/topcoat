@@ -12,6 +12,8 @@ use crate::{
     output::ViewWriter,
 };
 
+/// A single child within a [`View`](super::View) — the union of every construct
+/// that can appear at view-body position.
 pub enum Node {
     Text(LitStr),
     DocumentType(DocumentType),

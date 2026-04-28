@@ -14,6 +14,8 @@ use crate::{
     output::ViewWriter,
 };
 
+/// A user-defined component invocation, written as `[path attr=value]...[/path]`
+/// or `[path attr=value /]` for the self-closing form.
 pub enum Component {
     Normal {
         opening_tag: ComponentOpeningTag,
@@ -26,6 +28,7 @@ pub enum Component {
 }
 
 impl Component {
+    /// The component's path expression (e.g. `topcoat::dev::script`).
     pub fn path(&self) -> &Path {
         match self {
             Self::Normal { opening_tag, .. } => &opening_tag.path,
@@ -33,6 +36,7 @@ impl Component {
         }
     }
 
+    /// The attributes set on the component's opening tag.
     pub fn attributes(&self) -> &Attributes {
         match self {
             Self::Normal { opening_tag, .. } => &opening_tag.attributes,
@@ -40,6 +44,7 @@ impl Component {
         }
     }
 
+    /// The component's children. Always empty for self-closing components.
     pub fn children(&self) -> &[Node] {
         match self {
             Self::Normal { children, .. } => children,

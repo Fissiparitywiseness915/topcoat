@@ -6,6 +6,7 @@ use syn::{
 
 use crate::ast::{Attributes, ParseOption};
 
+/// A component's opening tag: `[path attr=value ...]`.
 pub struct ComponentOpeningTag {
     pub bracket_token: Bracket,
     pub path: Path,
@@ -41,6 +42,7 @@ impl crate::pretty::PrettyPrint for ComponentOpeningTag {
     }
 }
 
+/// A self-closing component tag: `[path attr=value /]`.
 pub struct ComponentSelfClosingTag {
     pub bracket_token: Bracket,
     pub path: Path,
@@ -76,6 +78,7 @@ impl crate::pretty::PrettyPrint for ComponentSelfClosingTag {
     }
 }
 
+/// A component's closing tag: `[/path]`.
 pub struct ComponentClosingTag {
     pub bracket_token: Bracket,
     pub slash: Token![/],
