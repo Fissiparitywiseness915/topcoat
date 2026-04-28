@@ -36,11 +36,12 @@ impl ToTokens for ComponentItem {
         let item = &self.item;
         let vis = &item.vis;
         let ident = &item.sig.ident;
-        let generics = &item.sig.generics;
-        // let props_struct_ident = Ident::new(
-        //     &(self.item.sig.ident.to_string().to_upper_camel_case() + "Props"),
-        //     self.item.sig.ident.span(),
-        // );
+
+        let mut generics = item.sig.generics.clone();
+        generics
+            .params
+            .insert(0, syn::parse_quote!('__implicit));
+        let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
 
         let fields = self.item.sig.inputs.iter().map(|input| match input {
             FnArg::Receiver(_) => panic!("component macro must not be used on methods"),
@@ -63,11 +64,12 @@ impl ToTokens for ComponentItem {
 
         quote! {
             #[allow(non_camel_case_types)]
-            #vis struct #ident #generics {
+            #vis struct #ident #impl_generics #where_clause {
+                #vis __cx: &'__implicit ::topcoat::router::Cx,
                 #(#vis #fields),*
             }
 
-            impl #generics ::topcoat::component::Component for #ident #generics {
+            impl #impl_generics ::topcoat::component::Component for #ident #ty_generics #where_clause {
                 async fn render(self) -> ::topcoat::view::View {
                     #item
                     #ident(#(#args),*).await
