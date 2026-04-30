@@ -4,7 +4,10 @@ mod parts;
 pub use memoize::*;
 pub use parts::*;
 
-use std::sync::Arc;
+use std::sync::{
+    Arc,
+    atomic::{AtomicU64, Ordering},
+};
 
 use axum::extract::RawPathParams;
 use http::request::Parts;
@@ -12,12 +15,30 @@ use tokio::task_local;
 
 use crate::context::memoize::DynCache;
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct CxId(u64);
+
+impl CxId {
+    fn new() -> Self {
+        static COUNTER: AtomicU64 = AtomicU64::new(0);
+        Self(COUNTER.fetch_add(1, Ordering::Relaxed))
+    }
+}
+
 #[derive(Debug)]
 pub struct Cx {
+    id: CxId,
+
     parts: Parts,
     params: RawPathParams,
 
     cache: DynCache,
+}
+
+impl Cx {
+    pub fn id(&self) -> CxId {
+        self.id
+    }
 }
 
 // `Cx` lives for the entire `scope_context` future, so conceptually we'd just
@@ -35,6 +56,7 @@ task_local! {
 pub async fn scope_context<F: Future>(parts: Parts, params: RawPathParams, f: F) -> F::Output {
     CX.scope(
         Arc::new(Cx {
+            id: CxId::new(),
             parts,
             params,
             cache: DynCache::new(),

@@ -12,26 +12,8 @@ pub fn router() -> topcoat::router::Router {
     topcoat::router::file_router!()
 }
 
-#[memoize]
-async fn kek(cx: &Cx, x: i32, y: i32) -> i32 {
-    println!("adding {x} + {y}");
-    x + y
-}
-
-#[memoize]
-async fn pip(cx: &Cx, x: i32, y: i32) -> i32 {
-    println!("adding {x} + {y} in pip");
-    x + y
-}
-
 #[layout]
 async fn layout(cx: &Cx, slot: Slot) -> View {
-    let result = kek(cx, 5, 6).await;
-    let result = kek(cx, 5, 6).await;
-    let result = pip(cx, 5, 6).await;
-    let result = pip(cx, 5, 6).await;
-    let result = pip(cx, 5, 6).await;
-
     view! {
         <!DOCTYPE html>
         <html>
@@ -60,7 +42,20 @@ async fn layout(cx: &Cx, slot: Slot) -> View {
     }
 }
 
+// #[memoize]
+// async fn add(cx: &Cx, x: &str, y: &str) -> String {
+//     println!("adding {x} + {y}");
+//     x.to_owned() + y
+// }
+
 #[page]
 async fn home_page(cx: &Cx) -> View {
+    let result1 = add(cx, 5, 6).await;
+    let kek = "".clone();
+
     view! { "home" }
+}
+
+async fn smep<'__cx>(cx: &'__cx ::topcoat::context::Cx, x: &str, y: i32) -> () {
+    static CACHE: ::std::sync::Mutex<::std::collections::HashMap>;
 }
