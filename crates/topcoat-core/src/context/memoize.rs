@@ -27,18 +27,18 @@ use tokio::sync::OnceCell;
 ///
 /// ```rust,ignore
 /// #[memoize]
-/// async fn add(cx: &Cx, x: i32, y: i32) -> i32 {
+/// fn add(cx: &Cx, x: i32, y: i32) -> i32 {
 ///     println!("adding {x} + {y}");
 ///     x + y
 /// }
 ///
 /// async fn handler(cx: &Cx) {
 ///     // Prints "adding 5 + 6" once.
-///     let a = add(cx, 5, 6).await;
+///     let a = add(cx, 5, 6);
 ///     // Returns the cached result without printing.
-///     let b = add(cx, 5, 6).await;
+///     let b = add(cx, 5, 6);
 ///     // Different arguments compute a fresh value.
-///     let c = add(cx, 5, 7).await;
+///     let c = add(cx, 5, 7);
 ///
 ///     assert_eq!(*a, 11);
 ///     assert_eq!(*b, 11);
