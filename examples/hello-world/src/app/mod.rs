@@ -61,10 +61,17 @@ fn add2<'__cx>(
     x: &str,
     y: i32,
 ) -> ::topcoat::context::Memoized<'__cx, String> {
-    cx.cache().memoize((x, y), |(x, y)| {
-        {
-            ::std::io::_print(format_args!("adding {0} + {1}\n", x, y));
-        };
-        x.to_owned() + &y.to_string()
-    })
+    cx.cache().memoize(
+        (&x, &y),
+        |(x, y)| {
+            let owned = ((*x).to_owned(), (*y).to_owned());
+            ((x, y), owned)
+        },
+        |(x, y)| {
+            {
+                ::std::io::_print(format_args!("adding {0} + {1}\n", x, y));
+            };
+            x.to_owned() + &y.to_string()
+        },
+    );
 }
