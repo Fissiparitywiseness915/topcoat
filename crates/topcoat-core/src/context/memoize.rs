@@ -1,3 +1,9 @@
+//! Per-request memoization for expensive computations.
+//!
+//! Functions annotated with `#[memoize]` are evaluated at most once per set of arguments
+//! within the same request context. Repeated calls with equal arguments return the cached
+//! result instead of recomputing it.
+
 use std::{
     any::{Any, TypeId},
     collections::hash_map::RandomState,
@@ -11,6 +17,34 @@ use std::{
 use hashbrown::{Equivalent, HashMap};
 use tokio::sync::OnceCell;
 
+/// A handle to a memoized value, scoped to the request context.
+///
+/// `Memoized<T>` is returned by functions annotated with `#[memoize]`. It dereferences to
+/// the underlying value, so it can be used wherever a `&T` is expected. The handle is tied
+/// to the lifetime of the request context and cannot outlive it.
+///
+/// # Example
+///
+/// ```rust,ignore
+/// #[memoize]
+/// async fn add(cx: &Cx, x: i32, y: i32) -> i32 {
+///     println!("adding {x} + {y}");
+///     x + y
+/// }
+///
+/// async fn handler(cx: &Cx) {
+///     // Prints "adding 5 + 6" once.
+///     let a = add(cx, 5, 6).await;
+///     // Returns the cached result without printing.
+///     let b = add(cx, 5, 6).await;
+///     // Different arguments compute a fresh value.
+///     let c = add(cx, 5, 7).await;
+///
+///     assert_eq!(*a, 11);
+///     assert_eq!(*b, 11);
+///     assert_eq!(*c, 12);
+/// }
+/// ```
 #[derive(Debug, Clone)]
 pub struct Memoized<'a, T> {
     inner: Arc<T>,
@@ -39,6 +73,9 @@ impl<'a, T> Deref for Memoized<'a, T> {
     }
 }
 
+/// Two-level cache: the outer map has one entry per memoized function (keyed by a `TypeId`
+/// derived from the function's closure type), and each inner map (boxed as `dyn Any`) maps
+/// that function's argument tuple to its cached cell.
 #[doc(hidden)]
 pub struct MemoizeCache {
     entries: Mutex<HashMap<TypeId, Box<dyn Any + Send + Sync>>>,
@@ -85,6 +122,10 @@ impl MemoizeCache {
         Memoized::new(value.clone())
     }
 
+    /// Returns the cell that holds the cached value for the given argument key. `Marker` is the
+    /// closure type of the memoized function, used as a unique `TypeId` to pick the right inner
+    /// map. The cell is wrapped in `Arc` so the caller can drop the outer lock before running
+    /// (potentially expensive or async) initialization.
     fn cell_for<Marker, K, Cell>(&self, key: K) -> Arc<Cell>
     where
         Marker: 'static,
@@ -105,6 +146,8 @@ impl MemoizeCache {
             .downcast_mut::<HashMap<<MemoizeKey<K> as ToOwnedKey>::Owned, Arc<Cell>, RandomState>>()
             .unwrap();
 
+        // Look up using the borrowed key via `Equivalent` to avoid cloning the arguments on
+        // cache hits; only clone into an owned key when inserting.
         if let Some(cell) = cache.get(&MemoizeKey(key)) {
             cell.clone()
         } else {
@@ -122,16 +165,23 @@ impl std::fmt::Debug for MemoizeCache {
     }
 }
 
+/// A newtype wrapper around the argument tuple. It exists so we can implement `Equivalent` and
+/// `ToOwnedKey` for tuples of references against the corresponding tuple of owned values, which
+/// would otherwise run into orphan rules and conflicting blanket impls.
 #[doc(hidden)]
 #[derive(Hash)]
 pub struct MemoizeKey<T>(T);
 
+/// Converts a borrowed key (e.g. `(&str, &i32)`) into the owned key stored in the map
+/// (e.g. `(String, i32)`). Used only on cache misses, when we need to insert.
 #[doc(hidden)]
 pub trait ToOwnedKey {
     type Owned;
     fn to_owned_key(&self) -> Self::Owned;
 }
 
+/// Generates `Equivalent` and `ToOwnedKey` impls for argument tuples up to arity 12, so callers
+/// can pass keys made of borrowed values and still hit entries stored as owned values.
 macro_rules! impl_tuple {
     ($(($kty:ident, $qty:ident, $accessor:tt)),*) => {
         impl<$($kty, $qty),*> Equivalent<($($kty,)*)> for MemoizeKey<($(&$qty,)*)>
