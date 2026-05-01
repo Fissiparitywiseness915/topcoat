@@ -37,6 +37,11 @@ impl Cx {
     pub fn id(&self) -> CxId {
         self.id
     }
+
+    #[doc(hidden)]
+    pub fn cache(&self) -> &MemoizeCache {
+        &self.cache
+    }
 }
 
 // `Cx` lives for the entire `scope_context` future, so conceptually we'd just

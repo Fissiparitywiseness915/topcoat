@@ -114,8 +114,7 @@ impl ToTokens for Memoize {
         let call = if asyncness.is_some() {
             quote! {
                 struct __Tag;
-                ::topcoat::context::memoize_raw_async(
-                    cx,
+                cx.cache().memoize_async(
                     ::std::any::TypeId::of::<__Tag>(),
                     (#(#key_idents,)*),
                     async |(#(#closure_pats,)*)| {
@@ -127,8 +126,7 @@ impl ToTokens for Memoize {
         } else {
             quote! {
                 struct __Tag;
-                ::topcoat::context::memoize_raw(
-                    cx,
+                cx.cache().memoize(
                     ::std::any::TypeId::of::<__Tag>(),
                     (#(#key_idents,)*),
                     |(#(#closure_pats,)*)| {
