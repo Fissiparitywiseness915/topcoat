@@ -13,10 +13,12 @@ use quote::{ToTokens, quote};
 /// `Option`.
 ///
 /// Implements `Deref`/`DerefMut` to `Option<T>` for ergonomic access.
+#[allow(unused)]
 pub struct QuoteOption<T>(Option<T>);
 
 impl<T> QuoteOption<T> {
     #[inline]
+    #[allow(unused)]
     pub fn new(inner: Option<T>) -> Self {
         Self(inner)
     }
