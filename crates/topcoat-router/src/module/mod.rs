@@ -10,8 +10,10 @@ pub use segment::*;
 
 #[cfg(feature = "discover")]
 #[macro_export]
-macro_rules! file_router {
+macro_rules! module_router {
     () => {
-        ::topcoat::router::Router::from(::topcoat::router::FileRouter::new(file!()).discover())
+        ::topcoat::router::Router::from(
+            ::topcoat::router::ModuleRouter::new(module_path!()).discover(),
+        )
     };
 }

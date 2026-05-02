@@ -103,7 +103,7 @@ impl ToTokens for Layout {
             },
             None => quote! {
                 #[allow(non_upper_case_globals)]
-                const #ident: ::topcoat::router::FileLayout = ::topcoat::router::FileLayout::new(file!(), #render);
+                const #ident: ::topcoat::router::ModuleLayout = ::topcoat::router::ModuleLayout::new(module_path!(), #render);
             }
         }.to_tokens(tokens);
 

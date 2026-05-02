@@ -10,7 +10,7 @@ Built on top of [Axum](https://github.com/tokio-rs/axum).
 
 ## Features
 
-- **Optional file-based router** — routes are derived from your file structure, no registration boilerplate; or register routes manually if you prefer
+- **Optional module-based router** — routes are derived from your module structure, no registration boilerplate; or register routes manually if you prefer
 - **`view!` macro** — write HTML that looks like HTML, with Rust control flow (`if`, `match`, `for`, `let`)
 - **No surprising HTML** — void elements stay void, no self-closing components, no camelCase attributes
 - **Layouts** — wrap pages in shared layouts via a `Slot` composition model
@@ -61,7 +61,7 @@ use topcoat::{
 };
 
 pub fn router() -> topcoat::router::Router {
-    topcoat::router::file_router!()
+    topcoat::router::module_router!()
 }
 
 #[layout]
@@ -102,24 +102,24 @@ async fn about_page() -> View {
 }
 ```
 
-## File-based routing
+## Module-based routing
 
-Routes are derived automatically from your file structure. The rules are:
+Routes are derived automatically from your module structure. The rules are:
 
-| File path | Route |
+| Module | Route |
 |---|---|
-| `app/mod.rs` | `/` |
-| `app/about.rs` | `/about` |
-| `app/settings/mod.rs` | `/settings` |
-| `app/settings/profile.rs` | `/settings/profile` |
-| `app/_group/contact.rs` | `/contact` |
-| `app/_group/mod.rs` | *(group root, no route)* |
+| `app` | `/` |
+| `app::about` | `/about` |
+| `app::settings` | `/settings` |
+| `app::settings::profile` | `/settings/profile` |
+| `app::_group::contact` | `/contact` |
+| `app::_group` | *(group root, no route)* |
 
-Directories prefixed with `_` are **groups** — they organize files without adding a path segment.
+Modules prefixed with `_` are **groups** — they organize code without adding a path segment.
 
 ## Manual routing
 
-If you prefer not to use the file router, you can register pages and layouts explicitly. Annotate each function with an explicit path and register them on the router directly:
+If you prefer not to use the module router, you can register pages and layouts explicitly. Annotate each function with an explicit path and register them on the router directly:
 
 ```rust
 use topcoat::{
@@ -212,7 +212,7 @@ view! {
 
 ## Layouts
 
-A `#[layout]` wraps all pages found in the same directory (and subdirectories). It receives a `Slot` — a future that resolves to the page's `View`.
+A `#[layout]` wraps all pages found in the same module (and submodules). It receives a `Slot` — a future that resolves to the page's `View`.
 
 ```rust
 #[layout]
@@ -239,7 +239,7 @@ Topcoat watches your source files, rebuilds on changes, and sends a reload signa
 
 ## Architecture
 
-Topcoat is built on top of Axum, adding file-based routing, server-side templating, and a component model on top of Axum's solid HTTP foundation. `topcoat::router::Router` is convertible to `axum::Router` if you need to drop down to raw Axum.
+Topcoat is built on top of Axum, adding module-based routing, server-side templating, and a component model on top of Axum's solid HTTP foundation. `topcoat::router::Router` is convertible to `axum::Router` if you need to drop down to raw Axum.
 
 ## Planned
 

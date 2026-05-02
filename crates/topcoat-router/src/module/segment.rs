@@ -1,8 +1,8 @@
 use std::{borrow::Cow, collections::HashMap};
 
-/// The kind of a file-router path segment, set via the `segment!` macro.
+/// The kind of a module-router path segment, set via the `segment!` macro.
 ///
-/// When using the file router, each module maps to a URL segment. By default,
+/// When using the module router, each module maps to a URL segment. By default,
 /// regular modules are `Static` and `_`-prefixed modules are `Group`. Use
 /// `segment!(kind = ...)` in a module to override the default.
 ///
@@ -16,7 +16,7 @@ use std::{borrow::Cow, collections::HashMap};
 /// # Examples
 ///
 /// ```rust,ignore
-/// // In a file-router module (e.g. src/app/users/id/mod.rs):
+/// // In a module-router module (e.g. src/app/users/id/mod.rs):
 /// topcoat::router::segment!(kind = Param);
 /// // This module now maps to /users/{id}
 /// ```
@@ -32,12 +32,12 @@ pub enum SegmentKind {
     CatchAll,
 }
 
-/// A file-router segment declaration, produced by the `segment!` macro.
+/// A module-router segment declaration, produced by the `segment!` macro.
 #[doc(hidden)]
 #[derive(Debug, Clone)]
 pub struct Segment {
-    /// Source file path (set automatically by the `segment!` macro via `file!()`).
-    file: &'static str,
+    /// Module path (set automatically by the `segment!` macro via `module_path!()`).
+    module_path: &'static str,
     /// Overridden segment kind, or `None` to use the default (static / group).
     kind: Option<SegmentKind>,
     /// Overridden URL name, or `None` to derive from the module name.
@@ -47,16 +47,20 @@ pub struct Segment {
 impl Segment {
     /// Creates a new segment. Called by the expanded `segment!` macro.
     pub const fn new(
-        file: &'static str,
+        module_path: &'static str,
         kind: Option<SegmentKind>,
         rename: Option<Cow<'static, str>>,
     ) -> Self {
-        Self { file, kind, rename }
+        Self {
+            module_path,
+            kind,
+            rename,
+        }
     }
 
-    /// Returns the source file that declared this segment.
-    pub fn file(&self) -> &'static str {
-        self.file
+    /// Returns the module path that declared this segment.
+    pub fn module_path(&self) -> &'static str {
+        self.module_path
     }
 
     /// Returns the overridden [`SegmentKind`], if any.
@@ -75,7 +79,7 @@ inventory::collect!(Segment);
 
 /// Registry of [`Segment`] declarations, keyed by module path.
 ///
-/// The file router builds a `Segments` map from all `segment!` invocations,
+/// The module router builds a `Segments` map from all `segment!` invocations,
 /// then consults it while walking the module tree to determine each module's
 /// URL contribution.
 #[doc(hidden)]
@@ -93,7 +97,7 @@ impl Segments {
     /// Registers a segment for a module path. Panics on duplicates.
     pub fn register(&mut self, path: &'static str, segment: Segment) {
         if let Some(existing) = self.segments.insert(path, segment) {
-            panic!("duplicate segment specifier in `{}`", existing.file())
+            panic!("duplicate segment specifier in `{}`", existing.module_path())
         }
     }
 
@@ -108,7 +112,7 @@ mod tests {
     use super::*;
 
     fn test_segment() -> Segment {
-        Segment::new("test.rs", Some(SegmentKind::Static), None)
+        Segment::new("my_crate::test", Some(SegmentKind::Static), None)
     }
 
     #[test]
@@ -117,7 +121,7 @@ mod tests {
         segments.register("foo", test_segment());
 
         let seg = segments.get("foo").unwrap();
-        assert_eq!(seg.file(), "test.rs");
+        assert_eq!(seg.module_path(), "my_crate::test");
         assert_eq!(seg.kind(), Some(&SegmentKind::Static));
         assert_eq!(seg.rename(), None);
     }

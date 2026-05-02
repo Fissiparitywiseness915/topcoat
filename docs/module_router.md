@@ -1,35 +1,35 @@
-# File-based routing
+# Module-based routing
 
-The `file_router!` macro derives routes from your Rust module structure. No manual route registration, no path strings scattered across files — your file tree *is* your route table.
+The `module_router!` macro derives routes from your Rust module structure. No manual route registration, no path strings scattered across files — your module tree *is* your route table.
 
 ## Setup
 
-Call `file_router!()` from the root module of your route tree. This module becomes the root `/` path.
+Call `module_router!()` from the root module of your route tree. This module becomes the root `/` path.
 
 ```rust
 // src/app/mod.rs
 pub fn router() -> topcoat::router::Router {
-    topcoat::router::file_router!()
+    topcoat::router::module_router!()
 }
 ```
 
-Every `#[page]` and `#[layout]` in modules under `app/` is automatically discovered and registered.
+Every `#[page]` and `#[layout]` in modules under `app` is automatically discovered and registered.
 
-## How files map to routes
+## How modules map to routes
 
-Each file's path relative to the root module determines its URL. Module names are converted to **kebab-case** (`user_settings` becomes `user-settings`). A `mod.rs` file represents its parent directory.
+Each module's path relative to the root module determines its URL. Module names are converted to **kebab-case** (`user_settings` becomes `user-settings`).
 
-| File | Route |
+| Module | Route |
 |---|---|
-| `app/mod.rs` | `/` |
-| `app/about.rs` | `/about` |
-| `app/blog_posts.rs` | `/blog-posts` |
-| `app/settings/mod.rs` | `/settings` |
-| `app/settings/profile.rs` | `/settings/profile` |
+| `app` | `/` |
+| `app::about` | `/about` |
+| `app::blog_posts` | `/blog-posts` |
+| `app::settings` | `/settings` |
+| `app::settings::profile` | `/settings/profile` |
 
 ## Pages and layouts
 
-A `#[page]` defines a route handler. A `#[layout]` wraps all pages in the same directory and its subdirectories.
+A `#[page]` defines a route handler. A `#[layout]` wraps all pages in the same module and its submodules.
 
 ```rust
 // src/app/mod.rs — layout at "/" wraps all pages
@@ -56,7 +56,7 @@ async fn about() -> View {
 
 ## Groups
 
-Directories prefixed with `_` are **groups**. They organize files and can hold shared layouts, but they don't add a path segment to the URL.
+Modules prefixed with `_` are **groups**. They organize code and can hold shared layouts, but they don't add a path segment to the URL.
 
 ```
 app/
@@ -103,12 +103,12 @@ Use `segment!` to mark a module as a dynamic parameter:
 topcoat::router::segment!(kind = Param);
 ```
 
-This maps `app/users/id/` to `/users/{id}`. Any file inside that module inherits the param segment:
+This maps the `app::users::id` module to `/users/{id}`. Any submodule inherits the param segment:
 
-| File | Route |
+| Module | Route |
 |---|---|
-| `app/users/id/mod.rs` | `/users/{id}` |
-| `app/users/id/settings.rs` | `/users/{id}/settings` |
+| `app::users::id` | `/users/{id}` |
+| `app::users::id::settings` | `/users/{id}/settings` |
 
 ## Catch-all segments
 
@@ -119,7 +119,7 @@ For routes that match any number of trailing path segments:
 topcoat::router::segment!(kind = CatchAll);
 ```
 
-This maps `app/docs/path/` to `/docs/{*path}`.
+This maps the `app::docs::path` module to `/docs/{*path}`.
 
 ## Renaming segments
 
@@ -178,7 +178,7 @@ use topcoat::{
 };
 
 pub fn router() -> topcoat::router::Router {
-    topcoat::router::file_router!()
+    topcoat::router::module_router!()
 }
 
 #[layout]
@@ -248,12 +248,12 @@ async fn post() -> View {
 
 The resulting routes:
 
-| Route | File |
+| Route | Module |
 |---|---|
-| `/` | `app/mod.rs` |
-| `/dashboard` | `app/_auth/dashboard.rs` |
-| `/users` | `app/users/mod.rs` |
-| `/users/{id}` | `app/users/id/mod.rs` |
-| `/users/{id}/posts` | `app/users/id/posts.rs` |
-| `/posts` | `app/posts/mod.rs` |
-| `/posts/{slug}` | `app/posts/slug.rs` |
+| `/` | `app` |
+| `/dashboard` | `app::_auth::dashboard` |
+| `/users` | `app::users` |
+| `/users/{id}` | `app::users::id` |
+| `/users/{id}/posts` | `app::users::id::posts` |
+| `/posts` | `app::posts` |
+| `/posts/{slug}` | `app::posts::slug` |

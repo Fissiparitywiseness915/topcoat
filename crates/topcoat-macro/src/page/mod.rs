@@ -88,7 +88,7 @@ impl ToTokens for Page {
             },
             None => quote! {
                 #[allow(non_upper_case_globals)]
-                const #ident: ::topcoat::router::FilePage = ::topcoat::router::FilePage::new(file!(), #render);
+                const #ident: ::topcoat::router::ModulePage = ::topcoat::router::ModulePage::new(module_path!(), #render);
             }
         }.to_tokens(tokens);
 

@@ -86,7 +86,7 @@ impl ToTokens for Segment {
             quote! {
                 ::topcoat::inventory::submit! {
                     ::topcoat::router::Segment::new(
-                        file!(),
+                        module_path!(),
                         #kind,
                         #rename,
                     )

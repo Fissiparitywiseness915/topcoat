@@ -2,7 +2,7 @@
 
 `topcoat::router::Router` is the core routing primitive. It collects pages and layouts, matches layouts to pages by path prefix, and converts into an `axum::Router` for serving.
 
-You can register pages and layouts in two ways: **manually** (explicit paths, full control) or with **auto-discovery** (the `discover` feature collects annotated items automatically). The [file router](./file_router.md) builds on top of both — this document covers using `Router` directly.
+You can register pages and layouts in two ways: **manually** (explicit paths, full control) or with **auto-discovery** (the `discover` feature collects annotated items automatically). The [module router](./module_router.md) builds on top of both — this document covers using `Router` directly.
 
 ## Pages
 

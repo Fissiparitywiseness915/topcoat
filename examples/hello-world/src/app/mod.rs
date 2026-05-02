@@ -9,7 +9,7 @@ use topcoat::{
 };
 
 pub fn router() -> topcoat::router::Router {
-    topcoat::router::file_router!()
+    topcoat::router::module_router!()
 }
 
 // Pretend this is an expensive database lookup. The `println!` makes it obvious in the
