@@ -1,194 +1,151 @@
-use std::collections::HashSet;
-
 use proc_macro2::{Span, TokenStream};
 use quote::{ToTokens, quote};
 use syn::{
     Ident, LitStr, Path, Token,
     parse::{Parse, ParseStream},
-    punctuated::Punctuated,
 };
+use topcoat_view::ast::ParseOption;
 
-use crate::quote_option::QuoteOption;
-
-pub struct Segment {
-    attrs: Punctuated<SegmentAttr, Token![,]>,
-    file: String,
+pub enum Segment {
+    Static {
+        name: LitStr,
+    },
+    Group {
+        _underscore: Token![_],
+    },
+    Param {
+        name: Ident,
+        ty: Option<ParamType>,
+        fn_name: Option<ParamFnName>,
+    },
+    CatchAll {
+        _dotdot: Token![..],
+        name: Ident,
+    },
 }
 
-impl Segment {
-    fn module(&self) -> &str {
-        let file_or_folder = self
-            .file
-            .split(&['/', '\\'])
-            .rev()
-            .find(|v| *v != "mod.rs")
-            .expect("failed to extract module name from rust source file path");
-        file_or_folder.strip_suffix(".rs").unwrap_or(file_or_folder)
-    }
+pub struct ParamType {
+    _colon: Token![:],
+    path: Path,
+}
 
-    fn find_kind(&self) -> Option<&Ident> {
-        self.attrs.iter().find_map(SegmentAttr::as_kind)
+impl Parse for ParamType {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        Ok(Self {
+            _colon: input.parse()?,
+            path: input.parse()?,
+        })
     }
+}
 
-    fn find_rename(&self) -> Option<&LitStr> {
-        self.attrs.iter().find_map(SegmentAttr::as_rename)
+impl ParseOption for ParamType {
+    fn peek(input: ParseStream) -> bool {
+        input.peek(Token![:])
     }
+}
 
-    fn find_parse(&self) -> Option<&Path> {
-        self.attrs.iter().find_map(SegmentAttr::as_parse)
+pub struct ParamFnName {
+    _as_token: Token![as],
+    name: Ident,
+}
+
+impl Parse for ParamFnName {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        Ok(Self {
+            _as_token: input.parse()?,
+            name: input.parse()?,
+        })
+    }
+}
+
+impl ParseOption for ParamFnName {
+    fn peek(input: ParseStream) -> bool {
+        input.peek(Token![as])
     }
 }
 
 impl Parse for Segment {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        let attrs: Punctuated<SegmentAttr, Token![,]> =
-            input.parse_terminated(SegmentAttr::parse, Token![,])?;
-
-        // Check for duplicates.
-        let mut keys = HashSet::new();
-        for attr in attrs.iter() {
-            if !keys.insert(attr.keyword()) {
-                return Err(syn::Error::new(
-                    attr.span(),
-                    format_args!("duplicate attribute `{}`", attr.keyword()),
-                ));
-            }
+        let lookahead = input.lookahead1();
+        if lookahead.peek(LitStr) {
+            Ok(Self::Static {
+                name: input.parse()?,
+            })
+        } else if lookahead.peek(Token![_]) {
+            Ok(Self::Group {
+                _underscore: input.parse()?,
+            })
+        } else if lookahead.peek(Token![..]) {
+            Ok(Self::CatchAll {
+                _dotdot: input.parse()?,
+                name: input.parse()?,
+            })
+        } else if lookahead.peek(Ident) {
+            Ok(Self::Param {
+                name: input.parse()?,
+                ty: input.call(ParamType::parse_option)?,
+                fn_name: input.call(ParamFnName::parse_option)?,
+            })
+        } else {
+            Err(lookahead.error())
         }
+    }
+}
 
-        Ok(Self {
-            attrs,
-            file: input.span().file(),
-        })
+impl Segment {
+    fn kind_ident(&self) -> Ident {
+        let kind = match self {
+            Self::Static { .. } => "Static",
+            Self::Group { .. } => "Group",
+            Self::Param { .. } => "Param",
+            Self::CatchAll { .. } => "CatchAll",
+        };
+        Ident::new(kind, Span::call_site())
+    }
+
+    fn rename_tokens(&self) -> TokenStream {
+        let lit = match self {
+            Self::Static { name } => quote! { #name },
+            Self::Group { .. } => return quote! { ::core::option::Option::None },
+            Self::Param { name, .. } | Self::CatchAll { name, .. } => {
+                let s = name.to_string();
+                quote! { #s }
+            }
+        };
+        quote! {
+            ::core::option::Option::Some(::std::borrow::Cow::Borrowed(#lit))
+        }
     }
 }
 
 impl ToTokens for Segment {
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        let kind = self.find_kind();
-        let rename = self.find_rename();
-        let parse = self.find_parse();
-
-        if let Some(kind) = kind
-            && kind == "Param"
-        {
-            let name = Ident::new(self.module(), Span::call_site());
-            let ty = parse.map(|path| quote! { : #path });
+        if let Self::Param { name, ty, fn_name } = self {
+            let ty_tokens = ty
+                .as_ref()
+                .map(|ParamType { path, .. }| quote! { : #path });
+            let fn_name_tokens = fn_name
+                .as_ref()
+                .map(|ParamFnName { name, .. }| quote! { as #name });
             quote! {
-                ::topcoat::router::path_param!(#name #ty);
+                ::topcoat::router::path_param!(#name #ty_tokens #fn_name_tokens);
             }
             .to_tokens(tokens);
         }
 
         if cfg!(feature = "discover") {
-            let kind =
-                QuoteOption::new(kind.map(|kind| quote! { ::topcoat::router::SegmentKind::#kind }));
-            let rename = QuoteOption::new(rename);
+            let kind = self.kind_ident();
+            let rename = self.rename_tokens();
             quote! {
                 ::topcoat::inventory::submit! {
                     ::topcoat::router::Segment::new(
                         module_path!(),
-                        #kind,
+                        ::core::option::Option::Some(::topcoat::router::SegmentKind::#kind),
                         #rename,
                     )
                 }
             }
             .to_tokens(tokens);
-        }
-    }
-}
-
-mod kw {
-    use syn::custom_keyword;
-
-    custom_keyword!(kind);
-    custom_keyword!(rename);
-    custom_keyword!(parse);
-}
-
-#[expect(
-    dead_code,
-    reason = "parsed for syntax validation; not yet consumed by code generation"
-)]
-pub enum SegmentAttr {
-    Kind {
-        kind_kw: kw::kind,
-        eq_token: Token![=],
-        value: Ident,
-    },
-    Rename {
-        rename_kw: kw::rename,
-        eq_token: Token![=],
-        value: LitStr,
-    },
-    Parse {
-        parse_kw: kw::parse,
-        eq_token: Token![=],
-        value: Path,
-    },
-}
-
-impl SegmentAttr {
-    fn keyword(&self) -> &'static str {
-        match self {
-            Self::Kind { .. } => "kind",
-            Self::Rename { .. } => "rename",
-            Self::Parse { .. } => "parse",
-        }
-    }
-
-    fn span(&self) -> Span {
-        match self {
-            Self::Kind { kind_kw, .. } => kind_kw.span,
-            Self::Rename { rename_kw, .. } => rename_kw.span,
-            Self::Parse { parse_kw, .. } => parse_kw.span,
-        }
-    }
-
-    fn as_kind(&self) -> Option<&Ident> {
-        match self {
-            Self::Kind { value, .. } => Some(value),
-            _ => None,
-        }
-    }
-
-    fn as_rename(&self) -> Option<&LitStr> {
-        match self {
-            Self::Rename { value, .. } => Some(value),
-            _ => None,
-        }
-    }
-
-    fn as_parse(&self) -> Option<&Path> {
-        match self {
-            Self::Parse { value, .. } => Some(value),
-            _ => None,
-        }
-    }
-}
-
-impl Parse for SegmentAttr {
-    fn parse(input: ParseStream) -> syn::Result<Self> {
-        let lookahead = input.lookahead1();
-        if lookahead.peek(kw::kind) {
-            Ok(Self::Kind {
-                kind_kw: input.parse()?,
-                eq_token: input.parse()?,
-                value: input.parse()?,
-            })
-        } else if lookahead.peek(kw::rename) {
-            Ok(Self::Rename {
-                rename_kw: input.parse()?,
-                eq_token: input.parse()?,
-                value: input.parse()?,
-            })
-        } else if lookahead.peek(kw::parse) {
-            Ok(Self::Parse {
-                parse_kw: input.parse()?,
-                eq_token: input.parse()?,
-                value: input.parse()?,
-            })
-        } else {
-            Err(lookahead.error())
         }
     }
 }

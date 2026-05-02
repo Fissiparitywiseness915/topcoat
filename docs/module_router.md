@@ -257,3 +257,10 @@ The resulting routes:
 | `/users/{id}/posts` | `app::users::id::posts` |
 | `/posts` | `app::posts` |
 | `/posts/{slug}` | `app::posts::slug` |
+
+
+segment!("blog-posts") // turns the current segment into type "Static" and renames to "blog-posts"
+segment!(_) // turns the current segment into type "Group"
+segment!(post_id) // turns the current segment into type "Param", uses `path_param!(post_id)` to generate an accessor
+segment!(post_id: uuid::Uuid) // turns the current segment into type "Param", uses `path_param!(post_id: uuid::Uuid)` to generate an accessor
+segment!(..rest) // turns the current segment into type "CatchAll"
