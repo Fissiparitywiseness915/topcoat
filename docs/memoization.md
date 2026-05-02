@@ -2,14 +2,14 @@
 
 The `#[memoize]` attribute caches the result of a function for the duration of a single request, keyed by its arguments. Call the same function twice with the same arguments inside one request and the body runs only once — the second call returns the cached value.
 
-This is the per-request equivalent of memoization in libraries like React's `useMemo` or Next.js's `cache`: it's not a global cache and it's not persisted across requests. Each new request starts with an empty cache.
+This is the per-request equivalent of memoization in libraries like React's `cache`: it's not a global cache and it's not persisted across requests. Each new request starts with an empty cache.
 
 ## Setup
 
 Annotate any function that takes a `cx: &Cx` parameter:
 
 ```rust
-use topcoat::{context::Cx, memoize};
+use topcoat::context::{Cx, memoize};
 
 #[memoize]
 async fn get_user(cx: &Cx, id: i64) -> User {
@@ -114,8 +114,7 @@ It is *not* a substitute for a long-lived cache (Redis, an LRU, etc.). Cross-req
 
 ```rust
 use topcoat::{
-    context::Cx,
-    memoize,
+    context::{Cx, memoize},
     router::{Slot, layout, page},
     view::{View, view},
 };

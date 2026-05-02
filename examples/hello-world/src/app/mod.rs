@@ -2,8 +2,7 @@ mod _group;
 mod about;
 
 use topcoat::{
-    context::{Cx, uri},
-    memoize,
+    context::{Cx, memoize, uri},
     router::{Slot, layout, page},
     view::{View, view},
 };

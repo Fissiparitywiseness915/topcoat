@@ -3,9 +3,11 @@ extern crate self as topcoat;
 pub mod dev;
 mod serve;
 
-pub use topcoat_core::*;
+pub mod context {
+    pub use topcoat_macro::memoize;
 
-pub use topcoat_macro::memoize;
+    pub use topcoat_core::context::*;
+}
 
 pub mod component {
     pub use topcoat_macro::component;

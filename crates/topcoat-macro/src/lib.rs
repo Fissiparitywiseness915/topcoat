@@ -69,7 +69,7 @@ pub fn segment(tokens: TokenStream) -> TokenStream {
 /// future and observe the same result.
 ///
 /// ```ignore
-/// use topcoat::{context::Cx, memoize};
+/// use topcoat::context::{Cx, memoize};
 ///
 /// // Synchronous: the body runs once per `(x, y)` pair.
 /// #[memoize]
