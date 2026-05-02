@@ -12,7 +12,10 @@ use crate::quote_option::QuoteOption;
 
 pub struct Segment {
     attrs: Punctuated<SegmentAttr, Token![,]>,
+    file: String,
 }
+
+impl Segment {}
 
 impl Parse for Segment {
     fn parse(input: ParseStream) -> syn::Result<Self> {
@@ -30,7 +33,10 @@ impl Parse for Segment {
             }
         }
 
-        Ok(Self { attrs })
+        Ok(Self {
+            attrs,
+            file: input.span().file(),
+        })
     }
 }
 

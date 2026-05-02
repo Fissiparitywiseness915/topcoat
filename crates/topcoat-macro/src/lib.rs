@@ -2,7 +2,7 @@ mod component;
 mod layout;
 mod memoize;
 mod page;
-mod param;
+mod path_param;
 mod quote_option;
 mod route;
 mod segment;
@@ -54,9 +54,9 @@ pub fn segment(tokens: TokenStream) -> TokenStream {
 }
 
 #[proc_macro]
-pub fn param(tokens: TokenStream) -> TokenStream {
-    let param = syn::parse_macro_input!(tokens as param::Param);
-    quote! { #param }.into()
+pub fn path_param(tokens: TokenStream) -> TokenStream {
+    let path_param = syn::parse_macro_input!(tokens as path_param::PathParam);
+    quote! { #path_param }.into()
 }
 
 /// Caches the result of a function for the duration of a request, keyed by its arguments.

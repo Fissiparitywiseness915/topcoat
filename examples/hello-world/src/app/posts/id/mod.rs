@@ -1,12 +1,12 @@
 use topcoat::{
     context::Cx,
-    router::{page, param, segment},
+    router::{page, path_param, segment},
     view::{View, view},
 };
 
 segment!(kind = Param);
 
-param!(id: uuid::Uuid);
+path_param!(id: uuid::Uuid);
 
 #[page]
 async fn post_page(cx: &Cx) -> View {

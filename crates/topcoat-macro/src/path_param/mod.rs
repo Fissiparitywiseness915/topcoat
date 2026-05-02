@@ -6,30 +6,30 @@ use syn::{
 };
 use topcoat_view::ast::ParseOption;
 
-pub struct Param {
+pub struct PathParam {
     vis: Visibility,
     name: Ident,
-    fn_name: Option<ParamFnName>,
-    ty: Option<ParamType>,
+    fn_name: Option<PathParamFnName>,
+    ty: Option<PathParamType>,
 }
 
-impl Parse for Param {
+impl Parse for PathParam {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         Ok(Self {
             vis: input.parse()?,
             name: input.parse()?,
-            fn_name: input.call(ParamFnName::parse_option)?,
-            ty: input.call(ParamType::parse_option)?,
+            fn_name: input.call(PathParamFnName::parse_option)?,
+            ty: input.call(PathParamType::parse_option)?,
         })
     }
 }
 
-struct ParamFnName {
+struct PathParamFnName {
     _as_token: Token![as],
     name: Ident,
 }
 
-impl Parse for ParamFnName {
+impl Parse for PathParamFnName {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         Ok(Self {
             _as_token: input.parse()?,
@@ -38,18 +38,18 @@ impl Parse for ParamFnName {
     }
 }
 
-impl ParseOption for ParamFnName {
+impl ParseOption for PathParamFnName {
     fn peek(input: ParseStream) -> bool {
         input.peek(Token![as])
     }
 }
 
-struct ParamType {
+struct PathParamType {
     _colon_token: Token![:],
     path: Path,
 }
 
-impl Parse for ParamType {
+impl Parse for PathParamType {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         Ok(Self {
             _colon_token: input.parse()?,
@@ -58,13 +58,13 @@ impl Parse for ParamType {
     }
 }
 
-impl ParseOption for ParamType {
+impl ParseOption for PathParamType {
     fn peek(input: ParseStream) -> bool {
         input.peek(Token![:])
     }
 }
 
-impl ToTokens for Param {
+impl ToTokens for PathParam {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let vis = &self.vis;
         let name_string = self.name.to_string();
@@ -73,6 +73,10 @@ impl ToTokens for Param {
             .as_ref()
             .map(|fn_name| &fn_name.name)
             .unwrap_or(&self.name);
+
+        let panic = quote! {
+            panic!("path parameter \"{}\" was not found in request path", #name_string);
+        };
 
         if let Some(ty) = &self.ty {
             let ty = &ty.path;
@@ -84,7 +88,7 @@ impl ToTokens for Param {
                             return str::parse::<#ty>(value).unwrap();
                         }
                     }
-                    panic!("path parameter \"{}\" was not found in request path", #name_string);
+                    #panic
                 }
             }
             .to_tokens(tokens);
@@ -96,7 +100,7 @@ impl ToTokens for Param {
                             return value;
                         }
                     }
-                    panic!("path parameter \"{}\" was not found in request path", #name_string);
+                    #panic
                 }
             }
             .to_tokens(tokens);
