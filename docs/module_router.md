@@ -157,6 +157,8 @@ The accessor now returns the parsed value:
 fn id(cx: &Cx) -> uuid::Uuid { /* … */ }
 ```
 
+Parsed path parameter values are [automatically memoized](./memoization.md).
+
 ### Renaming the accessor
 
 If the URL param name and the accessor name should differ, append `as <fn_name>`:
@@ -166,7 +168,7 @@ If the URL param name and the accessor name should differ, append `as <fn_name>`
 topcoat::router::segment!(id: uuid::Uuid as param);
 ```
 
-This still routes as `/posts/{id}` but the accessor is `param(cx) -> uuid::Uuid`.
+This still routes as `/posts/{id}` but the accessor is `param(cx)`.
 
 ## Catch-all segments
 
