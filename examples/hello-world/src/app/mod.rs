@@ -12,8 +12,18 @@ pub fn router() -> topcoat::router::Router {
     topcoat::router::file_router!()
 }
 
+// Pretend this is an expensive database lookup. The `println!` makes it obvious in the
+// terminal that the body only runs once per request, even though both the layout and the
+// page call it.
+#[memoize]
+async fn current_user(cx: &Cx) -> String {
+    println!("loading current user");
+    "alice".to_owned()
+}
+
 #[layout]
 async fn layout(cx: &Cx, slot: Slot) -> View {
+    let user = current_user(cx).await;
     view! {
         <!DOCTYPE html>
         <html>
@@ -28,6 +38,7 @@ async fn layout(cx: &Cx, slot: Slot) -> View {
                     <a href="/about">"about"</a>
                     <span class=("test")>" | "</span>
                     <a href="/contact">"contact"</a>
+                    <span>" | signed in as " ((*user).clone())</span>
                 </nav>
                 <hr>
 
@@ -42,25 +53,8 @@ async fn layout(cx: &Cx, slot: Slot) -> View {
     }
 }
 
-#[memoize]
-async fn add(cx: &Cx, x: i32, y: i32) -> i32 {
-    println!("adding {x} + {y}");
-    x + y
-}
-
-#[memoize]
-async fn add_str(cx: &Cx, x: &str, y: i32) -> String {
-    println!("adding str {x} + {y}");
-    x.to_owned() + &y.to_string()
-}
-
 #[page]
 async fn home_page(cx: &Cx) -> View {
-    let result1 = add(cx, 5, 6).await;
-    let result1 = add(cx, 5, 6).await;
-    let result1 = add_str(cx, "test", 6).await;
-    let result1 = add_str(cx, "test", 6).await;
-    let result1 = add_str(cx, "test2", 6).await;
-
-    view! { "home" }
+    let user = current_user(cx).await;
+    view! { "welcome, " ((*user).clone()) }
 }

@@ -211,6 +211,16 @@ macro_rules! impl_tuple {
 mod impls {
     use super::{Equivalent, MemoizeKey, ToOwnedKey};
 
+    // Hand-written zero-arity impls for memoized functions whose only parameter is `cx`. The
+    // macro's `&&*`-joined body doesn't expand cleanly for zero repetitions.
+    impl Equivalent<()> for MemoizeKey<()> {
+        fn equivalent(&self, _key: &()) -> bool { true }
+    }
+    impl ToOwnedKey for MemoizeKey<()> {
+        type Owned = ();
+        fn to_owned_key(&self) -> Self::Owned {}
+    }
+
     impl_tuple!((K1, Q1, 0));
     impl_tuple!((K1, Q1, 0), (K2, Q2, 1));
     impl_tuple!((K1, Q1, 0), (K2, Q2, 1), (K3, Q3, 2));
