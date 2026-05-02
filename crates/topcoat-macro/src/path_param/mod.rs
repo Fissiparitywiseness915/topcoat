@@ -83,7 +83,7 @@ impl ToTokens for PathParam {
             quote! {
                 #[::topcoat::context::memoize]
                 #vis fn #fn_name(cx: &::topcoat::context::Cx) -> #ty {
-                    for (key, value) in ::topcoat::context::raw_path_params(cx) {
+                    for (key, value) in ::topcoat::router::raw_path_params(cx) {
                         if key == #name_string {
                             return str::parse::<#ty>(value).unwrap();
                         }
@@ -95,7 +95,7 @@ impl ToTokens for PathParam {
         } else {
             quote! {
                 #vis fn #fn_name(cx: &::topcoat::context::Cx) -> &str {
-                    for (key, value) in ::topcoat::context::raw_path_params(cx) {
+                    for (key, value) in ::topcoat::router::raw_path_params(cx) {
                         if key == #name_string {
                             return value;
                         }

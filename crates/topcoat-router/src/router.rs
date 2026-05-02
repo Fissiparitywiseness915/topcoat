@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use axum::{body::Body, extract::RawPathParams, routing::get};
 use http::Request;
 use topcoat_core::context::scope_context;
@@ -109,8 +111,9 @@ impl From<Router> for axum::Router {
                         render = layout.render(render);
                     }
 
-                    let (parts, _body) = request.into_parts();
-                    scope_context(parts, params, render).await
+                    let (mut parts, _body) = request.into_parts();
+                    parts.extensions.insert(Arc::new(params));
+                    scope_context(parts, render).await
                 }),
             );
         }

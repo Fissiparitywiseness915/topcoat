@@ -249,17 +249,26 @@ mod tests {
         Box::leak(Box::new(AtomicUsize::new(0)))
     }
 
+    fn cx() -> Cx {
+        Cx {
+            id: super::super::CxId(0),
+            parts: http::Request::new(()).into_parts().0,
+            cache: MemoizeCache::new(),
+        }
+    }
+
     #[test]
     fn sync_same_key_runs_body_once() {
         let cache = MemoizeCache::new();
+        let cx = cx();
         let n = counter();
-        let f = move |(x, y): (i32, i32)| {
+        let f = move |_: &Cx, (x, y): (i32, i32)| {
             n.fetch_add(1, Ordering::SeqCst);
             x + y
         };
 
-        let a = cache.memoize((&1i32, &2i32), (1, 2), f);
-        let b = cache.memoize((&1i32, &2i32), (1, 2), f);
+        let a = cache.memoize(&cx, (&1i32, &2i32), (1, 2), f);
+        let b = cache.memoize(&cx, (&1i32, &2i32), (1, 2), f);
 
         assert_eq!(*a, 3);
         assert_eq!(*b, 3);
@@ -269,15 +278,16 @@ mod tests {
     #[test]
     fn sync_different_keys_run_body_per_key() {
         let cache = MemoizeCache::new();
+        let cx = cx();
         let n = counter();
-        let f = move |(x, y): (i32, i32)| {
+        let f = move |_: &Cx, (x, y): (i32, i32)| {
             n.fetch_add(1, Ordering::SeqCst);
             x + y
         };
 
-        cache.memoize((&1i32, &2i32), (1, 2), f);
-        cache.memoize((&1i32, &3i32), (1, 3), f);
-        cache.memoize((&1i32, &2i32), (1, 2), f);
+        cache.memoize(&cx, (&1i32, &2i32), (1, 2), f);
+        cache.memoize(&cx, (&1i32, &3i32), (1, 3), f);
+        cache.memoize(&cx, (&1i32, &2i32), (1, 2), f);
 
         assert_eq!(n.load(Ordering::SeqCst), 2);
     }
@@ -285,19 +295,20 @@ mod tests {
     #[test]
     fn sync_different_functions_dont_collide() {
         let cache = MemoizeCache::new();
+        let cx = cx();
         let n1 = counter();
         let n2 = counter();
-        let f1 = move |(x,): (i32,)| {
+        let f1 = move |_: &Cx, (x,): (i32,)| {
             n1.fetch_add(1, Ordering::SeqCst);
             x
         };
-        let f2 = move |(x,): (i32,)| {
+        let f2 = move |_: &Cx, (x,): (i32,)| {
             n2.fetch_add(1, Ordering::SeqCst);
             x * 10
         };
 
-        let a = cache.memoize((&1i32,), (1,), f1);
-        let b = cache.memoize((&1i32,), (1,), f2);
+        let a = cache.memoize(&cx, (&1i32,), (1,), f1);
+        let b = cache.memoize(&cx, (&1i32,), (1,), f2);
 
         assert_eq!(*a, 1);
         assert_eq!(*b, 10);
@@ -308,8 +319,9 @@ mod tests {
     #[test]
     fn sync_borrowed_str_key_dedupes_by_value() {
         let cache = MemoizeCache::new();
+        let cx = cx();
         let n = counter();
-        let f = move |(s,): (&str,)| {
+        let f = move |_: &Cx, (s,): (&str,)| {
             n.fetch_add(1, Ordering::SeqCst);
             s.to_owned()
         };
@@ -317,8 +329,8 @@ mod tests {
         // Two different `&str` slices with the same contents should share a cache entry.
         let s1 = String::from("alice");
         let s2 = String::from("alice");
-        let a = cache.memoize((s1.as_str(),), (s1.as_str(),), f);
-        let b = cache.memoize((s2.as_str(),), (s2.as_str(),), f);
+        let a = cache.memoize(&cx, (s1.as_str(),), (s1.as_str(),), f);
+        let b = cache.memoize(&cx, (s2.as_str(),), (s2.as_str(),), f);
 
         assert_eq!(&*a, "alice");
         assert_eq!(&*b, "alice");
@@ -328,14 +340,15 @@ mod tests {
     #[test]
     fn sync_zero_arity_key() {
         let cache = MemoizeCache::new();
+        let cx = cx();
         let n = counter();
-        let f = move |(): ()| {
+        let f = move |_: &Cx, (): ()| {
             n.fetch_add(1, Ordering::SeqCst);
             42
         };
 
-        let a = cache.memoize((), (), f);
-        let b = cache.memoize((), (), f);
+        let a = cache.memoize(&cx, (), (), f);
+        let b = cache.memoize(&cx, (), (), f);
 
         assert_eq!(*a, 42);
         assert_eq!(*b, 42);
@@ -345,14 +358,15 @@ mod tests {
     #[tokio::test]
     async fn async_same_key_runs_body_once() {
         let cache = MemoizeCache::new();
+        let cx = cx();
         let n = counter();
-        let f = async move |(x, y): (i32, i32)| {
+        let f = async move |_: &Cx, (x, y): (i32, i32)| {
             n.fetch_add(1, Ordering::SeqCst);
             x + y
         };
 
-        let a = cache.memoize_async((&1i32, &2i32), (1, 2), f).await;
-        let b = cache.memoize_async((&1i32, &2i32), (1, 2), f).await;
+        let a = cache.memoize_async(&cx, (&1i32, &2i32), (1, 2), f).await;
+        let b = cache.memoize_async(&cx, (&1i32, &2i32), (1, 2), f).await;
 
         assert_eq!(*a, 3);
         assert_eq!(*b, 3);
@@ -362,15 +376,16 @@ mod tests {
     #[tokio::test]
     async fn async_different_keys_run_body_per_key() {
         let cache = MemoizeCache::new();
+        let cx = cx();
         let n = counter();
-        let f = async move |(x, y): (i32, i32)| {
+        let f = async move |_: &Cx, (x, y): (i32, i32)| {
             n.fetch_add(1, Ordering::SeqCst);
             x + y
         };
 
-        cache.memoize_async((&1i32, &2i32), (1, 2), f).await;
-        cache.memoize_async((&1i32, &3i32), (1, 3), f).await;
-        cache.memoize_async((&1i32, &2i32), (1, 2), f).await;
+        cache.memoize_async(&cx, (&1i32, &2i32), (1, 2), f).await;
+        cache.memoize_async(&cx, (&1i32, &3i32), (1, 3), f).await;
+        cache.memoize_async(&cx, (&1i32, &2i32), (1, 2), f).await;
 
         assert_eq!(n.load(Ordering::SeqCst), 2);
     }

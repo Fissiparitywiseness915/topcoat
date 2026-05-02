@@ -9,7 +9,6 @@ use std::sync::{
     atomic::{AtomicU64, Ordering},
 };
 
-use axum::extract::RawPathParams;
 use http::request::Parts;
 use tokio::task_local;
 
@@ -28,7 +27,6 @@ pub struct Cx {
     id: CxId,
 
     parts: Parts,
-    params: RawPathParams,
 
     cache: MemoizeCache,
 }
@@ -56,12 +54,11 @@ task_local! {
     static CX: Arc<Cx>;
 }
 
-pub async fn scope_context<F: Future>(parts: Parts, params: RawPathParams, f: F) -> F::Output {
+pub async fn scope_context<F: Future>(parts: Parts, f: F) -> F::Output {
     CX.scope(
         Arc::new(Cx {
             id: CxId::new(),
             parts,
-            params,
             cache: MemoizeCache::new(),
         }),
         f,
