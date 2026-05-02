@@ -74,16 +74,32 @@ impl ToTokens for Param {
             .map(|fn_name| &fn_name.name)
             .unwrap_or(&self.name);
 
-        quote! {
-            #vis fn #fn_name(cx: &::topcoat::context::Cx) -> &str {
-                for (key, value) in ::topcoat::context::raw_path_params(cx) {
-                    if key == #name_string {
-                        return value;
+        if let Some(ty) = &self.ty {
+            let ty = &ty.path;
+            quote! {
+                #[::topcoat::context::memoize]
+                #vis fn #fn_name(cx: &::topcoat::context::Cx) -> #ty {
+                    for (key, value) in ::topcoat::context::raw_path_params(cx) {
+                        if key == #name_string {
+                            return str::parse::<#ty>(value).unwrap();
+                        }
                     }
+                    panic!("path parameter \"{}\" was not found in request path", #name_string);
                 }
-                panic!("path parameter \"{}\" was not found in request path", #name_string);
             }
+            .to_tokens(tokens);
+        } else {
+            quote! {
+                #vis fn #fn_name(cx: &::topcoat::context::Cx) -> &str {
+                    for (key, value) in ::topcoat::context::raw_path_params(cx) {
+                        if key == #name_string {
+                            return value;
+                        }
+                    }
+                    panic!("path parameter \"{}\" was not found in request path", #name_string);
+                }
+            }
+            .to_tokens(tokens);
         }
-        .to_tokens(tokens);
     }
 }

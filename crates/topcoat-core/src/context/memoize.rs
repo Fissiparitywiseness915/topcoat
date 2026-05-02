@@ -17,6 +17,8 @@ use std::{
 use hashbrown::{Equivalent, HashMap};
 use tokio::sync::OnceCell;
 
+use crate::context::Cx;
+
 /// A handle to a memoized value, scoped to the request context.
 ///
 /// `Memoized<T>` is returned by functions annotated with `#[memoize]`. It dereferences to
@@ -88,21 +90,22 @@ impl MemoizeCache {
         }
     }
 
-    pub fn memoize<'a, K, P, V, F>(&'a self, key: K, params: P, f: F) -> Memoized<'a, V>
+    pub fn memoize<'a, K, P, V, F>(&'a self, cx: &'a Cx, key: K, params: P, f: F) -> Memoized<'a, V>
     where
         K: Copy,
         MemoizeKey<K>: Hash + ToOwnedKey + Equivalent<<MemoizeKey<K> as ToOwnedKey>::Owned>,
         <MemoizeKey<K> as ToOwnedKey>::Owned: Hash + Eq + Send + Sync + 'static,
         V: Send + Sync + 'static,
-        F: (FnOnce(P) -> V) + 'static,
+        F: (FnOnce(&'a Cx, P) -> V) + 'static,
     {
         let cell = self.cell_for::<F, _, OnceLock<Arc<V>>>(key);
-        let value = cell.get_or_init(|| Arc::new(f(params)));
+        let value = cell.get_or_init(|| Arc::new(f(cx, params)));
         Memoized::new(value.clone())
     }
 
     pub async fn memoize_async<'a, K, P, V, F, Fut>(
         &'a self,
+        cx: &'a Cx,
         key: K,
         params: P,
         f: F,
@@ -112,12 +115,12 @@ impl MemoizeCache {
         MemoizeKey<K>: Hash + ToOwnedKey + Equivalent<<MemoizeKey<K> as ToOwnedKey>::Owned>,
         <MemoizeKey<K> as ToOwnedKey>::Owned: Hash + Eq + Send + Sync + 'static,
         V: Send + Sync + 'static,
-        F: (FnOnce(P) -> Fut) + 'static,
+        F: (FnOnce(&'a Cx, P) -> Fut) + 'static,
         Fut: Future<Output = V>,
     {
         let cell = self.cell_for::<F, _, OnceCell<Arc<V>>>(key);
         let value = cell
-            .get_or_init(|| async { Arc::new(f(params).await) })
+            .get_or_init(|| async { Arc::new(f(cx, params).await) })
             .await;
         Memoized::new(value.clone())
     }

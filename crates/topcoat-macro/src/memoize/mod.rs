@@ -122,9 +122,10 @@ impl ToTokens for Memoize {
         let call = if asyncness.is_some() {
             quote! {
                 cx.cache().memoize_async(
+                    cx,
                     (#(#borrowed_keys,)*),
                     (#(#key_idents,)*),
-                    async |(#(#closure_pats,)*)| {
+                    async |cx, (#(#closure_pats,)*)| {
                         #(#destructures)*
                         #(#body_stmts)*
                     },
@@ -133,9 +134,10 @@ impl ToTokens for Memoize {
         } else {
             quote! {
                 cx.cache().memoize(
+                    cx,
                     (#(#borrowed_keys,)*),
                     (#(#key_idents,)*),
-                    |(#(#closure_pats,)*)| {
+                    |cx, (#(#closure_pats,)*)| {
                         #(#destructures)*
                         #(#body_stmts)*
                     },

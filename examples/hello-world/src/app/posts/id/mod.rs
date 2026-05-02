@@ -5,9 +5,10 @@ use topcoat::{
 };
 
 segment!(kind = Param);
-param!(id);
+
+param!(id: uuid::Uuid);
 
 #[page]
 async fn post_page(cx: &Cx) -> View {
-    view! { "showing post with id: " (id(cx)) }
+    view! { "showing post with id: " (id(cx).to_string()) }
 }
