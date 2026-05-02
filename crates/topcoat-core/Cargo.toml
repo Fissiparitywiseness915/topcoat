@@ -10,5 +10,8 @@ hashbrown.workspace = true
 http.workspace = true
 tokio = { workspace = true, features = ["sync"] }
 
+[dev-dependencies]
+tokio = { workspace = true, features = ["macros", "rt"] }
+
 [lints]
 workspace = true

@@ -234,3 +234,141 @@ mod impls {
     impl_tuple!((K1, Q1, 0), (K2, Q2, 1), (K3, Q3, 2), (K4, Q4, 3), (K5, Q5, 4), (K6, Q6, 5), (K7, Q7, 6), (K8, Q8, 7), (K9, Q9, 8), (K10, Q10, 9), (K11, Q11, 10));
     impl_tuple!((K1, Q1, 0), (K2, Q2, 1), (K3, Q3, 2), (K4, Q4, 3), (K5, Q5, 4), (K6, Q6, 5), (K7, Q7, 6), (K8, Q8, 7), (K9, Q9, 8), (K10, Q10, 9), (K11, Q11, 10), (K12, Q12, 11));
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::sync::atomic::{AtomicUsize, Ordering};
+
+    /// Returns a fresh counter with `'static` lifetime so closures that capture it can be
+    /// `Copy + 'static` (the bounds `MemoizeCache::memoize` imposes on its function).
+    fn counter() -> &'static AtomicUsize {
+        Box::leak(Box::new(AtomicUsize::new(0)))
+    }
+
+    #[test]
+    fn sync_same_key_runs_body_once() {
+        let cache = MemoizeCache::new();
+        let n = counter();
+        let f = move |(x, y): (i32, i32)| {
+            n.fetch_add(1, Ordering::SeqCst);
+            x + y
+        };
+
+        let a = cache.memoize((&1i32, &2i32), (1, 2), f);
+        let b = cache.memoize((&1i32, &2i32), (1, 2), f);
+
+        assert_eq!(*a, 3);
+        assert_eq!(*b, 3);
+        assert_eq!(n.load(Ordering::SeqCst), 1);
+    }
+
+    #[test]
+    fn sync_different_keys_run_body_per_key() {
+        let cache = MemoizeCache::new();
+        let n = counter();
+        let f = move |(x, y): (i32, i32)| {
+            n.fetch_add(1, Ordering::SeqCst);
+            x + y
+        };
+
+        cache.memoize((&1i32, &2i32), (1, 2), f);
+        cache.memoize((&1i32, &3i32), (1, 3), f);
+        cache.memoize((&1i32, &2i32), (1, 2), f);
+
+        assert_eq!(n.load(Ordering::SeqCst), 2);
+    }
+
+    #[test]
+    fn sync_different_functions_dont_collide() {
+        let cache = MemoizeCache::new();
+        let n1 = counter();
+        let n2 = counter();
+        let f1 = move |(x,): (i32,)| {
+            n1.fetch_add(1, Ordering::SeqCst);
+            x
+        };
+        let f2 = move |(x,): (i32,)| {
+            n2.fetch_add(1, Ordering::SeqCst);
+            x * 10
+        };
+
+        let a = cache.memoize((&1i32,), (1,), f1);
+        let b = cache.memoize((&1i32,), (1,), f2);
+
+        assert_eq!(*a, 1);
+        assert_eq!(*b, 10);
+        assert_eq!(n1.load(Ordering::SeqCst), 1);
+        assert_eq!(n2.load(Ordering::SeqCst), 1);
+    }
+
+    #[test]
+    fn sync_borrowed_str_key_dedupes_by_value() {
+        let cache = MemoizeCache::new();
+        let n = counter();
+        let f = move |(s,): (&str,)| {
+            n.fetch_add(1, Ordering::SeqCst);
+            s.to_owned()
+        };
+
+        // Two different `&str` slices with the same contents should share a cache entry.
+        let s1 = String::from("alice");
+        let s2 = String::from("alice");
+        let a = cache.memoize((s1.as_str(),), (s1.as_str(),), f);
+        let b = cache.memoize((s2.as_str(),), (s2.as_str(),), f);
+
+        assert_eq!(&*a, "alice");
+        assert_eq!(&*b, "alice");
+        assert_eq!(n.load(Ordering::SeqCst), 1);
+    }
+
+    #[test]
+    fn sync_zero_arity_key() {
+        let cache = MemoizeCache::new();
+        let n = counter();
+        let f = move |(): ()| {
+            n.fetch_add(1, Ordering::SeqCst);
+            42
+        };
+
+        let a = cache.memoize((), (), f);
+        let b = cache.memoize((), (), f);
+
+        assert_eq!(*a, 42);
+        assert_eq!(*b, 42);
+        assert_eq!(n.load(Ordering::SeqCst), 1);
+    }
+
+    #[tokio::test]
+    async fn async_same_key_runs_body_once() {
+        let cache = MemoizeCache::new();
+        let n = counter();
+        let f = async move |(x, y): (i32, i32)| {
+            n.fetch_add(1, Ordering::SeqCst);
+            x + y
+        };
+
+        let a = cache.memoize_async((&1i32, &2i32), (1, 2), f).await;
+        let b = cache.memoize_async((&1i32, &2i32), (1, 2), f).await;
+
+        assert_eq!(*a, 3);
+        assert_eq!(*b, 3);
+        assert_eq!(n.load(Ordering::SeqCst), 1);
+    }
+
+    #[tokio::test]
+    async fn async_different_keys_run_body_per_key() {
+        let cache = MemoizeCache::new();
+        let n = counter();
+        let f = async move |(x, y): (i32, i32)| {
+            n.fetch_add(1, Ordering::SeqCst);
+            x + y
+        };
+
+        cache.memoize_async((&1i32, &2i32), (1, 2), f).await;
+        cache.memoize_async((&1i32, &3i32), (1, 3), f).await;
+        cache.memoize_async((&1i32, &2i32), (1, 2), f).await;
+
+        assert_eq!(n.load(Ordering::SeqCst), 2);
+    }
+}
