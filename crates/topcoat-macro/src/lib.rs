@@ -54,10 +54,12 @@ pub fn segment(tokens: TokenStream) -> TokenStream {
     quote! { #segment }.into()
 }
 
-#[proc_macro]
-pub fn path_param(tokens: TokenStream) -> TokenStream {
-    let path_param = syn::parse_macro_input!(tokens as path_param::PathParam);
-    quote! { #path_param }.into()
+#[proc_macro_attribute]
+pub fn path_param(attr: TokenStream, item: TokenStream) -> TokenStream {
+    let attr = syn::parse_macro_input!(attr as path_param::PathParamAttr);
+    let item = syn::parse_macro_input!(item as path_param::PathParamItem);
+    let combined = path_param::PathParam::new(attr, item);
+    quote! { #combined }.into()
 }
 
 #[proc_macro_attribute]
