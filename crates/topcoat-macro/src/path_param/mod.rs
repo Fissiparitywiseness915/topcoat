@@ -108,20 +108,9 @@ impl ToTokens for PathParam {
             impl #impl_generics #ident #ty_generics #where_clause {
                 #of_fn
             }
+
+            ::topcoat::router::segment!(kind = Param, rename = #name_string);
         }
         .to_tokens(tokens);
-
-        if cfg!(feature = "discover") {
-            quote! {
-                ::topcoat::internal::inventory::submit! {
-                    ::topcoat::router::Segment::new(
-                        module_path!(),
-                        ::core::option::Option::Some(::topcoat::router::SegmentKind::Param),
-                        ::core::option::Option::Some(::std::borrow::Cow::Borrowed(#name_string)),
-                    )
-                }
-            }
-            .to_tokens(tokens);
-        }
     }
 }

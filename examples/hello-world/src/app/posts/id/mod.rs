@@ -1,6 +1,6 @@
 use topcoat::{
     context::Cx,
-    router::{page, path_param, segment},
+    router::{page, path_param},
     view::{View, view},
 };
 
