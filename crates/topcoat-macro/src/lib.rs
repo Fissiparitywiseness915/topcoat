@@ -77,8 +77,7 @@ pub fn query_params(attr: TokenStream, item: TokenStream) -> TokenStream {
 /// arguments runs the body and stores the result; subsequent calls with equal arguments
 /// return the cached value without re-running the body.
 ///
-/// The function's return type `T` is rewritten to [`Memoized<'_, T>`], a handle that
-/// dereferences to `&T` and is bound to the lifetime of the request context.
+/// The function's return type `T` is rewritten to `&T` that has the same lifetime as `&cx`.
 ///
 /// # Sync and async
 ///
@@ -118,8 +117,6 @@ pub fn query_params(attr: TokenStream, item: TokenStream) -> TokenStream {
 ///   type `&Q`, `Q` must be `ToOwned` with `Q::Owned: Hash + Eq + Send + Sync + 'static`
 ///   (e.g. `&str` works because `String: Hash + Eq + Send + Sync + 'static`).
 /// - The return type `T` must be `Send + Sync + 'static`.
-///
-/// [`Memoized<'_, T>`]: topcoat::context::Memoized
 #[proc_macro_attribute]
 pub fn memoize(attr: TokenStream, item: TokenStream) -> TokenStream {
     let attr = syn::parse_macro_input!(attr as memoize::MemoizeAttr);
