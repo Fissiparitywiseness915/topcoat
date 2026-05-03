@@ -13,7 +13,9 @@ pub mod component {
     pub use topcoat_macro::component;
 
     pub trait Component {
-        fn render(self) -> impl Future<Output = crate::view::View> + Send;
+        type Error;
+
+        fn render(self) -> impl Future<Output = Result<crate::view::View, Self::Error>> + Send;
     }
 }
 
@@ -37,4 +39,14 @@ pub mod internal {
     pub use inventory;
     pub use serde;
     pub use serde_urlencoded;
+
+    pub trait ResultExt {
+        type T;
+        type E;
+    }
+
+    impl<T, E> ResultExt for Result<T, E> {
+        type T = T;
+        type E = E;
+    }
 }

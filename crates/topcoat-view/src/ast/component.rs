@@ -59,7 +59,7 @@ impl Component {
             let value = &item.value;
             quote! { #name: #value }
         });
-        let mut child_writer = ViewWriter::new();
+        let mut child_writer = ViewWriter::new_nested();
         for child in self.children() {
             child.write(&mut child_writer);
         }
@@ -68,7 +68,7 @@ impl Component {
             <#name as ::topcoat::component::Component>::render(#name {
                 child: #child_writer,
                 #(#fields),*
-            }).await
+            }).await?
         });
     }
 }

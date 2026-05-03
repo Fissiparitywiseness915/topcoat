@@ -1,7 +1,7 @@
 use topcoat::{
     context::Cx,
-    router::{page, query_params},
-    view::{View, view},
+    router::{Result, page, query_params},
+    view::view,
 };
 
 mod id;
@@ -12,7 +12,7 @@ struct PageQuery {
 }
 
 #[page]
-async fn posts(cx: &Cx) -> View {
+async fn posts(cx: &Cx) -> Result {
     view! {
         <div>"currently on page: " (PageQuery::of(cx).as_ref().unwrap().page)</div>
     }

@@ -3,8 +3,8 @@ mod posts;
 
 use topcoat::{
     context::{Cx, memoize, uri},
-    router::{Slot, layout, page},
-    view::{View, view},
+    router::{Result, Slot, layout, page},
+    view::view,
 };
 
 pub fn router() -> topcoat::router::Router {
@@ -21,7 +21,7 @@ async fn current_user(cx: &Cx) -> String {
 }
 
 #[layout]
-async fn layout(cx: &Cx, slot: Slot) -> View {
+async fn layout(cx: &Cx, slot: Slot) -> Result {
     let user = current_user(cx).await;
     view! {
         <!DOCTYPE html>
@@ -45,7 +45,7 @@ async fn layout(cx: &Cx, slot: Slot) -> View {
                 (uri(cx).to_string())
 
                 <div>
-                    (slot.await)
+                    (slot.await?)
                 </div>
             </body>
         </html>
@@ -53,19 +53,19 @@ async fn layout(cx: &Cx, slot: Slot) -> View {
 }
 
 #[page]
-async fn home_page(cx: &Cx) -> View {
+async fn home_page(cx: &Cx) -> Result {
     let user = current_user(cx).await;
     view! { "welcome, " ((*user).clone()) }
 }
 
 mod about {
     use topcoat::{
-        router::page,
-        view::{View, view},
+        router::{Result, page},
+        view::view,
     };
 
     #[page]
-    async fn about_page() -> View {
+    async fn about_page() -> Result {
         view! { "about" }
     }
 }

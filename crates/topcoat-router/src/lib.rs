@@ -1,3 +1,4 @@
+mod error;
 mod layout;
 mod module;
 mod page;
@@ -6,6 +7,7 @@ mod path;
 mod redirect;
 mod router;
 
+pub use error::*;
 pub use layout::*;
 pub use module::*;
 pub use page::*;
