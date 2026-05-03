@@ -34,19 +34,21 @@ async fn layout(cx: &Cx, slot: Slot) -> Result {
                 <nav>
                     <a href="/">"home"</a>
                     <span>" | "</span>
+                    //kek
                     <a href="/about">"about"</a>
                     <span class=("test")>" | "</span>
                     <a href="/contact">"contact"</a>
-                    <span>" | signed in as " ((*user).clone())</span>
+                    <span>
+                        " | signed in as "
+                        ((*user).clone())
+                    </span>
                 </nav>
                 <hr>
 
                 "current page: "
                 (uri(cx).to_string())
 
-                <div>
-                    (slot.await?)
-                </div>
+                <div>(slot.await?)</div>
             </body>
         </html>
     }

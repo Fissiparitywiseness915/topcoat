@@ -14,6 +14,9 @@ struct PageQuery {
 #[page]
 async fn posts(cx: &Cx) -> Result {
     view! {
-        <div>"currently on page: " (PageQuery::of(cx).as_ref().unwrap().page)</div>
+        <div>
+            "currently on page: "
+            (PageQuery::of(cx).as_ref().unwrap().page)
+        </div>
     }
 }
