@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use topcoat_pretty::{MacroRegistry, pretty_print_str};
+use topcoat_pretty::{Registry, pretty_print_str};
 use topcoat_view::ast::View;
 
 fn diff(expected: &str, actual: &str) -> String {
@@ -32,7 +32,7 @@ fn diff(expected: &str, actual: &str) -> String {
 }
 
 fn assert_format(input: &str, expected: &str) {
-    let registry = MacroRegistry::one::<View>("view");
+    let registry = Registry::one::<View>("view");
     let result = pretty_print_str(&registry, input).unwrap_or_else(|errors| {
         panic!(
             "failed to parse input:\n{input}\nerror: {}",

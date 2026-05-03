@@ -4,7 +4,7 @@ use proc_macro2::LineColumn;
 
 use crate::{
     BeginToken, BreakMode, BreakToken, TextMode, TextToken, Token, TokenBuffer, Trivia, TriviaKind,
-    registry::MacroRegistry,
+    registry::Registry,
 };
 
 /// The target line width. Groups whose collapsed length exceeds this break.
@@ -25,7 +25,7 @@ struct PrintFrame {
 /// boundaries) via the `scan_*` methods, and the printer decides which breaks
 /// to render based on the available width.
 pub struct Printer<'a> {
-    registry: &'a MacroRegistry,
+    registry: &'a Registry,
     trivia: &'a [Trivia<'a>],
     tokens: TokenBuffer<'a>,
     output: String,
@@ -40,7 +40,7 @@ pub struct Printer<'a> {
 impl<'a> Printer<'a> {
     #[must_use]
     pub fn new(
-        registry: &'a MacroRegistry,
+        registry: &'a Registry,
         trivia: &'a [Trivia<'a>],
         initial_space: isize,
         initial_indent: isize,
@@ -59,7 +59,7 @@ impl<'a> Printer<'a> {
         }
     }
 
-    pub fn registry(&self) -> &'a MacroRegistry {
+    pub fn registry(&self) -> &'a Registry {
         self.registry
     }
 

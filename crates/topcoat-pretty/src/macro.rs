@@ -103,10 +103,10 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::registry::MacroRegistry;
+    use crate::registry::Registry;
 
-    fn registry() -> MacroRegistry {
-        MacroRegistry::one::<syn::Ident>("test")
+    fn registry() -> Registry {
+        Registry::one::<syn::Ident>("test")
     }
 
     #[test]

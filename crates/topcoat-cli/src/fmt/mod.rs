@@ -1,7 +1,7 @@
 mod error;
 
 use std::{collections::BTreeSet, io::Read, path::PathBuf, time::Instant};
-use topcoat_pretty::{MacroRegistry, pretty_print_str};
+use topcoat_pretty::{Registry, pretty_print_str};
 
 use clap::Args;
 
@@ -21,8 +21,8 @@ pub struct FmtCommand {
 
 impl FmtCommand {
     pub async fn run(&self) {
-        let mut registry = MacroRegistry::new();
-        registry.register::<topcoat_view::ast::View>("view");
+        let mut registry = Registry::new();
+        registry.register_macro::<topcoat_view::ast::View>("view");
 
         let start = Instant::now();
         let result: Result<(), Error> = async {
@@ -82,7 +82,7 @@ impl FmtCommand {
     }
 }
 
-fn format_file(path: &PathBuf, registry: &MacroRegistry) -> Result<(), error::Error> {
+fn format_file(path: &PathBuf, registry: &Registry) -> Result<(), error::Error> {
     let input = std::fs::read_to_string(path)?;
     let output = pretty_print_str(registry, &input)?;
     std::fs::write(path, output)?;

@@ -28,7 +28,7 @@ struct Replace {
     replacement: String,
 }
 
-pub fn pretty_print_str(registry: &MacroRegistry, input: &str) -> Result<String, Vec<syn::Error>> {
+pub fn pretty_print_str(registry: &Registry, input: &str) -> Result<String, Vec<syn::Error>> {
     let mut output = String::new();
 
     let file = syn::parse_file(input).map_err(|error| vec![error])?;
