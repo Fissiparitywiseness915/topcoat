@@ -137,7 +137,7 @@ impl ToTokens for Segment {
             let kind = self.kind_ident();
             let rename = self.rename_tokens();
             quote! {
-                ::topcoat::inventory::submit! {
+                ::topcoat::internal::inventory::submit! {
                     ::topcoat::router::Segment::new(
                         module_path!(),
                         ::core::option::Option::Some(::topcoat::router::SegmentKind::#kind),

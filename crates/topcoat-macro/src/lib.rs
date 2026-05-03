@@ -3,6 +3,7 @@ mod layout;
 mod memoize;
 mod page;
 mod path_param;
+mod query_params;
 mod quote_option;
 mod route;
 mod segment;
@@ -35,16 +36,16 @@ pub fn route(attr: TokenStream, item: TokenStream) -> TokenStream {
 pub fn page(attr: TokenStream, item: TokenStream) -> TokenStream {
     let attr = syn::parse_macro_input!(attr as page::PageAttr);
     let item = syn::parse_macro_input!(item as page::PageItem);
-    let page = page::Page::new(attr, item);
-    quote! { #page }.into()
+    let combined = page::Page::new(attr, item);
+    quote! { #combined }.into()
 }
 
 #[proc_macro_attribute]
 pub fn layout(attr: TokenStream, item: TokenStream) -> TokenStream {
     let attr = syn::parse_macro_input!(attr as layout::LayoutAttr);
     let item = syn::parse_macro_input!(item as layout::LayoutItem);
-    let layout = layout::Layout::new(attr, item);
-    quote! { #layout }.into()
+    let combined = layout::Layout::new(attr, item);
+    quote! { #combined }.into()
 }
 
 #[proc_macro]
@@ -57,6 +58,12 @@ pub fn segment(tokens: TokenStream) -> TokenStream {
 pub fn path_param(tokens: TokenStream) -> TokenStream {
     let path_param = syn::parse_macro_input!(tokens as path_param::PathParam);
     quote! { #path_param }.into()
+}
+
+#[proc_macro_derive(QueryParams)]
+pub fn query_params(tokens: TokenStream) -> TokenStream {
+    let query_params = syn::parse_macro_input!(tokens as query_params::QueryParams);
+    quote! { #query_params }.into()
 }
 
 /// Caches the result of a function for the duration of a request, keyed by its arguments.
