@@ -18,7 +18,7 @@ pub(crate) struct ViewWriter {
     pub(self) tokens: TokenStream,
     static_segment: String,
     capacity: usize,
-    wrap_ok: bool,
+    nested: bool,
 }
 
 impl ViewWriter {
@@ -27,7 +27,7 @@ impl ViewWriter {
             tokens: TokenStream::new(),
             static_segment: String::new(),
             capacity: 0,
-            wrap_ok: true,
+            nested: false,
         }
     }
 
@@ -36,7 +36,7 @@ impl ViewWriter {
             tokens: TokenStream::new(),
             static_segment: String::new(),
             capacity: 0,
-            wrap_ok: false,
+            nested: true,
         }
     }
 
@@ -98,10 +98,10 @@ impl ToTokens for ViewWriter {
             }
         };
 
-        if self.wrap_ok {
-            quote! { Ok(#format_block) }.to_tokens(tokens);
-        } else {
+        if self.nested {
             format_block.to_tokens(tokens);
+        } else {
+            quote! { async { Ok(#format_block) }.await }.to_tokens(tokens);
         }
     }
 }
