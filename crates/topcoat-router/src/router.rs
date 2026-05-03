@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use axum::{body::Body, extract::RawPathParams, routing::get};
 use http::Request;
-use topcoat_core::context::scope_context;
+use topcoat_core::context::{MaybeAborted, scope_context};
 
 use crate::{Layout, Layouts, Page, Pages};
 
@@ -113,7 +113,10 @@ impl From<Router> for axum::Router {
 
                     let (mut parts, _body) = request.into_parts();
                     parts.extensions.insert(Arc::new(params));
-                    scope_context(parts, render).await
+                    match scope_context(parts, render).await {
+                        MaybeAborted::Completed(value) => value,
+                        MaybeAborted::Aborted(value) => panic!("lol we aborted"),
+                    }
                 }),
             );
         }
