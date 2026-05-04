@@ -12,6 +12,7 @@ where
     cx.state.get::<T>()
 }
 
+#[doc(hidden)]
 #[derive(Default, Debug)]
 pub struct AppState {
     entries: HashMap<TypeId, Box<dyn Any + Send + Sync>>,

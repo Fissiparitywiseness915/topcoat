@@ -85,14 +85,6 @@ impl Router {
         self
     }
 
-    pub fn app_state<T>(mut self, value: T) -> Self
-    where
-        T: Any + Send + Sync,
-    {
-        self.state.register(value);
-        self
-    }
-
     /// Discovers and registers all `#[page]` and `#[layout]` items
     /// collected at link time across the crate and its dependencies.
     #[cfg(feature = "discover")]
@@ -103,6 +95,21 @@ impl Router {
         for layout in inventory::iter::<Layout>().cloned() {
             self = self.layout(layout);
         }
+        self
+    }
+
+    /// Registers a unique value that is accessible to every request sent to
+    /// this router by its type `T`. The top-level [`app_state`](topcoat_core::context::app_state)
+    /// function can be used to retrieve a reference to this value via a request context.
+    ///
+    /// # Panics
+    ///
+    /// Panics if a state value has already been registered for the same type.
+    pub fn app_state<T>(mut self, value: T) -> Self
+    where
+        T: Any + Send + Sync,
+    {
+        self.state.register(value);
         self
     }
 }
