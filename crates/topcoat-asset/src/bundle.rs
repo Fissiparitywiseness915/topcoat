@@ -22,12 +22,13 @@ impl BundledAsset {
 }
 
 pub struct AssetBundle {
+    dir: PathBuf,
     bundled_assets: HashMap<AssetId, BundledAsset>,
 }
 
 impl AssetBundle {
     pub fn load(dir: impl AsRef<Path>) -> io::Result<Self> {
-        let dir = dir.as_ref();
+        let dir = dir.as_ref().to_path_buf();
         let toml_str = fs::read_to_string(dir.join(MANIFEST_NAME))?;
         let manifest: Manifest =
             toml::from_str(&toml_str).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
@@ -45,11 +46,22 @@ impl AssetBundle {
             })
             .collect();
 
-        Ok(Self { bundled_assets })
+        Ok(Self {
+            dir,
+            bundled_assets,
+        })
+    }
+
+    pub fn dir(&self) -> &Path {
+        &self.dir
     }
 
     pub fn get(&self, id: AssetId) -> Option<&BundledAsset> {
         self.bundled_assets.get(&id)
+    }
+
+    pub fn assets(&self) -> impl Iterator<Item = &BundledAsset> {
+        self.bundled_assets.values()
     }
 }
 
