@@ -45,14 +45,14 @@ impl std::fmt::Debug for AbortStore {
 }
 
 #[pin_project]
-pub(crate) struct WatchAbort<'a, F> {
+pub struct WatchAbort<'a, F> {
     cx: &'a Cx,
     #[pin]
     f: F,
 }
 
 impl<'a, F> WatchAbort<'a, F> {
-    pub(crate) fn new(cx: &'a Cx, f: F) -> Self {
+    pub fn new(cx: &'a Cx, f: F) -> Self {
         Self { cx, f }
     }
 }

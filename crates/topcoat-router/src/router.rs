@@ -8,7 +8,7 @@ use axum::{
 };
 use http::Request;
 use topcoat_asset::{AssetBundle, ServeAssetBundle};
-use topcoat_core::context::{MaybeAborted, State, scope_context};
+use topcoat_core::context::{Cx, MaybeAborted, State, WatchAbort};
 
 use crate::{Layout, Layouts, Page, Pages};
 
@@ -170,11 +170,14 @@ impl From<Router> for axum::Router {
                         request_state.register(parts);
                         request_state.register(params);
 
-                        let result = scope_context(app_state, request_state, async |cx| {
-                            let mut render = page.render(cx);
+                        let cx = Cx::new(app_state, request_state);
+
+                        let result = WatchAbort::new(&cx, async {
+                            let mut render = page.render(&cx);
                             for layout in layouts.iter().rev() {
-                                render = layout.render(cx, render);
+                                render = layout.render(&cx, render);
                             }
+                            render.await
                         })
                         .await;
 
