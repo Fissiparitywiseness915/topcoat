@@ -20,6 +20,7 @@ pub mod context {
 #[cfg(feature = "view")]
 pub mod component {
     use topcoat_core::context::Cx;
+    use topcoat_view::runtime::View;
 
     pub use topcoat_macro::component;
 
@@ -29,6 +30,7 @@ pub mod component {
         fn render(
             self,
             cx: &Cx,
+            child: View,
         ) -> impl Future<Output = Result<crate::view::View, Self::Error>> + Send;
     }
 }

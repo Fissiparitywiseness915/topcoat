@@ -66,11 +66,9 @@ impl Component {
 
         writer.write_expr_unescaped(quote! {
             <#name as ::topcoat::component::Component>::render(
-                #name {
-                    child: #child_writer,
-                    #(#fields),*
-                },
+                #name { #(#fields),* },
                 __cx,
+                #child_writer,
             ).await?
         });
     }

@@ -106,6 +106,8 @@ impl ToTokens for ComponentItem {
             };
             if pi.ident == "cx" {
                 args.push(quote! { cx });
+            } else if pi.ident == "child" {
+                args.push(quote! { child });
             } else {
                 let mut ty = (*pat_type.ty).clone();
                 visitor.visit_type_mut(&mut ty);
@@ -133,7 +135,7 @@ impl ToTokens for ComponentItem {
             impl #impl_generics ::topcoat::component::Component for #ident #ty_generics #where_clause {
                 type Error = <#return_ty as ::topcoat::internal::ResultExt>::E;
 
-                async fn render(self, cx: &::topcoat::context::Cx) -> #return_ty {
+                async fn render(self, cx: &::topcoat::context::Cx, child: ::topcoat::view::View) -> #return_ty {
                     #body
                 }
             }

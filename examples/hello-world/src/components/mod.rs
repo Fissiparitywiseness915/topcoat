@@ -11,7 +11,7 @@ async fn button(id: &str, child: View) -> Result {
 }
 
 #[component]
-pub async fn app_and_request_state(cx: &Cx, child: View) -> Result {
+pub async fn app_and_request_state(cx: &Cx) -> Result {
     view! {
         "current page: "
         (uri(cx).to_string())
