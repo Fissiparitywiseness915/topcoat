@@ -33,6 +33,16 @@ pub struct Cx {
 }
 
 impl Cx {
+    pub fn new(app_state: Arc<State>, request_state: State) -> Self {
+        Self {
+            id: CxId::new(),
+            app_state,
+            request_state,
+            cache: MemoizeCache::new(),
+            abort: AbortStore::new(),
+        }
+    }
+
     pub fn id(&self) -> CxId {
         self.id
     }
@@ -40,19 +50,6 @@ impl Cx {
     #[doc(hidden)]
     pub fn cache(&self) -> &MemoizeCache {
         &self.cache
-    }
-
-    /// Builds a `Cx` suitable for unit tests, with the given `app_state` and
-    /// every other field set to a default value.
-    #[cfg(test)]
-    pub(crate) fn for_test(app_state: State, request_state: State) -> Self {
-        Self {
-            id: CxId(0),
-            app_state: Arc::new(app_state),
-            request_state,
-            cache: MemoizeCache::new(),
-            abort: AbortStore::new(),
-        }
     }
 }
 
@@ -73,13 +70,7 @@ pub async fn scope_context<F: Future>(
     request_state: State,
     f: F,
 ) -> MaybeAborted<F::Output> {
-    let cx = Arc::new(Cx {
-        id: CxId::new(),
-        app_state,
-        request_state,
-        cache: MemoizeCache::new(),
-        abort: AbortStore::new(),
-    });
+    let cx = Arc::new(Cx::new(app_state, request_state));
     WatchAbort::new(&cx.clone(), CX.scope(cx, f)).await
 }
 
