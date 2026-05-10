@@ -21,6 +21,7 @@ router = [
 ]
 view = [
 	"dep:topcoat-view",
+	"topcoat-asset/view",
 	"topcoat-macro/view",
 ]
 

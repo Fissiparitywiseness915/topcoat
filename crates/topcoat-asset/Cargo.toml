@@ -6,8 +6,15 @@ edition = "2024"
 [features]
 default = ["tower"]
 tower = ["dep:http", "dep:tower-http", "dep:tower-service"]
+view = [
+	"dep:topcoat-core",
+	"dep:topcoat-view",
+]
 
 [dependencies]
+topcoat-core = { workspace = true, optional = true }
+topcoat-view = { workspace = true, optional = true }
+
 http = { workspace = true, optional = true }
 memchr.workspace = true
 serde = { workspace = true, features = ["derive"] }

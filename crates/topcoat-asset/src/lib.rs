@@ -15,3 +15,9 @@ mod tower;
 
 #[cfg(feature = "tower")]
 pub use tower::*;
+
+#[cfg(feature = "view")]
+mod view;
+
+#[cfg(feature = "view")]
+pub use view::*;
