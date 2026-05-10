@@ -8,27 +8,6 @@ use syn::{
     visit_mut::{self, VisitMut},
 };
 
-struct ImplicitLifetimeVisitor {
-    used: bool,
-}
-
-impl VisitMut for ImplicitLifetimeVisitor {
-    fn visit_lifetime_mut(&mut self, lt: &mut Lifetime) {
-        if lt.ident == "_" {
-            *lt = parse_quote! { '__implicit };
-            self.used = true;
-        }
-    }
-
-    fn visit_type_reference_mut(&mut self, tr: &mut TypeReference) {
-        if tr.lifetime.is_none() {
-            tr.lifetime = Some(parse_quote! { '__implicit });
-            self.used = true;
-        }
-        visit_mut::visit_type_reference_mut(self, tr);
-    }
-}
-
 pub struct ComponentAttr {}
 
 impl Parse for ComponentAttr {
@@ -141,5 +120,26 @@ impl ToTokens for ComponentItem {
             }
         }
         .to_tokens(tokens);
+    }
+}
+
+struct ImplicitLifetimeVisitor {
+    used: bool,
+}
+
+impl VisitMut for ImplicitLifetimeVisitor {
+    fn visit_lifetime_mut(&mut self, lt: &mut Lifetime) {
+        if lt.ident == "_" {
+            *lt = parse_quote! { '__implicit };
+            self.used = true;
+        }
+    }
+
+    fn visit_type_reference_mut(&mut self, tr: &mut TypeReference) {
+        if tr.lifetime.is_none() {
+            tr.lifetime = Some(parse_quote! { '__implicit });
+            self.used = true;
+        }
+        visit_mut::visit_type_reference_mut(self, tr);
     }
 }

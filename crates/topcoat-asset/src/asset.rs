@@ -10,9 +10,9 @@ use crate::{
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(transparent)]
-pub struct AssetId(u64);
+pub struct Asset(u64);
 
-impl AssetId {
+impl Asset {
     pub const fn new(crate_name: &str, source_file: &str, path: &str) -> Self {
         let mut h = hash::fnv1a(crate_name.as_bytes());
         h = hash::fnv1a_continue(h, b"\0");
@@ -24,8 +24,8 @@ impl AssetId {
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct Asset {
-    id: AssetId,
+pub struct RawAsset {
+    id: Asset,
     path: String,
     crate_name: String,
     manifest_dir: String,
@@ -34,9 +34,9 @@ pub struct Asset {
 
 pub const ENCODED_ASSET_SIZE: usize = 2048;
 
-impl Asset {
+impl RawAsset {
     pub const fn encode(
-        id: AssetId,
+        id: Asset,
         path: &str,
         crate_name: &str,
         manifest_dir: &str,
@@ -57,7 +57,7 @@ impl Asset {
         let mut r = ConstReader::new(buffer);
         r.skip(asset_prefix().len())?;
         Some(Self {
-            id: AssetId(r.read_u64_le()?),
+            id: Asset(r.read_u64_le()?),
             path: r.read_str()?.to_owned(),
             crate_name: r.read_str()?.to_owned(),
             manifest_dir: r.read_str()?.to_owned(),
@@ -74,7 +74,7 @@ impl Asset {
             .collect()
     }
 
-    pub fn id(&self) -> AssetId {
+    pub fn id(&self) -> Asset {
         self.id
     }
 
@@ -158,11 +158,11 @@ macro_rules! asset {
         const CRATE_NAME: &str = env!("CARGO_CRATE_NAME");
         const MANIFEST_DIR: &str = env!("CARGO_MANIFEST_DIR");
         const SOURCE_FILE: &str = file!();
-        const ID: $crate::AssetId = $crate::AssetId::new(CRATE_NAME, SOURCE_FILE, PATH);
+        const ID: $crate::Asset = $crate::Asset::new(CRATE_NAME, SOURCE_FILE, PATH);
 
         #[used]
         pub static ENCODED_ASSET: [u8; $crate::ENCODED_ASSET_SIZE] =
-            $crate::Asset::encode(ID, PATH, CRATE_NAME, MANIFEST_DIR, SOURCE_FILE);
+            $crate::RawAsset::encode(ID, PATH, CRATE_NAME, MANIFEST_DIR, SOURCE_FILE);
 
         ID
     }};

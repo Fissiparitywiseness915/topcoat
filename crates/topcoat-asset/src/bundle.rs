@@ -5,7 +5,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use crate::{AssetId, MANIFEST_NAME, Manifest};
+use crate::{Asset, MANIFEST_NAME, Manifest};
 
 #[derive(Debug, Clone)]
 pub struct BundledAsset {
@@ -27,7 +27,7 @@ impl BundledAsset {
 #[derive(Debug, Default, Clone)]
 pub struct AssetBundle {
     dir: PathBuf,
-    bundled_assets: HashMap<AssetId, BundledAsset>,
+    bundled_assets: HashMap<Asset, BundledAsset>,
 }
 
 impl AssetBundle {
@@ -62,7 +62,7 @@ impl AssetBundle {
         &self.dir
     }
 
-    pub fn get(&self, id: AssetId) -> Option<&BundledAsset> {
+    pub fn get(&self, id: Asset) -> Option<&BundledAsset> {
         self.bundled_assets.get(&id)
     }
 

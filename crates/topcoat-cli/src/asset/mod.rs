@@ -68,7 +68,7 @@ async fn list(args: ListArgs) {
         }
     };
 
-    for asset in topcoat_asset::Asset::find_in_binary(&bytes) {
+    for asset in topcoat_asset::RawAsset::find_in_binary(&bytes) {
         println!("{:?}", asset.resolved_path());
     }
 }

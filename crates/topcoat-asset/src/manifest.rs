@@ -2,7 +2,7 @@ use std::{fs, io, path::Path};
 
 use serde::{Deserialize, Serialize};
 
-use crate::AssetId;
+use crate::Asset;
 
 pub const MANIFEST_NAME: &str = "manifest.toml";
 pub const MANIFEST_VERSION: u32 = 1;
@@ -40,6 +40,7 @@ impl Manifest {
 
 #[derive(Serialize, Deserialize)]
 pub struct ManifestEntry {
-    pub id: AssetId,
+    pub id: Asset,
     pub file: String,
+    pub hash: String,
 }
