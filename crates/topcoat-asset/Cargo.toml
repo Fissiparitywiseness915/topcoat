@@ -19,6 +19,7 @@ http = { workspace = true, optional = true }
 memchr.workspace = true
 serde = { workspace = true, features = ["derive"] }
 sha2.workspace = true
+thiserror.workspace = true
 toml.workspace = true
 tower-http = { workspace = true, optional = true, features = ["fs"] }
 tower-service = { workspace = true, optional = true }

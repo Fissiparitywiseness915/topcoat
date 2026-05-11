@@ -6,7 +6,9 @@ use std::{
 
 use sha2::{Digest, Sha256};
 
-use crate::{MANIFEST_NAME, MANIFEST_VERSION, Manifest, ManifestEntry, RawAsset};
+use crate::{
+    AssetError, MANIFEST_NAME, MANIFEST_VERSION, Manifest, ManifestEntry, RawAsset, Result,
+};
 
 pub struct Bundler {}
 
@@ -17,9 +19,12 @@ impl Bundler {
     /// to skip copying files whose content hash hasn't changed. Files that
     /// were present in the old manifest but are no longer referenced by the
     /// new one are removed.
-    pub fn bundle(binary: &[u8], out_dir: impl AsRef<Path>) -> io::Result<()> {
+    pub fn bundle(binary: &[u8], out_dir: impl AsRef<Path>) -> Result {
         let out_dir = out_dir.as_ref();
-        fs::create_dir_all(out_dir)?;
+        fs::create_dir_all(out_dir).map_err(|source| AssetError::ManifestIo {
+            path: out_dir.to_path_buf(),
+            source,
+        })?;
 
         let manifest_path = out_dir.join(MANIFEST_NAME);
         let existing: HashMap<_, _> = match Manifest::load(&manifest_path) {
@@ -29,7 +34,12 @@ impl Bundler {
                 .map(|entry| (entry.id, entry))
                 .collect(),
             Err(e) if e.kind() == io::ErrorKind::NotFound => HashMap::new(),
-            Err(e) => return Err(e),
+            Err(source) => {
+                return Err(AssetError::ManifestIo {
+                    path: manifest_path,
+                    source,
+                });
+            }
         };
 
         let assets = RawAsset::find_in_binary(binary);
@@ -38,7 +48,10 @@ impl Bundler {
 
         for asset in assets {
             let src = asset.resolved_path();
-            let bytes = fs::read(&src)?;
+            let bytes = fs::read(&src).map_err(|source| AssetError::AssetIo {
+                asset: asset.clone(),
+                source,
+            })?;
             let digest = Sha256::digest(&bytes);
             let hash = digest
                 .iter()
@@ -59,7 +72,10 @@ impl Bundler {
                 .is_some_and(|prev| prev.hash == hash && prev.file == file);
 
             if !unchanged || !dst.exists() {
-                fs::copy(&src, &dst)?;
+                fs::copy(&src, &dst).map_err(|source| AssetError::AssetIo {
+                    asset: asset.clone(),
+                    source,
+                })?;
             }
 
             kept_files.insert(file.clone());
@@ -72,7 +88,7 @@ impl Bundler {
                 match fs::remove_file(&path) {
                     Ok(()) => {}
                     Err(e) if e.kind() == io::ErrorKind::NotFound => {}
-                    Err(e) => return Err(e),
+                    Err(source) => return Err(AssetError::ManifestIo { path, source }),
                 }
             }
         }
@@ -81,7 +97,12 @@ impl Bundler {
             version: MANIFEST_VERSION,
             assets: entries,
         };
-        manifest.save(manifest_path)?;
+        manifest
+            .save(&manifest_path)
+            .map_err(|source| AssetError::ManifestIo {
+                path: manifest_path,
+                source,
+            })?;
 
         Ok(())
     }

@@ -2,12 +2,14 @@ mod asset;
 mod bundle;
 mod bundler;
 mod cursor;
+mod error;
 mod hash;
 mod manifest;
 
 pub use asset::*;
 pub use bundle::*;
 pub use bundler::*;
+pub use error::*;
 pub use manifest::*;
 
 #[cfg(feature = "tower")]

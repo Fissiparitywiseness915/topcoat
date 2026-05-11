@@ -4,6 +4,7 @@ use clap::Args;
 use console::style;
 use indicatif::{ProgressBar, ProgressStyle};
 use notify::{RecursiveMode, Watcher, recommended_watcher};
+use std::error::Error;
 use std::path::PathBuf;
 use std::process::Stdio;
 use tokio::process::{Child, Command};
@@ -182,17 +183,26 @@ async fn build_and_run(initial: bool, dev_url: &str) -> Option<Child> {
         }
     });
 
+    let spinner = make_spinner("bundling assets");
+
     let Some(exe) = executable else {
         eprintln!("  {}", style("could not determine executable path").red());
         return None;
     };
 
-    if let Err(error) = bundle_assets(&exe) {
+    if let Err(err) = bundle_assets(&exe) {
+        spinner.finish_and_clear();
         eprintln!(
             "  {}",
-            style(format!("failed to bundle assets: {error}")).yellow()
+            style(format!("failed to bundle assets: {err}"))
+                .red()
+                .bold()
         );
+        eprintln!();
+        return None;
     }
+
+    spinner.finish_and_clear();
 
     eprintln!("  {}", style("ready").green().bold());
     eprintln!();
@@ -214,7 +224,7 @@ async fn kill_child(child: &mut Child) {
     let _ = child.wait().await;
 }
 
-fn bundle_assets(executable: &str) -> std::io::Result<()> {
+fn bundle_assets(executable: &str) -> Result<(), Box<dyn Error>> {
     let exe = PathBuf::from(executable);
     let out_dir = exe
         .parent()
@@ -227,5 +237,5 @@ fn bundle_assets(executable: &str) -> std::io::Result<()> {
         })?
         .join("assets");
     let bytes = std::fs::read(&exe)?;
-    topcoat_asset::Bundler::bundle(&bytes, &out_dir)
+    Ok(topcoat_asset::Bundler::bundle(&bytes, &out_dir)?)
 }
