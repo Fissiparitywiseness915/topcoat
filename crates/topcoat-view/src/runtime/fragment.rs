@@ -1,3 +1,5 @@
+use std::{ops::Deref, rc::Rc, sync::Arc};
+
 use topcoat_core::context::Cx;
 
 use crate::runtime::{Formatter, view::View};
@@ -123,6 +125,28 @@ impl_with_display!(u32);
 impl_with_display!(u64);
 impl_with_display!(u128);
 impl_with_display!(bool);
+
+macro_rules! impl_smart_pointer {
+    ($name:ident) => {
+        impl<T> Fragment for $name<T>
+        where
+            T: Fragment,
+        {
+            #[inline]
+            fn fmt(&self, cx: &Cx, f: &mut Formatter<'_>) {
+                self.deref().fmt(cx, f);
+            }
+            #[inline]
+            fn fmt_unescaped(&self, cx: &Cx, f: &mut Formatter<'_>) {
+                self.deref().fmt_unescaped(cx, f);
+            }
+        }
+    };
+}
+
+impl_smart_pointer!(Box);
+impl_smart_pointer!(Rc);
+impl_smart_pointer!(Arc);
 
 /// A wrapper that marks a fragment as already escaped / trusted.
 ///
