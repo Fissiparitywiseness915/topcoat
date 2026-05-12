@@ -1,7 +1,7 @@
 use std::{convert::Infallible, sync::Arc};
 
 use crate::Result;
-use axum::extract::{FromRequest, RawPathParams};
+use axum::extract::{FromRequest, FromRequestParts, RawPathParams};
 use topcoat_core::context::{Cx, State};
 
 pub type Body = axum::body::Body;
