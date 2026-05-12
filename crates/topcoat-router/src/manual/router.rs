@@ -1,7 +1,6 @@
 use std::{any::Any, sync::Arc};
 
 use axum::{
-    body::Body,
     extract::{self, RawPathParams},
     response::IntoResponse,
     routing::get,
@@ -10,7 +9,7 @@ use http::Request;
 use topcoat_asset::{AssetBundle, AssetFragmentResolver, ServeAssetBundle};
 use topcoat_core::context::{Cx, MaybeAborted, State, WatchAbort};
 
-use crate::{Layout, Layouts, Page, Pages, Route, Routes};
+use crate::{Body, Layout, Layouts, Page, Pages, Route, Routes};
 
 /// The core routing primitive that collects [`Page`]s, [`Layout`]s, and
 /// [`Route`]s, matches layouts to pages by path prefix, and converts into an
@@ -195,8 +194,9 @@ impl From<Router> for axum::Router {
                 get(
                     async move |extract::State(app_state): extract::State<Arc<State>>,
                                 params: RawPathParams,
-                                request: Request<Body>| {
-                        let (parts, _body) = request.into_parts();
+                                request: Request<axum::body::Body>| {
+                        let (parts, body) = request.into_parts();
+                        let body = Body::from(body);
 
                         let mut request_state = State::new();
                         request_state.register(parts);
@@ -205,7 +205,7 @@ impl From<Router> for axum::Router {
                         let cx = Cx::new(app_state, request_state);
 
                         let result = WatchAbort::new(&cx, async {
-                            let mut render = page.render(&cx);
+                            let mut render = page.render(&cx, body);
                             for layout in layouts.iter().rev() {
                                 render = layout.render(&cx, render);
                             }

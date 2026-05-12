@@ -2,11 +2,11 @@ use std::{borrow::Cow, collections::HashMap, pin::Pin};
 
 use topcoat_core::context::Cx;
 
-use crate::{Path, Result};
+use crate::{Body, Path, Result};
 
 /// The async render function backing a [`Page`].
 pub type PageRenderFn =
-    for<'cx> fn(cx: &'cx Cx) -> Pin<Box<dyn Future<Output = Result> + Send + 'cx>>;
+    for<'cx> fn(cx: &'cx Cx, body: Body) -> Pin<Box<dyn Future<Output = Result> + Send + 'cx>>;
 
 /// A route handler that renders a [`View`] for a specific URL path.
 ///
@@ -33,8 +33,12 @@ impl Page {
     }
 
     /// Renders the page, returning a [`Result`].
-    pub fn render<'cx>(&self, cx: &'cx Cx) -> Pin<Box<dyn Future<Output = Result> + Send + 'cx>> {
-        (self.render)(cx)
+    pub fn render<'cx>(
+        &self,
+        cx: &'cx Cx,
+        body: Body,
+    ) -> Pin<Box<dyn Future<Output = Result> + Send + 'cx>> {
+        (self.render)(cx, body)
     }
 }
 
@@ -82,7 +86,7 @@ mod tests {
 
     use super::*;
 
-    fn dummy_render(_cx: &Cx) -> Pin<Box<dyn Future<Output = Result> + Send>> {
+    fn dummy_render(_cx: &Cx, _body: Body) -> Pin<Box<dyn Future<Output = Result> + Send>> {
         Box::pin(async { Ok(View::new("")) })
     }
 

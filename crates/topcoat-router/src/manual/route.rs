@@ -3,11 +3,11 @@ use std::{borrow::Cow, collections::HashMap, pin::Pin};
 use http::Method;
 use topcoat_core::context::Cx;
 
-use crate::{Path, Result};
+use crate::{Body, Path, Result};
 
 /// The async handler function backing a [`Route`].
 pub type RouteHandlerFn =
-    for<'cx> fn(cx: &'cx Cx) -> Pin<Box<dyn Future<Output = Result> + Send + 'cx>>;
+    for<'cx> fn(cx: &'cx Cx, body: Body) -> Pin<Box<dyn Future<Output = Result> + Send + 'cx>>;
 
 /// A route handler that handles an HTTP API call.
 ///
@@ -44,8 +44,12 @@ impl Route {
     }
 
     /// Invokes the route's handler, returning a [`Result`].
-    pub fn render<'cx>(&self, cx: &'cx Cx) -> Pin<Box<dyn Future<Output = Result> + Send + 'cx>> {
-        (self.render)(cx)
+    pub fn render<'cx>(
+        &self,
+        cx: &'cx Cx,
+        body: Body,
+    ) -> Pin<Box<dyn Future<Output = Result> + Send + 'cx>> {
+        (self.render)(cx, body)
     }
 }
 
