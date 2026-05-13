@@ -112,6 +112,10 @@ pub trait DynViewPart: fmt::Debug + Send {
     /// Renders the underlying fragment. See [`Fragment::fmt`].
     fn dyn_fmt(&self, cx: &Cx, f: &mut Formatter<'_>);
 
+    /// Returns the size hint of the underlying fragment. See
+    /// [`Fragment::size_hint`].
+    fn dyn_size_hint(&self) -> usize;
+
     /// Clones the underlying value into a fresh `Box<dyn DynViewPart>`.
     ///
     /// Required because `dyn DynViewPart` cannot use the standard `Clone`
@@ -126,6 +130,11 @@ where
     #[inline]
     fn dyn_fmt(&self, cx: &Cx, f: &mut Formatter<'_>) {
         Fragment::fmt(self, cx, f);
+    }
+
+    #[inline]
+    fn dyn_size_hint(&self) -> usize {
+        Fragment::size_hint(self)
     }
 
     #[inline]
@@ -193,7 +202,7 @@ impl Fragment for ViewPart {
             Self::F64(v) => v.size_hint(),
             Self::String(s) => s.size_hint(),
             Self::UnescapedString(s) => s.len(),
-            Self::BoxDyn(_) => 0,
+            Self::BoxDyn(d) => d.dyn_size_hint(),
             Self::Node(parts) => parts.iter().map(|part| part.size_hint()).sum(),
         }
     }
