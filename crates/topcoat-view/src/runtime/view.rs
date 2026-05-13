@@ -1,4 +1,3 @@
-use core::any::Any;
 use core::fmt;
 
 use topcoat_core::context::Cx;
@@ -20,7 +19,7 @@ use crate::runtime::{Formatter, Fragment};
 /// <!-- Invalid: unclosed tag would corrupt the parent document -->
 /// <div>Hello
 /// ```
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone)]
 pub struct View {
     part: ViewPart,
 }
@@ -38,7 +37,7 @@ impl Fragment for View {
     }
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone)]
 pub enum ViewPart {
     Bool(bool),
     Char(char),
@@ -65,13 +64,11 @@ pub enum ViewPart {
 pub trait DynViewPart: fmt::Debug {
     fn dyn_fmt(&self, cx: &Cx, f: &mut Formatter<'_>);
     fn clone_box(&self) -> Box<dyn DynViewPart>;
-    fn dyn_eq(&self, other: &dyn DynViewPart) -> bool;
-    fn as_any(&self) -> &dyn Any;
 }
 
 impl<T> DynViewPart for T
 where
-    T: 'static + Fragment + fmt::Debug + Clone + PartialEq,
+    T: 'static + Fragment + fmt::Debug + Clone,
 {
     #[inline]
     fn dyn_fmt(&self, cx: &Cx, f: &mut Formatter<'_>) {
@@ -82,29 +79,12 @@ where
     fn clone_box(&self) -> Box<dyn DynViewPart> {
         Box::new(self.clone())
     }
-
-    #[inline]
-    fn dyn_eq(&self, other: &dyn DynViewPart) -> bool {
-        other.as_any().downcast_ref::<T>() == Some(self)
-    }
-
-    #[inline]
-    fn as_any(&self) -> &dyn Any {
-        self
-    }
 }
 
 impl Clone for Box<dyn DynViewPart> {
     #[inline]
     fn clone(&self) -> Self {
         (**self).clone_box()
-    }
-}
-
-impl PartialEq for Box<dyn DynViewPart> {
-    #[inline]
-    fn eq(&self, other: &Self) -> bool {
-        (**self).dyn_eq(&**other)
     }
 }
 
