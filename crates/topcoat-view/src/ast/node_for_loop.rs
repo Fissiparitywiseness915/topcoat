@@ -1,4 +1,3 @@
-use quote::quote;
 use syn::{
     Expr, ExprBreak, ExprContinue, Pat, Token,
     parse::{Parse, ParseStream},

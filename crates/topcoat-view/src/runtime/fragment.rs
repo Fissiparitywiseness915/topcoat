@@ -2,7 +2,7 @@ use std::{ops::Deref, rc::Rc, sync::Arc};
 
 use topcoat_core::context::Cx;
 
-use crate::runtime::{Formatter, IntoViewPart, ViewPart};
+use crate::runtime::Formatter;
 
 pub trait Fragment {
     fn fmt(&self, cx: &Cx, f: &mut Formatter<'_>);

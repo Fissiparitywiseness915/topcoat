@@ -136,6 +136,12 @@ impl ViewWriter {
                 .any(|chunk| !matches!(chunk, Chunk::Expr(..)));
 
             if needs_vec {
+                let reserve = self
+                    .chunks
+                    .iter()
+                    .filter(|chunk| matches!(chunk, Chunk::Expr(..)))
+                    .count();
+
                 fn recursive(chunks: &[Chunk]) -> TokenStream {
                     let mut output = TokenStream::new();
                     for chunk in chunks {
@@ -188,7 +194,7 @@ impl ViewWriter {
                 let statements = recursive(&self.chunks);
 
                 quote! {{
-                    let __v = Vec::new();
+                    let __v = Vec::reserve(#reserve);
                     #statements
                     ::topcoat::view::View::new(__v.into_boxed_slice())
                 }}
