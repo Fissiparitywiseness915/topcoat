@@ -2,7 +2,7 @@ use core::fmt;
 
 use topcoat_core::context::Cx;
 
-use crate::runtime::{Formatter, Fragment};
+use crate::runtime::{Escaped, Formatter, Fragment};
 
 /// A piece of HTML content.
 ///
@@ -72,6 +72,8 @@ pub enum ViewPart {
     F64(f64),
     StaticStr(&'static str),
     String(String),
+    EscapedStaticStr(Escaped<&'static str>),
+    EscapedString(Escaped<String>),
     BoxDyn(Box<dyn DynViewPart>),
     Node(Box<[ViewPart]>),
 }
@@ -80,8 +82,6 @@ impl ViewPart {
     fn size_hint(&self) -> usize {
         match self {
             Self::Empty => 0,
-            Self::StaticStr(s) => s.len(),
-            Self::String(s) => s.len(),
             Self::Bool(true) => 4,
             Self::Bool(false) => 5,
             Self::Char(v) => v.len_utf8(),
@@ -99,6 +99,10 @@ impl ViewPart {
             Self::Usize(_) => 1,
             Self::F32(_) => 1,
             Self::F64(_) => 1,
+            Self::StaticStr(s) => s.len(),
+            Self::String(s) => s.len(),
+            Self::EscapedStaticStr(s) => s.len(),
+            Self::EscapedString(s) => s.len(),
             Self::BoxDyn(_) => 0,
             Self::Node(parts) => parts.iter().map(|part| part.size_hint()).sum(),
         }
@@ -136,8 +140,6 @@ impl Fragment for ViewPart {
     fn fmt(&self, cx: &Cx, f: &mut Formatter<'_>) {
         match self {
             Self::Empty => {}
-            Self::StaticStr(s) => s.fmt(cx, f),
-            Self::String(s) => s.fmt(cx, f),
             Self::Bool(v) => v.fmt(cx, f),
             Self::Char(v) => v.fmt(cx, f),
             Self::I8(v) => v.fmt(cx, f),
@@ -154,6 +156,10 @@ impl Fragment for ViewPart {
             Self::Usize(v) => v.fmt(cx, f),
             Self::F32(v) => v.fmt(cx, f),
             Self::F64(v) => v.fmt(cx, f),
+            Self::StaticStr(s) => s.fmt(cx, f),
+            Self::String(s) => s.fmt(cx, f),
+            Self::EscapedStaticStr(s) => s.fmt(cx, f),
+            Self::EscapedString(s) => s.fmt(cx, f),
             Self::BoxDyn(d) => d.dyn_fmt(cx, f),
             Self::Node(parts) => {
                 for part in parts.iter() {
@@ -182,6 +188,15 @@ impl IntoViewPart for ViewPart {
     }
 }
 
+impl<T> IntoViewPart for &T
+where
+    T: IntoViewPart + Copy,
+{
+    fn into_view_part(self) -> ViewPart {
+        (*self).into_view_part()
+    }
+}
+
 impl IntoViewPart for &'static str {
     #[inline]
     fn into_view_part(self) -> ViewPart {
@@ -204,6 +219,13 @@ impl IntoViewPart for Box<dyn DynViewPart> {
 }
 
 impl IntoViewPart for Box<[ViewPart]> {
+    #[inline]
+    fn into_view_part(self) -> ViewPart {
+        ViewPart::Node(self)
+    }
+}
+
+impl<const N: usize> IntoViewPart for Box<[ViewPart; N]> {
     #[inline]
     fn into_view_part(self) -> ViewPart {
         ViewPart::Node(self)

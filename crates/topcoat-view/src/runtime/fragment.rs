@@ -2,7 +2,7 @@ use std::{ops::Deref, rc::Rc, sync::Arc};
 
 use topcoat_core::context::Cx;
 
-use crate::runtime::Formatter;
+use crate::runtime::{Formatter, IntoViewPart, ViewPart};
 
 pub trait Fragment {
     fn fmt(&self, cx: &Cx, f: &mut Formatter<'_>);
@@ -105,6 +105,7 @@ impl_smart_pointer!(Box);
 impl_smart_pointer!(Rc);
 impl_smart_pointer!(Arc);
 
+#[derive(Debug, Clone, PartialEq)]
 pub struct Escaped<T>(T);
 
 impl<T> Escaped<T> {
@@ -131,5 +132,25 @@ impl Fragment for Escaped<String> {
     #[inline]
     fn fmt(&self, _cx: &Cx, f: &mut Formatter<'_>) {
         f.write_str_unescaped(&self.0);
+    }
+}
+
+impl<T> Deref for Escaped<T> {
+    type Target = T;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl IntoViewPart for Escaped<&'static str> {
+    fn into_view_part(self) -> ViewPart {
+        ViewPart::EscapedStaticStr(self)
+    }
+}
+
+impl IntoViewPart for Escaped<String> {
+    fn into_view_part(self) -> ViewPart {
+        ViewPart::EscapedString(self)
     }
 }

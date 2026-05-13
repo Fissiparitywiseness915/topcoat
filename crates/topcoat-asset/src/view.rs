@@ -1,5 +1,5 @@
 use topcoat_core::context::{Cx, app_state};
-use topcoat_view::runtime::{Formatter, Fragment};
+use topcoat_view::runtime::{Formatter, Fragment, IntoViewPart, ViewPart};
 
 use crate::Asset;
 
@@ -22,5 +22,11 @@ impl AssetFragmentResolver {
 impl Fragment for Asset {
     fn fmt(&self, cx: &Cx, f: &mut Formatter<'_>) {
         app_state::<AssetFragmentResolver>(cx).resolve(cx, *self, f)
+    }
+}
+
+impl IntoViewPart for Asset {
+    fn into_view_part(self) -> ViewPart {
+        ViewPart::BoxDyn(Box::new(self))
     }
 }

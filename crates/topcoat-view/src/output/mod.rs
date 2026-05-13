@@ -94,7 +94,7 @@ impl ViewWriter {
         });
     }
 
-    pub fn to_token_stream(mut self) -> TokenStream {
+    pub fn into_token_stream(mut self) -> TokenStream {
         self.flush();
 
         let format_expr = {
