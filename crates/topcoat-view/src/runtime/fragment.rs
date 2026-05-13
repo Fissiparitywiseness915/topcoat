@@ -143,9 +143,9 @@ impl<T> Deref for Escaped<T> {
     }
 }
 
-impl IntoViewPart for Escaped<&'static str> {
+impl IntoViewPart for Escaped<&str> {
     fn into_view_part(self) -> ViewPart {
-        ViewPart::EscapedStaticStr(self)
+        ViewPart::EscapedString(Escaped(self.0.to_owned()))
     }
 }
 

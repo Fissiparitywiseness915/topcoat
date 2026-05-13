@@ -70,9 +70,7 @@ pub enum ViewPart {
     Usize(usize),
     F32(f32),
     F64(f64),
-    StaticStr(&'static str),
     String(String),
-    EscapedStaticStr(Escaped<&'static str>),
     EscapedString(Escaped<String>),
     BoxDyn(Box<dyn DynViewPart>),
     Node(Box<[ViewPart]>),
@@ -99,9 +97,7 @@ impl ViewPart {
             Self::Usize(_) => 1,
             Self::F32(_) => 1,
             Self::F64(_) => 1,
-            Self::StaticStr(s) => s.len(),
             Self::String(s) => s.len(),
-            Self::EscapedStaticStr(s) => s.len(),
             Self::EscapedString(s) => s.len(),
             Self::BoxDyn(_) => 0,
             Self::Node(parts) => parts.iter().map(|part| part.size_hint()).sum(),
@@ -156,9 +152,7 @@ impl Fragment for ViewPart {
             Self::Usize(v) => v.fmt(cx, f),
             Self::F32(v) => v.fmt(cx, f),
             Self::F64(v) => v.fmt(cx, f),
-            Self::StaticStr(s) => s.fmt(cx, f),
             Self::String(s) => s.fmt(cx, f),
-            Self::EscapedStaticStr(s) => s.fmt(cx, f),
             Self::EscapedString(s) => s.fmt(cx, f),
             Self::BoxDyn(d) => d.dyn_fmt(cx, f),
             Self::Node(parts) => {
@@ -197,10 +191,10 @@ where
     }
 }
 
-impl IntoViewPart for &'static str {
+impl IntoViewPart for &str {
     #[inline]
     fn into_view_part(self) -> ViewPart {
-        ViewPart::StaticStr(self)
+        ViewPart::String(self.to_owned())
     }
 }
 
