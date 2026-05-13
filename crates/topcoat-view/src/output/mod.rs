@@ -6,7 +6,7 @@ enum Chunk {
     Expr(TokenStream),
     For {
         pat: Pat,
-        expr: Expr,
+        expr: Box<Expr>,
         body: Box<ViewWriter>,
     },
     If {
@@ -75,7 +75,7 @@ impl ViewWriter {
         body.flush();
         self.chunks.push(Chunk::For {
             pat: pat.clone(),
-            expr: expr.clone(),
+            expr: Box::new(expr.clone()),
             body: Box::new(body),
         });
     }
