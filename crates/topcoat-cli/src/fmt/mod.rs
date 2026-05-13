@@ -28,7 +28,13 @@ impl FmtCommand {
         let result: Result<(), Error> = async {
             let mut files = BTreeSet::new();
 
-            for pattern in &self.files {
+            let patterns: Vec<&str> = if self.files.is_empty() && !self.stdin {
+                vec!["**/*.rs"]
+            } else {
+                self.files.iter().map(String::as_str).collect()
+            };
+
+            for pattern in patterns {
                 for entry in glob::glob(pattern)? {
                     let entry = entry?;
                     if entry.is_dir() {
