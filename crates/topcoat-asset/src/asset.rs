@@ -84,13 +84,9 @@ impl RawAsset {
         &self.path
     }
 
-    pub fn uri(&self) -> Option<Uri> {
-        self.path.parse().ok()
-    }
-
     /// Classify the asset as a filesystem path or an http(s) URL.
     pub fn source(&self) -> Source {
-        if let Some(uri) = self.uri()
+        if let Ok(uri) = self.path.parse()
             && matches!(uri.scheme_str(), Some("http" | "https"))
         {
             return Source::Url(uri);
