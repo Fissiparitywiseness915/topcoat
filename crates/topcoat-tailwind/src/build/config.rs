@@ -83,10 +83,19 @@ impl BuildConfig {
             Some(path) => path,
             None => {
                 let path = out_dir.join("tailwind-input.css");
-                fs::write(&path, DEFAULT_INPUT_CSS).map_err(|source| BuildError::Io {
-                    path: path.clone(),
-                    source,
-                })?;
+                // Only write if contents would change; otherwise the file's
+                // mtime advances every build and the `rerun-if-changed` below
+                // forces the build script to run again next time.
+                let needs_write = match fs::read(&path) {
+                    Ok(existing) => existing != DEFAULT_INPUT_CSS.as_bytes(),
+                    Err(_) => true,
+                };
+                if needs_write {
+                    fs::write(&path, DEFAULT_INPUT_CSS).map_err(|source| BuildError::Io {
+                        path: path.clone(),
+                        source,
+                    })?;
+                }
                 path
             }
         };
