@@ -4,6 +4,7 @@ use std::path::PathBuf;
 use std::process::Stdio;
 
 use console::style;
+use tokio::io::AsyncReadExt;
 use tokio::process::Command;
 
 pub async fn target_dir() -> Option<PathBuf> {
@@ -81,9 +82,14 @@ impl BuildError {
     }
 }
 
-pub async fn build(opts: &BuildOpts) -> Result<PathBuf, BuildError> {
+pub async fn build(
+    opts: &BuildOpts,
+    mut on_progress: impl FnMut(u64, u64) + Send + 'static,
+) -> Result<PathBuf, BuildError> {
     let mut cmd = Command::new("cargo");
     cmd.args(["build", "--message-format=json-diagnostic-rendered-ansi"]);
+    cmd.env("CARGO_TERM_PROGRESS_WHEN", "always");
+    cmd.env("CARGO_TERM_PROGRESS_WIDTH", "80");
     if let Some(bin) = &opts.bin {
         cmd.args(["--bin", bin]);
     }
@@ -91,23 +97,57 @@ pub async fn build(opts: &BuildOpts) -> Result<PathBuf, BuildError> {
         cmd.args(["--package", package]);
     }
 
-    let output = cmd
+    let mut child = cmd
         .stdout(Stdio::piped())
-        .stderr(Stdio::null())
+        .stderr(Stdio::piped())
         .kill_on_drop(true)
         .spawn()
-        .map_err(BuildError::Spawn)?
-        .wait_with_output()
-        .await
         .map_err(BuildError::Spawn)?;
 
-    let stdout = String::from_utf8_lossy(&output.stdout);
-    let messages: Vec<serde_json::Value> = stdout
+    let mut stdout = child.stdout.take().expect("stdout piped");
+    let mut stderr = child.stderr.take().expect("stderr piped");
+
+    let stderr_task = tokio::spawn(async move {
+        let mut buf = [0u8; 1024];
+        let mut tail: Vec<u8> = Vec::with_capacity(512);
+        let mut last_emitted: Option<(u64, u64)> = None;
+        loop {
+            match stderr.read(&mut buf).await {
+                Ok(0) | Err(_) => break,
+                Ok(n) => {
+                    tail.extend_from_slice(&buf[..n]);
+                    if let Some(prog) = scan_last_progress(&tail)
+                        && last_emitted != Some(prog)
+                    {
+                        last_emitted = Some(prog);
+                        on_progress(prog.0, prog.1);
+                    }
+                    if tail.len() > 512 {
+                        let drain_to = tail.len() - 128;
+                        tail.drain(..drain_to);
+                    }
+                }
+            }
+        }
+    });
+
+    let stdout_task = tokio::spawn(async move {
+        let mut out = Vec::new();
+        let _ = stdout.read_to_end(&mut out).await;
+        out
+    });
+
+    let status = child.wait().await.map_err(BuildError::Spawn)?;
+    let stdout_bytes = stdout_task.await.unwrap_or_default();
+    let _ = stderr_task.await;
+
+    let stdout_str = String::from_utf8_lossy(&stdout_bytes);
+    let messages: Vec<serde_json::Value> = stdout_str
         .lines()
         .filter_map(|line| serde_json::from_str(line).ok())
         .collect();
 
-    if !output.status.success() {
+    if !status.success() {
         let rendered: String = messages
             .iter()
             .filter_map(|msg| {
@@ -137,8 +177,51 @@ pub async fn build(opts: &BuildOpts) -> Result<PathBuf, BuildError> {
     }
 }
 
-pub async fn build_and_read(opts: &BuildOpts) -> Result<(PathBuf, Vec<u8>), BuildError> {
-    let path = build(opts).await?;
+pub async fn build_and_read(
+    opts: &BuildOpts,
+    on_progress: impl FnMut(u64, u64) + Send + 'static,
+) -> Result<(PathBuf, Vec<u8>), BuildError> {
+    let path = build(opts, on_progress).await?;
     let bytes = std::fs::read(&path).map_err(BuildError::Read)?;
     Ok((path, bytes))
+}
+
+fn scan_last_progress(bytes: &[u8]) -> Option<(u64, u64)> {
+    let mut last = None;
+    let mut i = 0;
+    while i < bytes.len() {
+        if !bytes[i].is_ascii_digit() {
+            i += 1;
+            continue;
+        }
+        let start = i;
+        while i < bytes.len() && bytes[i].is_ascii_digit() {
+            i += 1;
+        }
+        let mid = i;
+        if i >= bytes.len() || bytes[i] != b'/' {
+            continue;
+        }
+        i += 1;
+        if i >= bytes.len() || !bytes[i].is_ascii_digit() {
+            continue;
+        }
+        let t_start = i;
+        while i < bytes.len() && bytes[i].is_ascii_digit() {
+            i += 1;
+        }
+        let cur: Option<u64> = std::str::from_utf8(&bytes[start..mid])
+            .ok()
+            .and_then(|s| s.parse().ok());
+        let total: Option<u64> = std::str::from_utf8(&bytes[t_start..i])
+            .ok()
+            .and_then(|s| s.parse().ok());
+        if let (Some(c), Some(t)) = (cur, total)
+            && c <= t
+            && t > 0
+        {
+            last = Some((c, t));
+        }
+    }
+    last
 }

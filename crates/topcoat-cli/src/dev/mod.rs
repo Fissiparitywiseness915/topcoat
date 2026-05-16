@@ -154,7 +154,11 @@ fn make_spinner(message: &str) -> ProgressBar {
 async fn build_and_run(initial: bool, dev_url: &str) -> Option<Child> {
     let label = if initial { "building" } else { "rebuilding" };
     let spinner = make_spinner(label);
-    let result = crate::cargo::build_and_read(&BuildOpts::default()).await;
+    let progress_spinner = spinner.clone();
+    let result = crate::cargo::build_and_read(&BuildOpts::default(), move |cur, total| {
+        progress_spinner.set_message(format!("{label} ({cur}/{total})"));
+    })
+    .await;
     spinner.finish_and_clear();
 
     let (exe, bytes) = match result {

@@ -26,7 +26,7 @@ pub(super) async fn run(args: BundleArgs) {
         bin: args.bin,
         package: args.package,
     };
-    let (_, bytes) = crate::cargo::build_and_read(&opts)
+    let (_, bytes) = crate::cargo::build_and_read(&opts, |_, _| {})
         .await
         .unwrap_or_else(|e| e.print_and_exit());
 
