@@ -6,7 +6,11 @@ edition = "2024"
 [features]
 default = ["tower"]
 bundler = ["dep:reqwest", "dep:tokio"]
-tower = ["dep:tower-http", "dep:tower-service"]
+tower = [
+	"dep:pin-project-lite",
+	"dep:tower-http",
+	"dep:tower-service",
+]
 view = [
 	"dep:topcoat-core",
 	"dep:topcoat-view",
@@ -18,6 +22,7 @@ topcoat-view = { workspace = true, optional = true }
 
 http.workspace = true
 memchr.workspace = true
+pin-project-lite = { workspace = true, optional = true }
 reqwest = { workspace = true, optional = true }
 serde = { workspace = true, features = ["derive"] }
 sha2.workspace = true

@@ -6,7 +6,7 @@ use std::{
     task::{Context, Poll},
 };
 
-use pin_project::pin_project;
+use pin_project_lite::pin_project;
 
 use crate::context::Cx;
 
@@ -44,11 +44,12 @@ impl std::fmt::Debug for AbortStore {
     }
 }
 
-#[pin_project]
-pub struct WatchAbort<'a, F> {
-    cx: &'a Cx,
-    #[pin]
-    f: F,
+pin_project! {
+    pub struct WatchAbort<'a, F> {
+        cx: &'a Cx,
+        #[pin]
+        f: F,
+    }
 }
 
 impl<'a, F> WatchAbort<'a, F> {
