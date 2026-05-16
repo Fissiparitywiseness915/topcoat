@@ -8,6 +8,7 @@ use syn::{
 use crate::ast::{ParseOption, view::ViewWriter};
 
 /// A parenthesized Rust expression embedded as a child node, e.g. `(5 + 6)`.
+#[derive(Debug, PartialEq)]
 pub struct TemplateExpr {
     pub paren: syn::token::Paren,
     pub expr: syn::Expr,

@@ -1,26 +1,25 @@
 use std::fmt::Display;
 
 use proc_macro2::Span;
-use quote::quote;
+use quote::ToTokens;
 use syn::{
     Expr, Ident, LitStr,
     ext::IdentExt,
-    parenthesized,
     parse::{Parse, ParseStream},
     spanned::Spanned,
     token::Paren,
 };
 
-use crate::ast::view::ViewWriter;
+use crate::ast::view::{TemplateExpr, ViewWriter};
 
 /// The name appearing in an [`Element`](super::Element)'s tag. May be a plain
 /// identifier (`div`), a string literal (`"my-tag"`), or a parenthesized Rust
 /// expression that resolves to the tag name at runtime.
-#[derive(PartialEq, Eq)]
+#[derive(Debug, PartialEq)]
 pub enum ElementName {
     Ident(Ident),
     LitStr(LitStr),
-    Expr { paren: Paren, expr: Box<Expr> },
+    Expr(Box<TemplateExpr>),
 }
 
 impl ElementName {
@@ -39,7 +38,7 @@ impl ElementName {
         match self {
             Self::Ident(inner) => inner.span(),
             Self::LitStr(inner) => inner.span(),
-            Self::Expr { paren, .. } => paren.span.span(),
+            Self::Expr(inner) => inner.paren.span.span(),
         }
     }
 
@@ -47,7 +46,7 @@ impl ElementName {
         match self {
             Self::Ident(inner) => writer.write_str_unescaped(&inner.to_string()),
             Self::LitStr(inner) => writer.write_str_unescaped(&inner.value()),
-            Self::Expr { expr, .. } => writer.write_expr(quote! { #expr }),
+            Self::Expr(inner) => writer.write_expr(inner.expr.to_token_stream()),
         }
     }
 
@@ -74,7 +73,7 @@ impl ElementName {
     /// `(expr)`, otherwise `None`.
     pub fn expr(&self) -> Option<&Expr> {
         match self {
-            Self::Expr { expr, .. } => Some(expr),
+            Self::Expr(inner) => Some(&inner.expr),
             _ => None,
         }
     }
@@ -98,11 +97,7 @@ impl Parse for ElementName {
         } else if lookahead.peek(LitStr) {
             Ok(Self::LitStr(input.parse()?))
         } else if lookahead.peek(Paren) {
-            let content;
-            Ok(Self::Expr {
-                paren: parenthesized!(content in input),
-                expr: content.parse()?,
-            })
+            Ok(Self::Expr(input.parse()?))
         } else {
             Err(lookahead.error())
         }
@@ -115,13 +110,7 @@ impl topcoat_pretty::PrettyPrint for ElementName {
         match self {
             Self::Ident(inner) => inner.pretty_print(printer),
             Self::LitStr(inner) => inner.pretty_print(printer),
-            Self::Expr { paren, expr } => {
-                use topcoat_pretty::{BreakMode, Delim};
-
-                paren.pretty_print(printer, Some(BreakMode::Inconsistent), |printer| {
-                    expr.pretty_print(printer);
-                });
-            }
+            Self::Expr(inner) => inner.pretty_print(printer),
         }
     }
 }
