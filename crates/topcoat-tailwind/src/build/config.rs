@@ -10,6 +10,7 @@ pub struct BuildConfig {
     version: String,
     input: Option<PathBuf>,
     output: Option<PathBuf>,
+    cwd: Option<PathBuf>,
     optimize: bool,
     minify: bool,
 }
@@ -20,6 +21,7 @@ impl Default for BuildConfig {
             version: DEFAULT_VERSION.to_owned(),
             input: None,
             output: None,
+            cwd: None,
             optimize: false,
             minify: true,
         }
@@ -48,6 +50,12 @@ impl BuildConfig {
     /// loaded from source via `asset!(concat!(env!("OUT_DIR"), "/tailwind.css"))`.
     pub fn output(mut self, path: impl Into<PathBuf>) -> Self {
         self.output = Some(path.into());
+        self
+    }
+
+    /// Pass `--cwd` to the Tailwind CLI. Defaults to `./src`.
+    pub fn cwd(mut self, cwd: impl Into<PathBuf>) -> Self {
+        self.cwd = Some(cwd.into());
         self
     }
 
@@ -87,10 +95,18 @@ impl BuildConfig {
             .output
             .unwrap_or_else(|| out_dir.join(DEFAULT_OUTPUT_NAME));
 
+        let cwd = self.cwd.unwrap_or_else(|| "./src".into());
+
         println!("cargo:rerun-if-changed={}", input.display());
 
         let mut command = Command::new(&cli);
-        command.arg("-i").arg(&input).arg("-o").arg(&output);
+        command
+            .arg("-i")
+            .arg(&input)
+            .arg("-o")
+            .arg(&output)
+            .arg("--cwd")
+            .arg(&cwd);
         if self.optimize {
             command.arg("--optimize");
         }
