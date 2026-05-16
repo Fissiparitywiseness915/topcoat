@@ -32,7 +32,7 @@ async fn layout(cx: &Cx, slot: Slot<'_>) -> Result {
         <html>
             <head>
                 <title>"hello world"</title>
-                <link rel="stylesheet" href=tailwind::stylesheet!()>
+                <link rel="stylesheet" href=(tailwind::stylesheet!())>
                 [topcoat::dev::script /]
             </head>
             <body>
@@ -77,7 +77,7 @@ mod about {
     async fn about_page() -> Result {
         view! {
             <div class="font-bold">"about"</div>
-            <img src=asset!("https://upload.wikimedia.org/wikipedia/commons/thumb/d/d5/Rust_programming_language_black_logo.svg/960px-Rust_programming_language_black_logo.svg.png?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=thumbnail", rename: "rust")>
+            <img src=(asset!("https://upload.wikimedia.org/wikipedia/commons/thumb/d/d5/Rust_programming_language_black_logo.svg/960px-Rust_programming_language_black_logo.svg.png?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=thumbnail", rename: "rust"))>
         }
     }
 }
