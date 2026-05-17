@@ -74,10 +74,7 @@ impl Routes {
 
     /// Registers a route for a router path. Panics on duplicates.
     pub fn register(&mut self, route: Route) {
-        if let Some(existing) = self
-            .routes
-            .insert(Cow::Owned(route.path().to_owned()), route)
-        {
+        if let Some(existing) = self.routes.insert(route.path.clone(), route) {
             panic!("multiple routes registered for path `{}`", existing.path)
         }
     }

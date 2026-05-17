@@ -108,7 +108,7 @@ impl Router {
         self
     }
 
-    /// Discovers and registers all `#[page]` and `#[layout]` items
+    /// Discovers and registers all `#[page]`, `#[layout]` and `#[route]` items
     /// collected at link time across the crate and its dependencies.
     #[cfg(feature = "discover")]
     pub fn discover(mut self) -> Self {
@@ -117,6 +117,9 @@ impl Router {
         }
         for layout in inventory::iter::<Layout>().cloned() {
             self = self.layout(layout);
+        }
+        for route in inventory::iter::<Route>().cloned() {
+            self = self.route(route);
         }
         self
     }
