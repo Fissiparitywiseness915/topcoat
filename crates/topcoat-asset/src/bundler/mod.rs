@@ -100,10 +100,10 @@ impl Bundler {
                 .map(|b| format!("{:02x}", b))
                 .collect::<String>();
 
-            if let Some(expected) = asset.options().hash()
+            if let Some(expected) = asset.options().checksum()
                 && expected != hash
             {
-                return Err(AssetError::HashMismatch {
+                return Err(AssetError::ChecksumMismatch {
                     asset: asset.clone(),
                     expected: expected.to_owned(),
                     actual: hash,

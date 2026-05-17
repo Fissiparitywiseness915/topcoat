@@ -23,7 +23,7 @@ pub enum AssetError {
         "hash mismatch for asset at {}: expected {expected}, got {actual}",
         asset.source()
     )]
-    HashMismatch {
+    ChecksumMismatch {
         asset: RawAsset,
         expected: String,
         actual: String,

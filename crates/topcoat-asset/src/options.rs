@@ -15,7 +15,7 @@ use crate::{
 pub struct AssetOptions {
     pub rename: Option<Cow<'static, str>>,
     pub extension: Option<Cow<'static, str>>,
-    pub hash: Option<Cow<'static, str>>,
+    pub checksum: Option<Cow<'static, str>>,
 }
 
 impl AssetOptions {
@@ -23,7 +23,7 @@ impl AssetOptions {
     pub const NONE: Self = Self {
         rename: None,
         extension: None,
-        hash: None,
+        checksum: None,
     };
 
     pub fn rename(&self) -> Option<&str> {
@@ -34,20 +34,20 @@ impl AssetOptions {
         self.extension.as_deref()
     }
 
-    pub fn hash(&self) -> Option<&str> {
-        self.hash.as_deref()
+    pub fn checksum(&self) -> Option<&str> {
+        self.checksum.as_deref()
     }
 
     pub(crate) const fn encode_into(&self, w: &mut ConstWriter<'_>) {
         w.write_str_opt(cow_as_str(&self.rename));
         w.write_str_opt(cow_as_str(&self.extension));
-        w.write_str_opt(cow_as_str(&self.hash));
+        w.write_str_opt(cow_as_str(&self.checksum));
     }
 
     pub(crate) const fn hash_into(&self, mut h: u64) -> u64 {
         h = hash_opt_str(h, cow_as_str(&self.rename));
         h = hash_opt_str(h, cow_as_str(&self.extension));
-        h = hash_opt_str(h, cow_as_str(&self.hash));
+        h = hash_opt_str(h, cow_as_str(&self.checksum));
         h
     }
 
@@ -55,7 +55,7 @@ impl AssetOptions {
         Some(Self {
             rename: r.read_str_opt()?.map(|s| Cow::Owned(s.to_owned())),
             extension: r.read_str_opt()?.map(|s| Cow::Owned(s.to_owned())),
-            hash: r.read_str_opt()?.map(|s| Cow::Owned(s.to_owned())),
+            checksum: r.read_str_opt()?.map(|s| Cow::Owned(s.to_owned())),
         })
     }
 }
