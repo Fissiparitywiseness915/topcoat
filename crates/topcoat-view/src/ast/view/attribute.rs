@@ -40,7 +40,7 @@ impl Parse for Attribute {
 
 impl ParseOption for Attribute {
     fn peek(input: ParseStream) -> bool {
-        (input.peek(Ident::peek_any) || input.peek(Paren)) && input.peek2(Token![=])
+        input.peek(Ident::peek_any) || input.peek(Paren)
     }
 }
 

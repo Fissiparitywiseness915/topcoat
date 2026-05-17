@@ -39,9 +39,7 @@ impl WriteView for AttributeNode {
 
 impl Parse for AttributeNode {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        let result = if Attribute::peek(input) {
-            Self::Attribute(input.parse()?)
-        } else if TemplateIf::<AttributeNode>::peek(input) {
+        let result = if TemplateIf::<AttributeNode>::peek(input) {
             Self::If(input.parse()?)
         } else if TemplateLet::peek(input) {
             Self::Let(input.parse()?)
@@ -53,6 +51,8 @@ impl Parse for AttributeNode {
             Self::Break(input.parse()?)
         } else if TemplateMatch::<AttributeNode>::peek(input) {
             Self::Match(input.parse()?)
+        } else if Attribute::peek(input) {
+            Self::Attribute(input.parse()?)
         } else {
             return Err(syn::Error::new(input.span(), "expected attribute node"));
         };
