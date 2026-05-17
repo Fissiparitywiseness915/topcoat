@@ -53,7 +53,7 @@ impl BuildConfig {
         self
     }
 
-    /// Pass `--cwd` to the Tailwind CLI. Defaults to `./src`.
+    /// Pass `--cwd` to the Tailwind CLI. Defaults to `$CARGO_MANIFEST_DIR/src`.
     pub fn cwd(mut self, cwd: impl Into<PathBuf>) -> Self {
         self.cwd = Some(cwd.into());
         self
@@ -104,7 +104,14 @@ impl BuildConfig {
             .output
             .unwrap_or_else(|| out_dir.join(DEFAULT_OUTPUT_NAME));
 
-        let cwd = self.cwd.unwrap_or_else(|| "./src".into());
+        let cwd = match self.cwd {
+            Some(path) => path,
+            None => {
+                let manifest_dir = env::var_os("CARGO_MANIFEST_DIR")
+                    .ok_or(BuildError::NoManifestDir)?;
+                PathBuf::from(manifest_dir).join("src")
+            }
+        };
 
         println!("cargo:rerun-if-changed={}", input.display());
         println!("cargo:rerun-if-changed={}", cwd.display());

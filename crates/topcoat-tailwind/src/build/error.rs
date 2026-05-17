@@ -19,6 +19,8 @@ pub enum BuildError {
     },
     #[error("`OUT_DIR` is not set; `Config::render` must be called from a build script")]
     NoOutDir,
+    #[error("`CARGO_MANIFEST_DIR` is not set; `Config::render` must be called from a build script")]
+    NoManifestDir,
     #[error("tailwindcss exited with {status}")]
     Cli { status: ExitStatus },
 }
