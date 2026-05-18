@@ -7,9 +7,9 @@ use syn::{
 use crate::ast::{
     ParseOption,
     view::{
-        Component, DocumentType, Element, TemplateBlock, TemplateBreak, TemplateContinue,
-        TemplateExpr, TemplateForLoop, TemplateIf, TemplateLet, TemplateMatch, ViewWriter,
-        WriteView,
+        Component, DocumentType, Element, SignalDeclaration, TemplateBlock, TemplateBreak,
+        TemplateContinue, TemplateExpr, TemplateForLoop, TemplateIf, TemplateLet, TemplateMatch,
+        ViewWriter, WriteView,
     },
 };
 
@@ -28,6 +28,7 @@ pub enum Node {
     Break(TemplateBreak),
     Match(TemplateMatch<Node>),
     Block(TemplateBlock<Node>),
+    SignalDecaration(SignalDeclaration),
 }
 
 impl Node {
@@ -55,6 +56,7 @@ impl WriteView for Node {
             Self::Break(inner) => inner.write(writer),
             Self::Match(inner) => inner.write(writer),
             Self::Block(inner) => inner.write(writer),
+            Self::SignalDecaration(inner) => inner.write(writer),
         }
     }
 }
@@ -85,6 +87,8 @@ impl Parse for Node {
             Self::Match(input.parse()?)
         } else if TemplateBlock::<Node>::peek(input) {
             Self::Block(input.parse()?)
+        } else if SignalDeclaration::peek(input) {
+            Self::SignalDecaration(input.parse()?)
         } else {
             return Err(syn::Error::new(input.span(), "expected view node"));
         };
@@ -119,6 +123,7 @@ impl topcoat_pretty::PrettyPrint for Node {
             Self::Break(inner) => inner.pretty_print(printer),
             Self::Match(inner) => inner.pretty_print(printer),
             Self::Block(inner) => inner.pretty_print(printer),
+            Self::SignalDecaration(inner) => inner.pretty_print(printer),
         }
     }
 }

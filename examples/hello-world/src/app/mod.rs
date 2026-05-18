@@ -38,6 +38,7 @@ async fn layout(cx: &Cx, slot: Slot<'_>) -> Result {
                 <title>"hello world"</title>
                 <link rel="stylesheet" href=(tailwind::stylesheet!())>
                 <script type="module" src=(asset!("https://cdn.jsdelivr.net/gh/starfederation/datastar@v1.0.1/bundles/datastar.js"))></script>
+                <script type="module" src=(asset!("./runtime.js"))></script>
                 [topcoat::dev::script /]
             </head>
             <body>
@@ -87,5 +88,43 @@ mod about {
             >
             <img src=(asset!("./ferris.png"))>
         }
+    }
+}
+
+struct InvoiceLine {
+    article: String,
+    quantity: i32,
+}
+
+#[page]
+async fn invoice(cx: &Cx) -> Result {
+    view! {
+        signal test = 5;
+
+        // signal lines = [
+        //     InvoiceLine {
+        //         article: "kek".to_owned(),
+        //         quantity: 3,
+        //     },
+        //     InvoiceLine {
+        //         article: "pip".to_owned(),
+        //         quantity: 2,
+        //     },
+        // ];
+
+        <div class="flex flex-col">
+            // suspend |lines| {
+            //     view! {
+            //         for line in lines {
+            //             <div class="flex mb-2">
+            //                 <input value=(line.article) class="border mr-2">
+            //                 <input value=(line.quantity) type="number" class="border">
+            //                 <button onclick="line.removed = true">delete</button>
+            //             </div>
+            //         }
+            //     }
+            // }
+            <button onclick="console.log('kek')">"+ New line"</button>
+        </div>
     }
 }
