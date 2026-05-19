@@ -34,7 +34,7 @@ pub trait DynIsland: Send + Sync + 'static {
 
 impl<S, E> DynIsland for Island<S, E>
 where
-    S: Signals + Send + Sync + 'static,
+    S: for<'de> Signals<'de> + Send + Sync + 'static,
     E: Send + Sync + 'static,
 {
     fn dyn_render<'cx>(
@@ -43,7 +43,7 @@ where
         signals: EncodedSignals,
     ) -> Pin<Box<dyn Future<Output = Result<View, Box<dyn Any + Send + Sync>>> + Send + 'cx>> {
         Box::pin(async move {
-            (self.render)(cx, &S::decode(signals))
+            (self.render)(cx, &S::decode(&signals))
                 .await
                 .map_err(|e| Box::new(e) as Box<dyn Any + Send + Sync>)
         })

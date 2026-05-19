@@ -7,7 +7,7 @@ use topcoat::{
     context::{Cx, memoize},
     router::{IntoResponse, Response, Result, Slot, layout, page, query_params, route},
     tailwind,
-    view::{Signal, component, island, view},
+    view::{ReadSignal, Signal, component, island, view},
 };
 
 use crate::components::app_and_request_state;
@@ -95,7 +95,7 @@ mod about {
 }
 
 #[island]
-async fn combobox_content(input: Signal<String>) -> Result {
+async fn combobox_content(input: ReadSignal<'_, String>) -> Result {
     view! {
         <div>
             "content:"
