@@ -1,4 +1,9 @@
-use std::{any::Any, pin::Pin};
+use std::{
+    any::Any,
+    collections::HashSet,
+    hash::{Hash, Hasher},
+    pin::Pin,
+};
 
 use topcoat_core::context::Cx;
 
@@ -52,3 +57,53 @@ where
 
 #[cfg(feature = "discover")]
 inventory::collect!(&'static dyn DynIsland);
+
+#[derive(Clone, Default)]
+pub struct Islands {
+    islands: HashSet<DynIslandPtr>,
+}
+
+impl Islands {
+    pub fn new() -> Self {
+        Default::default()
+    }
+
+    pub fn register(&mut self, island: &'static dyn DynIsland) {
+        self.islands.insert(DynIslandPtr(island));
+    }
+
+    /// Returns `true` if no island has been registered.
+    pub fn is_empty(&self) -> bool {
+        self.islands.is_empty()
+    }
+}
+
+impl IntoIterator for Islands {
+    type Item = &'static dyn DynIsland;
+    type IntoIter = std::iter::Map<
+        std::collections::hash_set::IntoIter<DynIslandPtr>,
+        fn(DynIslandPtr) -> &'static dyn DynIsland,
+    >;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.islands.into_iter().map(|DynIslandPtr(i)| i)
+    }
+}
+
+#[derive(Copy, Clone)]
+#[doc(hidden)]
+pub struct DynIslandPtr(&'static dyn DynIsland);
+
+impl PartialEq for DynIslandPtr {
+    fn eq(&self, other: &Self) -> bool {
+        std::ptr::addr_eq(self.0, other.0)
+    }
+}
+
+impl Eq for DynIslandPtr {}
+
+impl Hash for DynIslandPtr {
+    fn hash<H: Hasher>(&self, h: &mut H) {
+        (self.0 as *const dyn DynIsland).cast::<()>().hash(h);
+    }
+}

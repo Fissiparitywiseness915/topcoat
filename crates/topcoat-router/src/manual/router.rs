@@ -6,6 +6,7 @@ use axum::{
 };
 use topcoat_asset::{AssetBundle, AssetFragmentResolver, ServeAssetBundle};
 use topcoat_core::context::{MaybeAborted, State, WatchAbort};
+use topcoat_view::runtime::{DynIsland, Islands};
 
 use crate::{CxBody, Layout, Layouts, Page, Pages, Route, Routes, not_found};
 
@@ -49,6 +50,9 @@ pub struct Router {
     pages: Pages,
     layouts: Layouts,
     routes: Routes,
+
+    islands: Islands,
+
     assets: AssetBundle,
     state: State,
 }
@@ -63,6 +67,7 @@ impl Router {
             pages: Pages::new(),
             layouts: Layouts::new(),
             routes: Routes::new(),
+            islands: Islands::new(),
             assets: AssetBundle::empty(),
             state,
         }
@@ -108,10 +113,17 @@ impl Router {
         self
     }
 
+    pub fn island(mut self, island: &'static dyn DynIsland) -> Self {
+        self.islands.register(island);
+        self
+    }
+
     /// Discovers and registers all `#[page]`, `#[layout]` and `#[route]` items
     /// collected at link time across the crate and its dependencies.
     #[cfg(feature = "discover")]
     pub fn discover(mut self) -> Self {
+        use topcoat_view::runtime::DynIsland;
+
         for page in inventory::iter::<Page>().cloned() {
             self = self.page(page);
         }
@@ -121,6 +133,11 @@ impl Router {
         for route in inventory::iter::<Route>().cloned() {
             self = self.route(route);
         }
+
+        for island in inventory::iter::<&'static dyn DynIsland>().cloned() {
+            self = self.island(island);
+        }
+
         self
     }
 
