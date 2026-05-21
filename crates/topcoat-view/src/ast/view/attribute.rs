@@ -1,3 +1,4 @@
+use quote::quote;
 use syn::{
     Ident, Token,
     ext::IdentExt,
@@ -22,13 +23,25 @@ pub struct Attribute {
 impl WriteView for Attribute {
     fn write(&self, writer: &mut ViewWriter) {
         match self.kind {
-            AttributeKind::Static => {
-                writer.write_str_unescaped(" ");
-                self.key.write(writer);
-                writer.write_str_unescaped("=\"");
-                self.value.write(writer);
-                writer.write_str_unescaped("\"");
-            }
+            AttributeKind::Static => match self.value {
+                AttributeValue::LitStr(_) => {
+                    writer.write_str_unescaped(" ");
+                    self.key.write(writer);
+                    writer.write_str_unescaped("=\"");
+                    self.value.write(writer);
+                    writer.write_str_unescaped("\"");
+                }
+                AttributeValue::Expr(_) => {
+                    let key = &self.key;
+                    let value = &self.value;
+                    writer.write_expr(quote! {
+                        ::topcoat::view::Attribute::new(
+                            #key,
+                            #value,
+                        )
+                    });
+                }
+            },
             AttributeKind::Bind(_) => todo!(),
             AttributeKind::Event(_) => todo!(),
         }
