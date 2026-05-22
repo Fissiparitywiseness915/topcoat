@@ -71,7 +71,7 @@ async fn layout(cx: &Cx, slot: Slot<'_>) -> Result {
 #[page]
 async fn home_page() -> Result {
     view! {
-        [combobox content=(combobox_content) /]
+        combobox(content: combobox_content)
     }
 }
 
