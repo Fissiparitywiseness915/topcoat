@@ -1,6 +1,6 @@
 use std::fmt::Write;
 
-use crate::{Expr, ExprDerefAssignTarget, ExprDerefTarget, Interpreter, IntoExpr, Signal};
+use crate::{Expr, ExprDerefAssignTarget, ExprDerefTarget, Interpreter, IntoExpr, Signal, Value};
 
 pub struct ExprSignalRef<'a, T> {
     signal: &'a Signal<T>,
@@ -28,8 +28,11 @@ impl<'a, T> IntoExpr for &'a Signal<T> {
     }
 }
 
-impl<'a, T> ExprDerefTarget for &'a Signal<T> {
-    type Target = &'a T;
+impl<'a, T> ExprDerefTarget for &'a Signal<T>
+where
+    T: Value,
+{
+    type Target = &'a T::Surrogate;
 
     fn expr_deref(self) -> Self::Target {
         self.read()

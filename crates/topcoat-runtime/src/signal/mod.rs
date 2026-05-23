@@ -10,6 +10,8 @@ use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use topcoat_view::runtime::{IntoViewParts, Unescaped, ViewPart};
 use uuid::Uuid;
 
+use crate::Value;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(transparent)]
 pub struct SignalId(Uuid);
@@ -48,9 +50,12 @@ impl<T> Signal<T> {
     }
 }
 
-impl Signal<std::string::String> {
-    pub(crate) fn read(&self) -> &crate::string::String {
-        &self.value.into()
+impl<T> Signal<T>
+where
+    T: Value,
+{
+    pub(crate) fn read(&self) -> &T::Surrogate {
+        &self.value.ref_cast()
     }
 }
 
