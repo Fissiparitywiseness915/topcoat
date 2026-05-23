@@ -82,7 +82,7 @@ impl WriteView for BindAttribute {
         let key = &self.key;
         let expr = &self.value.expr;
         writer.write_expr(quote! {
-            ::topcoat::view::BindAttribute::new(
+            ::topcoat::runtime::BindAttribute::new(
                 #key,
                 ::topcoat::runtime::expr! { #expr },
             )

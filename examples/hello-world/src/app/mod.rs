@@ -48,7 +48,7 @@ async fn layout(cx: &Cx, slot: Slot<'_>) -> Result {
                     <a href="/about">"about"</a>
                     <span class=("test")>" | "</span>
                     <a href="/contact">"contact"</a>
-                    <span-kek:pip
+                    <span-kek
                         for kek in ["kek", "pip", "lel"] {
                             if kek != "pip" {
                                 (kek)=(kek)
@@ -57,7 +57,7 @@ async fn layout(cx: &Cx, slot: Slot<'_>) -> Result {
                     >
                         " | signed in as "
                         ((*user).clone())
-                    </span-kek:pip>
+                    </span-kek>
                 </nav>
                 <hr>
 
@@ -159,11 +159,14 @@ async fn combobox(
     content: Island<(ReadSignal<String>,), topcoat::router::Error>,
 ) -> Result {
     view! {
-        signal kek = "initial content".to_owned();
+        signal kek = "initial content";
 
         <div>
             <input :value=(*kek)>
-            track content(kek)
+            <div>
+                <input :value=(*kek)>
+            </div>
+            // track content(kek)
         </div>
     }
 }

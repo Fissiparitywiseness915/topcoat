@@ -1,7 +1,9 @@
 pub mod ast;
+mod bind_attribute;
 mod expr;
 mod signal;
 
+pub use bind_attribute::*;
 pub use expr::*;
 pub use signal::*;
 

@@ -8,7 +8,9 @@ pub use expr_lit::*;
 pub use expr_signal_ref::*;
 pub use interpreter::*;
 
-pub trait Expr {
+use serde::Serialize;
+
+pub trait Expr: Serialize {
     type Output;
 
     fn eval(self, interp: &mut Interpreter) -> Self::Output;

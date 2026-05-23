@@ -4,7 +4,10 @@ use crate::{Expr, Interpreter, IntoExpr};
 
 pub struct ExprLit<T>(T);
 
-impl<T> Expr for ExprLit<T> {
+impl<T> Expr for ExprLit<T>
+where
+    T: Serialize,
+{
     type Output = T;
 
     fn eval(self, _interpreter: &mut Interpreter) -> Self::Output {

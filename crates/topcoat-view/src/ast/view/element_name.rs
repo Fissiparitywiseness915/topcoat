@@ -148,12 +148,13 @@ mod tests {
     fn html_ident_name_stops_at_colon_or_dot() {
         // `:` and `.` are reserved for attribute syntax (`:value`,
         // `class.active`) and must not be consumed as part of an element name.
-        use syn::parse::Parser;
         use syn::Token;
+        use syn::parse::Parser;
 
         let parser = |input: syn::parse::ParseStream| -> syn::Result<ElementName> {
             let name = input.parse::<ElementName>()?;
             let _: Token![:] = input.parse()?;
+            let _: Ident = input.parse()?;
             Ok(name)
         };
         let name = parser.parse_str("xmlns:xlink").unwrap();
@@ -162,6 +163,7 @@ mod tests {
         let parser = |input: syn::parse::ParseStream| -> syn::Result<ElementName> {
             let name = input.parse::<ElementName>()?;
             let _: Token![.] = input.parse()?;
+            let _: Ident = input.parse()?;
             Ok(name)
         };
         let name = parser.parse_str("class.active").unwrap();
