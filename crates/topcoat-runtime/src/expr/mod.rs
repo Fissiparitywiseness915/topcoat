@@ -1,10 +1,18 @@
+mod expr_assign_deref;
+mod expr_closure;
 mod expr_deref;
+mod expr_field;
 mod expr_lit;
+mod expr_param;
 mod expr_signal_ref;
 mod interpreter;
 
+pub use expr_assign_deref::*;
+pub use expr_closure::*;
 pub use expr_deref::*;
+pub use expr_field::*;
 pub use expr_lit::*;
+pub use expr_param::*;
 pub use expr_signal_ref::*;
 pub use interpreter::*;
 

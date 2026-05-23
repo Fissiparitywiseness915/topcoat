@@ -162,7 +162,7 @@ async fn combobox(
         signal kek = "initial content";
 
         <div>
-            <input :value=(*kek)>
+            <input :value=(*kek) @change=(|e: ::topcoat::runtime::Event| *kek = e.target.value)>
             <div>
                 <input :value=(*kek)>
             </div>

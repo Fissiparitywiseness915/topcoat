@@ -1,9 +1,13 @@
 pub mod ast;
 mod bind_attribute;
+mod event;
+mod event_handler;
 mod expr;
 mod signal;
 
 pub use bind_attribute::*;
+pub use event::*;
+pub use event_handler::*;
 pub use expr::*;
 pub use signal::*;
 

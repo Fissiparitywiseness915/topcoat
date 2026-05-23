@@ -33,7 +33,7 @@ where
             .chain(self.key.clone().into_view_parts())
             .chain(Unescaped::new_unchecked("=\"").into_view_parts())
             .chain(value.into_view_parts())
-            .chain(Unescaped::new_unchecked("\" data-topcoat-bind-").into_view_parts())
+            .chain(Unescaped::new_unchecked("\" data-topcoat-bind:").into_view_parts())
             .chain(self.key.into_view_parts())
             .chain(Unescaped::new_unchecked("=\"").into_view_parts())
             .chain(serialized_expr.into_view_parts())

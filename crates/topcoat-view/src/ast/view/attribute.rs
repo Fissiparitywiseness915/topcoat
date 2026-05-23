@@ -118,20 +118,27 @@ impl topcoat_pretty::PrettyPrint for BindAttribute {
 }
 
 /// An `@name=(expr)` attribute — a DOM event handler.
-pub struct EventAttribute {
+pub struct EventHandler {
     pub at: Token![@],
     pub key: AttributeKey,
     pub eq: Token![=],
     pub value: TemplateExpr,
 }
 
-impl WriteView for EventAttribute {
-    fn write(&self, _writer: &mut ViewWriter) {
-        todo!()
+impl WriteView for EventHandler {
+    fn write(&self, writer: &mut ViewWriter) {
+        let key = &self.key;
+        let expr = &self.value.expr;
+        writer.write_expr(quote! {
+            ::topcoat::runtime::EventHandler::new(
+                #key,
+                ::topcoat::runtime::expr! { #expr },
+            )
+        });
     }
 }
 
-impl Parse for EventAttribute {
+impl Parse for EventHandler {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         Ok(Self {
             at: input.parse()?,
@@ -142,14 +149,14 @@ impl Parse for EventAttribute {
     }
 }
 
-impl ParseOption for EventAttribute {
+impl ParseOption for EventHandler {
     fn peek(input: ParseStream) -> bool {
         input.peek(Token![@])
     }
 }
 
 #[cfg(feature = "pretty")]
-impl topcoat_pretty::PrettyPrint for EventAttribute {
+impl topcoat_pretty::PrettyPrint for EventHandler {
     fn pretty_print(&self, printer: &mut topcoat_pretty::Printer<'_>) {
         self.at.pretty_print(printer);
         self.key.pretty_print(printer);

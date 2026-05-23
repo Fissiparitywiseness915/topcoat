@@ -6,7 +6,7 @@ use syn::{
 use crate::ast::{
     ParseOption,
     view::{
-        Attribute, AttributeNodes, BindAttribute, EventAttribute, TemplateBreak, TemplateContinue,
+        Attribute, AttributeNodes, BindAttribute, EventHandler, TemplateBreak, TemplateContinue,
         TemplateForLoop, TemplateIf, TemplateLet, TemplateMatch, ViewWriter, WriteView,
     },
 };
@@ -16,7 +16,7 @@ use crate::ast::{
 pub enum AttributeNode {
     Attribute(Attribute),
     BindAttribute(BindAttribute),
-    EventAttribute(EventAttribute),
+    EventHandler(EventHandler),
     If(Box<TemplateIf<AttributeNodes>>),
     Let(TemplateLet),
     ForLoop(TemplateForLoop<AttributeNodes>),
@@ -30,7 +30,7 @@ impl WriteView for AttributeNode {
         match self {
             Self::Attribute(inner) => inner.write(writer),
             Self::BindAttribute(inner) => inner.write(writer),
-            Self::EventAttribute(inner) => inner.write(writer),
+            Self::EventHandler(inner) => inner.write(writer),
             Self::If(inner) => inner.write(writer),
             Self::Let(inner) => inner.write(writer),
             Self::ForLoop(inner) => inner.write(writer),
@@ -57,8 +57,8 @@ impl Parse for AttributeNode {
             Self::Match(input.parse()?)
         } else if BindAttribute::peek(input) {
             Self::BindAttribute(input.parse()?)
-        } else if EventAttribute::peek(input) {
-            Self::EventAttribute(input.parse()?)
+        } else if EventHandler::peek(input) {
+            Self::EventHandler(input.parse()?)
         } else if Attribute::peek(input) {
             Self::Attribute(input.parse()?)
         } else {
@@ -83,7 +83,7 @@ impl ParseOption for AttributeNode {
     fn peek(input: ParseStream) -> bool {
         Attribute::peek(input)
             || BindAttribute::peek(input)
-            || EventAttribute::peek(input)
+            || EventHandler::peek(input)
             || TemplateIf::<AttributeNodes>::peek(input)
             || TemplateLet::peek(input)
             || TemplateForLoop::<AttributeNodes>::peek(input)
@@ -99,7 +99,7 @@ impl topcoat_pretty::PrettyPrint for AttributeNode {
         match self {
             Self::Attribute(inner) => inner.pretty_print(printer),
             Self::BindAttribute(inner) => inner.pretty_print(printer),
-            Self::EventAttribute(inner) => inner.pretty_print(printer),
+            Self::EventHandler(inner) => inner.pretty_print(printer),
             Self::If(inner) => inner.pretty_print(printer),
             Self::Let(inner) => inner.pretty_print(printer),
             Self::ForLoop(inner) => inner.pretty_print(printer),
@@ -134,7 +134,7 @@ mod tests {
         ));
         assert!(matches!(
             parse(r#"@foo=(bar)"#),
-            AttributeNode::EventAttribute(_),
+            AttributeNode::EventHandler(_),
         ));
         assert!(matches!(
             parse(r#"if cond { foo="bar" }"#),

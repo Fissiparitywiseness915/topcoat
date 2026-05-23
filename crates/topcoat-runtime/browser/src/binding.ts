@@ -3,7 +3,7 @@ import { effect } from "@maverick-js/signals";
 import { type Expr, interpret } from "./expr";
 import type { Scope } from "./scope";
 
-export const BIND_PREFIX = "data-topcoat-bind-";
+export const BIND_PREFIX = "data-topcoat-bind:";
 
 /**
  * Attribute names that must be set as DOM properties rather than HTML
