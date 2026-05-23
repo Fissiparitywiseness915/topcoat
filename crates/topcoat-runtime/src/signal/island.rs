@@ -49,13 +49,16 @@ impl<S, E> Island<S, E> {
     }
 }
 
+type RenderDynIslandFut<'cx> =
+    Pin<Box<dyn Future<Output = Result<View, Box<dyn Any + Send + Sync>>> + Send + 'cx>>;
+
 pub trait DynIsland: Send + Sync + 'static {
     fn id(&self) -> IslandId;
     fn dyn_render<'cx>(
         &'static self,
         cx: &'cx Cx,
         signals: EncodedSignals,
-    ) -> Pin<Box<dyn Future<Output = Result<View, Box<dyn Any + Send + Sync>>> + Send + 'cx>>;
+    ) -> RenderDynIslandFut<'cx>;
 }
 
 impl<S, E> DynIsland for Island<S, E>

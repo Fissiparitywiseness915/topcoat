@@ -97,7 +97,7 @@ mod about {
     }
 }
 
-async fn search_results(cx: &Cx, input: &str) -> Vec<&'static str> {
+async fn search_results(_cx: &Cx, input: &str) -> Vec<&'static str> {
     tokio::time::sleep(Duration::from_secs_f32(0.5)).await;
     let all = [
         "apple",

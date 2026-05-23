@@ -56,7 +56,7 @@ impl ParseOption for SignalDeclaration {
 
 #[cfg(feature = "pretty")]
 impl topcoat_pretty::PrettyPrint for SignalDeclaration {
-    fn pretty_print(&self, printer: &mut topcoat_pretty::Printer<'_>) {
+    fn pretty_print(&self, _printer: &mut topcoat_pretty::Printer<'_>) {
         todo!();
     }
 }

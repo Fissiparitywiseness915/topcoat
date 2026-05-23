@@ -26,10 +26,7 @@ impl<T> ExprParam<T> {
 
 impl<T> Clone for ExprParam<T> {
     fn clone(&self) -> Self {
-        Self {
-            name: self.name,
-            _phantom: PhantomData,
-        }
+        *self
     }
 }
 
