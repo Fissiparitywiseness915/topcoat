@@ -1,6 +1,5 @@
 mod attribute;
 mod attribute_key;
-mod attribute_kind;
 mod attribute_node;
 mod attribute_nodes;
 mod attribute_value;
@@ -25,7 +24,6 @@ mod view_writer;
 
 pub use attribute::*;
 pub use attribute_key::*;
-pub use attribute_kind::*;
 pub use attribute_node::*;
 pub use attribute_nodes::*;
 pub use attribute_value::*;

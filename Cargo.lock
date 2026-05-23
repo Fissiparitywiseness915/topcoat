@@ -1986,6 +1986,7 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn",
+ "topcoat-runtime",
  "topcoat-view",
 ]
 

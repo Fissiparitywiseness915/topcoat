@@ -8,13 +8,12 @@ use syn::{
 
 use crate::ast::{
     ParseOption,
-    view::{AttributeKey, AttributeKind, AttributeValue, ViewWriter, WriteView},
+    view::{AttributeKey, AttributeValue, ViewWriter, WriteView},
 };
 
-/// A single `name=value` attribute on an [`Element`](super::Element) or
+/// A plain `name=value` attribute on an [`Element`](super::Element) or
 /// [`Component`](super::Component).
 pub struct Attribute {
-    pub kind: AttributeKind,
     pub key: AttributeKey,
     pub eq: Token![=],
     pub value: AttributeValue,
@@ -22,28 +21,24 @@ pub struct Attribute {
 
 impl WriteView for Attribute {
     fn write(&self, writer: &mut ViewWriter) {
-        match self.kind {
-            AttributeKind::Static => match self.value {
-                AttributeValue::LitStr(_) => {
-                    writer.write_str_unescaped(" ");
-                    self.key.write(writer);
-                    writer.write_str_unescaped("=\"");
-                    self.value.write(writer);
-                    writer.write_str_unescaped("\"");
-                }
-                AttributeValue::Expr(_) => {
-                    let key = &self.key;
-                    let value = &self.value;
-                    writer.write_expr(quote! {
-                        ::topcoat::view::Attribute::new(
-                            #key,
-                            #value,
-                        )
-                    });
-                }
-            },
-            AttributeKind::Bind(_) => todo!(),
-            AttributeKind::Event(_) => todo!(),
+        match self.value {
+            AttributeValue::LitStr(_) => {
+                writer.write_str_unescaped(" ");
+                self.key.write(writer);
+                writer.write_str_unescaped("=\"");
+                self.value.write(writer);
+                writer.write_str_unescaped("\"");
+            }
+            AttributeValue::Expr(_) => {
+                let key = &self.key;
+                let value = &self.value;
+                writer.write_expr(quote! {
+                    ::topcoat::view::Attribute::new(
+                        #key,
+                        #value,
+                    )
+                });
+            }
         }
     }
 }
@@ -51,7 +46,6 @@ impl WriteView for Attribute {
 impl Parse for Attribute {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         Ok(Self {
-            kind: input.parse()?,
             key: input.parse()?,
             eq: input.parse()?,
             value: input.parse()?,
@@ -61,14 +55,96 @@ impl Parse for Attribute {
 
 impl ParseOption for Attribute {
     fn peek(input: ParseStream) -> bool {
-        AttributeKind::peek(input) || input.peek(Ident::peek_any) || input.peek(Paren)
+        input.peek(Ident::peek_any) || input.peek(Paren)
     }
 }
 
 #[cfg(feature = "pretty")]
 impl topcoat_pretty::PrettyPrint for Attribute {
     fn pretty_print(&self, printer: &mut topcoat_pretty::Printer<'_>) {
-        self.kind.pretty_print(printer);
+        self.key.pretty_print(printer);
+        self.eq.pretty_print(printer);
+        self.value.pretty_print(printer);
+    }
+}
+
+/// A `:name=value` attribute — a one-way binding from a reactive expression to
+/// a DOM attribute or property.
+pub struct BindAttribute {
+    pub colon: Token![:],
+    pub key: AttributeKey,
+    pub eq: Token![=],
+    pub value: AttributeValue,
+}
+
+impl WriteView for BindAttribute {
+    fn write(&self, _writer: &mut ViewWriter) {
+        todo!()
+    }
+}
+
+impl Parse for BindAttribute {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        Ok(Self {
+            colon: input.parse()?,
+            key: input.parse()?,
+            eq: input.parse()?,
+            value: input.parse()?,
+        })
+    }
+}
+
+impl ParseOption for BindAttribute {
+    fn peek(input: ParseStream) -> bool {
+        input.peek(Token![:])
+    }
+}
+
+#[cfg(feature = "pretty")]
+impl topcoat_pretty::PrettyPrint for BindAttribute {
+    fn pretty_print(&self, printer: &mut topcoat_pretty::Printer<'_>) {
+        self.colon.pretty_print(printer);
+        self.key.pretty_print(printer);
+        self.eq.pretty_print(printer);
+        self.value.pretty_print(printer);
+    }
+}
+
+/// An `@name=value` attribute — a DOM event handler.
+pub struct EventAttribute {
+    pub at: Token![@],
+    pub key: AttributeKey,
+    pub eq: Token![=],
+    pub value: AttributeValue,
+}
+
+impl WriteView for EventAttribute {
+    fn write(&self, _writer: &mut ViewWriter) {
+        todo!()
+    }
+}
+
+impl Parse for EventAttribute {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        Ok(Self {
+            at: input.parse()?,
+            key: input.parse()?,
+            eq: input.parse()?,
+            value: input.parse()?,
+        })
+    }
+}
+
+impl ParseOption for EventAttribute {
+    fn peek(input: ParseStream) -> bool {
+        input.peek(Token![@])
+    }
+}
+
+#[cfg(feature = "pretty")]
+impl topcoat_pretty::PrettyPrint for EventAttribute {
+    fn pretty_print(&self, printer: &mut topcoat_pretty::Printer<'_>) {
+        self.at.pretty_print(printer);
         self.key.pretty_print(printer);
         self.eq.pretty_print(printer);
         self.value.pretty_print(printer);

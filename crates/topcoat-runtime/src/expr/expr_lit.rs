@@ -7,7 +7,7 @@ pub struct ExprLit<T>(T);
 impl<T> Expr for ExprLit<T> {
     type Output = T;
 
-    fn evaluate(self, _interpreter: &mut Interpreter) -> Self::Output {
+    fn eval(self, _interpreter: &mut Interpreter) -> Self::Output {
         self.0
     }
 }

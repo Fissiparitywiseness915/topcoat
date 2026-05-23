@@ -24,6 +24,13 @@ pub fn view(tokens: TokenStream) -> TokenStream {
     quote! { #parsed }.into()
 }
 
+#[cfg(feature = "runtime")]
+#[proc_macro]
+pub fn expr(tokens: TokenStream) -> TokenStream {
+    let parsed = syn::parse_macro_input!(tokens as topcoat_runtime::ast::expr::Expr);
+    quote! { #parsed }.into()
+}
+
 #[cfg(feature = "view")]
 #[proc_macro_attribute]
 pub fn component(attr: TokenStream, item: TokenStream) -> TokenStream {

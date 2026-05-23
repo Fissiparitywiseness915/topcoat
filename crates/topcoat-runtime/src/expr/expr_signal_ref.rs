@@ -6,14 +6,11 @@ pub struct ExprSignalRef<'a, T> {
     signal: &'a Signal<T>,
 }
 
-impl<'a, T> Expr for ExprSignalRef<'a, T>
-where
-    T: Clone,
-{
-    type Output = T;
+impl<'a, T> Expr for ExprSignalRef<'a, T> {
+    type Output = &'a Signal<T>;
 
-    fn evaluate(self, _interpreter: &mut Interpreter) -> Self::Output {
-        self.signal.read().clone()
+    fn eval(self, _interpreter: &mut Interpreter) -> Self::Output {
+        self.signal
     }
 }
 

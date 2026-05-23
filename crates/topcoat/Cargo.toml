@@ -18,7 +18,10 @@ router = [
 	"dep:topcoat-router",
 	"topcoat-macro/router",
 ]
-runtime = ["dep:topcoat-runtime"]
+runtime = [
+	"dep:topcoat-runtime",
+	"topcoat-macro/runtime",
+]
 tailwind = ["dep:topcoat-tailwind"]
 view = [
 	"dep:topcoat-view",

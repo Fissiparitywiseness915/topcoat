@@ -1,3 +1,4 @@
+import type { WriteSignal } from "@maverick-js/signals";
 import type { SignalId } from "../signal";
 import type { Interpreter } from "./interpreter";
 
@@ -9,6 +10,6 @@ export type ExprSignalRef = {
 export function interpret_expr_signal_ref(
 	expr: ExprSignalRef,
 	interpreter: Interpreter,
-): unknown {
-	return interpreter.readSignal(expr.id);
+): WriteSignal<unknown> {
+	return interpreter.getSignal(expr.id);
 }

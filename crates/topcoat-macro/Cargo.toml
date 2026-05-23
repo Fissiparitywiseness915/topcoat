@@ -9,10 +9,12 @@ proc-macro = true
 [features]
 view = ["dep:topcoat-view"]
 router = []
+runtime = ["dep:topcoat-runtime"]
 
 discover = []
 
 [dependencies]
+topcoat-runtime = { workspace = true, optional = true }
 topcoat-view = { workspace = true, optional = true, features = ["parsing"] }
 
 heck.workspace = true

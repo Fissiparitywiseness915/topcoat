@@ -1,19 +1,19 @@
 use crate::runtime::{IntoViewParts, ViewPart};
 
 #[derive(Debug, Clone)]
-pub struct Attribute<K, V> {
+pub struct BindAttribute<K, V> {
     key: K,
     value: V,
 }
 
-impl<K, V> Attribute<K, V> {
+impl<K, V> BindAttribute<K, V> {
     #[inline]
     pub fn new(key: K, value: V) -> Self {
         Self { key, value }
     }
 }
 
-impl<K, V> IntoViewParts for Attribute<K, V>
+impl<K, V> IntoViewParts for BindAttribute<K, V>
 where
     K: IntoViewParts,
     V: IntoViewParts,

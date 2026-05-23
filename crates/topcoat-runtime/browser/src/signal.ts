@@ -28,12 +28,20 @@ export class SignalRegistry {
 	}
 
 	/**
+	 * Returns the signal handle for the given id. Calling the handle reads the
+	 * current value and participates in maverick tracking. Throws if unknown.
+	 */
+	handle(id: SignalId): WriteSignal<unknown> {
+		const s = this.signals.get(id);
+		if (!s) throw new Error(`Unknown signal id: ${id}`);
+		return s;
+	}
+
+	/**
 	 * Reads the current value of a signal, participating in maverick tracking
 	 * when called from inside an effect. Throws if the id is unknown.
 	 */
 	read(id: SignalId): unknown {
-		const s = this.signals.get(id);
-		if (!s) throw new Error(`Unknown signal id: ${id}`);
-		return s();
+		return this.handle(id)();
 	}
 }

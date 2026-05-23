@@ -36,6 +36,8 @@ pub use serve::serve;
 
 #[cfg(feature = "runtime")]
 pub mod runtime {
+    pub use topcoat_macro::expr;
+
     pub use topcoat_runtime::*;
 }
 
