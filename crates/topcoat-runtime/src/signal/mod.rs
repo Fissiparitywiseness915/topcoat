@@ -74,11 +74,11 @@ where
 {
     fn into_view_parts(self) -> impl Iterator<Item = ViewPart> {
         [
-            ViewPart::UnescapedStaticStr(Unescaped::new_unchecked("<!-- signal: ")),
+            ViewPart::UnescapedStaticStr(Unescaped::new_unchecked("<!-- ::topcoat::signal(")),
             ViewPart::UnescapedString(Unescaped::new_unchecked(
                 serde_json::to_string(&self.0).unwrap(),
             )),
-            ViewPart::UnescapedStaticStr(Unescaped::new_unchecked(" -->")),
+            ViewPart::UnescapedStaticStr(Unescaped::new_unchecked(") -->")),
         ]
         .into_iter()
     }

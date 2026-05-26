@@ -48,25 +48,25 @@ impl ReactiveScope {
 impl IntoViewParts for ReactiveScope {
     fn into_view_parts(self) -> impl Iterator<Item = ViewPart> {
         [
-            ViewPart::UnescapedStaticStr(Unescaped::new_unchecked("<!-- reactive scope start: ")),
+            ViewPart::UnescapedStaticStr(Unescaped::new_unchecked("<!-- ::topcoat::scope::start(")),
             ViewPart::UnescapedString(Unescaped::new_unchecked(
                 serde_json::to_string(&self.id).unwrap(),
             )),
-            ViewPart::UnescapedStaticStr(Unescaped::new_unchecked(" ")),
+            ViewPart::UnescapedStaticStr(Unescaped::new_unchecked(", ")),
             ViewPart::UnescapedString(Unescaped::new_unchecked(
                 serde_json::to_string(&self.track).unwrap(),
             )),
-            ViewPart::UnescapedStaticStr(Unescaped::new_unchecked(" ")),
+            ViewPart::UnescapedStaticStr(Unescaped::new_unchecked(", ")),
             ViewPart::UnescapedString(Unescaped::new_unchecked(
                 serde_json::to_string(&self.path).unwrap(),
             )),
-            ViewPart::UnescapedStaticStr(Unescaped::new_unchecked(" -->")),
+            ViewPart::UnescapedStaticStr(Unescaped::new_unchecked(") -->")),
             self.placeholder.into_inner(),
-            ViewPart::UnescapedStaticStr(Unescaped::new_unchecked("<!-- reactive scope end: ")),
+            ViewPart::UnescapedStaticStr(Unescaped::new_unchecked("<!-- ::topcoat::scope::end(")),
             ViewPart::UnescapedString(Unescaped::new_unchecked(
                 serde_json::to_string(&self.id).unwrap(),
             )),
-            ViewPart::UnescapedStaticStr(Unescaped::new_unchecked(" -->")),
+            ViewPart::UnescapedStaticStr(Unescaped::new_unchecked(") -->")),
         ]
         .into_iter()
     }

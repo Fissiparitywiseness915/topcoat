@@ -12,10 +12,10 @@ export type CommentMarker =
 	  }
 	| { kind: "scope-end"; id: ReactiveScopeId };
 
-const SIGNAL_RE = /^\s*signal:\s*(\{.*\})\s*$/;
+const SIGNAL_RE = /^\s*::topcoat::signal\((\{.*\})\)\s*$/;
 const SCOPE_START_RE =
-	/^\s*reactive scope start:\s*("[^"]+")\s+(\[[^\]]*\])\s+("[^"]*")\s*$/;
-const SCOPE_END_RE = /^\s*reactive scope end:\s*("[^"]+")\s*$/;
+	/^\s*::topcoat::scope::start\(("[^"]+"), (\[[^\]]*\]), ("[^"]*")\)\s*$/;
+const SCOPE_END_RE = /^\s*::topcoat::scope::end\(("[^"]+")\)\s*$/;
 
 export function parseComment(node: Comment): CommentMarker | null {
 	const text = node.data;
