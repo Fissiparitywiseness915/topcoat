@@ -1,5 +1,8 @@
-pub mod str;
-pub mod string;
+mod str;
+mod string;
+
+pub use str::*;
+pub use string::*;
 
 pub trait Value {
     type Surrogate: ?Sized;
