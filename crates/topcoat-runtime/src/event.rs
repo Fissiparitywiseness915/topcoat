@@ -21,5 +21,5 @@ impl Event {
 }
 
 pub struct EventTarget {
-    pub value: crate::String,
+    pub value: String,
 }

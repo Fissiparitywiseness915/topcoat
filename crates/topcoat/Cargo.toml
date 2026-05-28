@@ -20,12 +20,13 @@ interop = [
 	"topcoat-macro/interop",
 ]
 router = [
-	"view",
 	"dep:topcoat-router",
 	"topcoat-macro/router",
+	"view",
 ]
 runtime = [
 	"dep:topcoat-runtime",
+	"interop",
 ]
 tailwind = [
 	"dep:topcoat-tailwind",

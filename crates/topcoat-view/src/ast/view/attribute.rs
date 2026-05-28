@@ -84,7 +84,7 @@ impl WriteView for BindAttribute {
         writer.write_expr(quote! {
             ::topcoat::runtime::BindAttribute::new(
                 #key,
-                ::topcoat::runtime::expr! { #expr },
+                ::topcoat::interop::expr! { #expr },
             )
         });
     }
@@ -132,7 +132,7 @@ impl WriteView for EventHandler {
         writer.write_expr(quote! {
             ::topcoat::runtime::EventHandler::new(
                 #key,
-                ::topcoat::runtime::expr! { #expr },
+                ::topcoat::interop::expr! { #expr },
             )
         });
     }

@@ -11,6 +11,8 @@ mod expr_value;
 mod fmt_js;
 mod interpreter;
 
+use std::marker::PhantomData;
+
 pub use eval::*;
 pub use expr_assign_deref::*;
 pub use expr_closure::*;
@@ -39,5 +41,22 @@ impl<T: Expr> IntoExpr for T {
 
     fn into_expr(self) -> Self::Expr {
         self
+    }
+}
+
+pub struct CaptureExpr<C, F, T> {
+    capture: C,
+    eval: F,
+    _phantom: PhantomData<T>,
+}
+
+impl<C, F, T> Eval for CaptureExpr<C, F, T>
+where
+    F: FnOnce(C) -> T,
+{
+    type Output = T;
+
+    fn eval(self) -> Self::Output {
+        (self.eval)(self.capture)
     }
 }

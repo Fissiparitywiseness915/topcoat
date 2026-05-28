@@ -10,8 +10,6 @@ use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use topcoat_view::runtime::{IntoViewParts, Unescaped, ViewPart};
 use uuid::Uuid;
 
-use crate::Value;
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(transparent)]
 pub struct SignalId(Uuid);
@@ -48,14 +46,9 @@ impl<T> Signal<T> {
     pub(crate) fn id(&self) -> SignalId {
         self.id
     }
-}
 
-impl<T> Signal<T>
-where
-    T: Value,
-{
-    pub(crate) fn read(&self) -> &T::Surrogate {
-        self.value.ref_cast()
+    pub(crate) fn read(&self) -> &T {
+        &self.value
     }
 }
 
