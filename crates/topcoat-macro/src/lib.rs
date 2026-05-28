@@ -17,17 +17,17 @@ mod segment;
 use proc_macro::TokenStream;
 use quote::quote;
 
+#[cfg(feature = "interop")]
+#[proc_macro]
+pub fn expr(tokens: TokenStream) -> TokenStream {
+    let parsed = syn::parse_macro_input!(tokens as topcoat_interop::ast::expr::Expr);
+    quote! { #parsed }.into()
+}
+
 #[cfg(feature = "view")]
 #[proc_macro]
 pub fn view(tokens: TokenStream) -> TokenStream {
     let parsed = syn::parse_macro_input!(tokens as topcoat_view::ast::view::View);
-    quote! { #parsed }.into()
-}
-
-#[cfg(feature = "runtime")]
-#[proc_macro]
-pub fn expr(tokens: TokenStream) -> TokenStream {
-    let parsed = syn::parse_macro_input!(tokens as topcoat_runtime::ast::expr::Expr);
     quote! { #parsed }.into()
 }
 

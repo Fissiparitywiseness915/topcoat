@@ -1,6 +1,6 @@
 use std::marker::PhantomData;
 
-use crate::{Expr, Interpreter};
+use crate::runtime::{Expr, Interpreter};
 
 /// A `receiver.field` access on a handler-internal value. The accessor closure
 /// passed to `new` exists purely so rustc resolves `T` from the receiver's

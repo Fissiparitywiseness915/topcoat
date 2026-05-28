@@ -7,14 +7,14 @@ edition = "2024"
 proc-macro = true
 
 [features]
+interop = ["dep:topcoat-interop"]
 view = ["dep:topcoat-view"]
 router = []
-runtime = ["dep:topcoat-runtime"]
 
 discover = []
 
 [dependencies]
-topcoat-runtime = { workspace = true, optional = true }
+topcoat-interop = { workspace = true, optional = true, features = ["parsing"] }
 topcoat-view = { workspace = true, optional = true, features = ["parsing"] }
 
 heck.workspace = true

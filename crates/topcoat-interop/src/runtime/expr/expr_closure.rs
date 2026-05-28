@@ -1,6 +1,6 @@
 use std::marker::PhantomData;
 
-use crate::{Expr, ExprParam, Interpreter};
+use crate::runtime::{Expr, ExprParam, Interpreter};
 
 /// Per-arity storage for a closure's parameters. Each `ExprParam<T>` is just a
 /// `&'static str` plus a zero-sized phantom, so the tuple is `Copy` and lives

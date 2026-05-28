@@ -1,6 +1,6 @@
 use std::marker::PhantomData;
 
-use crate::{Expr, Interpreter};
+use crate::runtime::{Expr, Interpreter};
 
 /// References a closure parameter by name. The user-annotated parameter type
 /// flows in as `T`, so field accesses against this expression resolve against

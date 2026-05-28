@@ -68,6 +68,7 @@ async fn layout(cx: &Cx, slot: Slot<'_>) -> Result {
         </html>
     }
 }
+
 #[page]
 async fn home_page() -> Result {
     view! {

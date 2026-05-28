@@ -1,6 +1,8 @@
 use std::fmt::Write;
 
-use crate::{Expr, ExprDerefAssignTarget, ExprDerefTarget, Interpreter, IntoExpr, Signal, Value};
+use crate::runtime::{
+    Expr, ExprDerefAssignTarget, ExprDerefTarget, Interpreter, IntoExpr, Signal, Value,
+};
 
 pub struct ExprSignalRef<'a, T> {
     signal: &'a Signal<T>,

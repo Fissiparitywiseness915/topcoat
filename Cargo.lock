@@ -1920,6 +1920,7 @@ dependencies = [
  "tokio-tungstenite 0.29.0",
  "topcoat-asset",
  "topcoat-core",
+ "topcoat-interop",
  "topcoat-macro",
  "topcoat-router",
  "topcoat-runtime",
@@ -1979,6 +1980,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "topcoat-interop"
+version = "0.1.0"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "serde",
+ "serde_json",
+ "syn",
+ "topcoat-pretty",
+]
+
+[[package]]
 name = "topcoat-macro"
 version = "0.1.0"
 dependencies = [
@@ -1986,7 +1999,7 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn",
- "topcoat-runtime",
+ "topcoat-interop",
  "topcoat-view",
 ]
 
@@ -2025,15 +2038,12 @@ name = "topcoat-runtime"
 version = "0.1.0"
 dependencies = [
  "inventory",
- "proc-macro2",
- "quote",
  "ref-cast",
  "serde",
  "serde_json",
- "syn",
  "topcoat-asset",
  "topcoat-core",
- "topcoat-pretty",
+ "topcoat-interop",
  "topcoat-view",
  "uuid",
 ]

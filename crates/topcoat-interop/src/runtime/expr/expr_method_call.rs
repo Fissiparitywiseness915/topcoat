@@ -1,6 +1,6 @@
 use std::marker::PhantomData;
 
-use crate::{Expr, Interpreter, JsCallable};
+use crate::runtime::{Expr, Interpreter, JsCallable};
 
 /// A `receiver.method()` call. Only zero-argument methods are supported. The
 /// accessor closure passed to `new` carries the real implementation so the

@@ -1,4 +1,4 @@
-use crate::{Expr, Interpreter};
+use crate::runtime::{Expr, Interpreter};
 
 /// Counterpart to [`ExprDerefTarget`](super::ExprDerefTarget) for write
 /// positions. Server-side `expr_deref_assign` is unreachable — assignment only
