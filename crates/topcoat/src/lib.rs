@@ -31,15 +31,10 @@ pub mod view {
 #[cfg(feature = "router")]
 pub use serve::serve;
 
-#[cfg(feature = "interop")]
-pub mod interop {
-    pub use topcoat_interop::runtime::*;
-    pub use topcoat_macro::expr;
-}
-
 #[cfg(feature = "runtime")]
 pub mod runtime {
-    pub use topcoat_runtime::*;
+    pub use topcoat_macro::expr;
+    pub use topcoat_runtime::runtime::*;
 }
 
 #[cfg(feature = "tailwind")]

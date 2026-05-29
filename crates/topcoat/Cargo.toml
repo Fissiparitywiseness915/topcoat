@@ -15,10 +15,6 @@ default = [
 asset = [
 	"dep:topcoat-asset",
 ]
-interop = [
-	"dep:topcoat-interop",
-	"topcoat-macro/interop",
-]
 router = [
 	"dep:topcoat-router",
 	"topcoat-macro/router",
@@ -26,7 +22,7 @@ router = [
 ]
 runtime = [
 	"dep:topcoat-runtime",
-	"interop",
+	"topcoat-macro/runtime",
 ]
 tailwind = [
 	"dep:topcoat-tailwind",
@@ -48,7 +44,6 @@ discover = [
 [dependencies]
 topcoat-asset = { workspace = true, optional = true }
 topcoat-core.workspace = true
-topcoat-interop = { workspace = true, optional = true }
 topcoat-macro.workspace = true
 topcoat-router = { workspace = true, optional = true }
 topcoat-runtime = { workspace = true, optional = true }

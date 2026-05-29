@@ -1,7 +1,6 @@
-use topcoat_interop::runtime::Expr;
 use topcoat_view::runtime::{IntoViewParts, Unescaped, ViewPart};
 
-use crate::Event;
+use crate::runtime::{Event, Expr};
 
 /// An event handler attribute. Emits a JavaScript closure expression into a
 /// `data-topcoat-on:<event>` attribute on the element. The browser scanner
@@ -30,7 +29,7 @@ where
             .into_view_parts()
             .chain(self.key.into_view_parts())
             .chain(Unescaped::new_unchecked("=\"").into_view_parts())
-            .chain(self.value.js().to_owned().into_view_parts())
+            .chain(self.value.js.into_view_parts())
             .chain(Unescaped::new_unchecked("\" ").into_view_parts())
     }
 }

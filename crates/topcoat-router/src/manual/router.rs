@@ -8,7 +8,7 @@ use axum::{
 use serde::Deserialize;
 use topcoat_asset::{AssetBundle, AssetFragmentResolver, ServeAssetBundle};
 use topcoat_core::context::{MaybeAborted, State, WatchAbort};
-use topcoat_runtime::{DynIsland, EncodedSignals, Islands};
+use topcoat_runtime::runtime::{DynIsland, EncodedSignals, Islands};
 
 use crate::{CxBody, Error, Layout, Layouts, Page, Pages, Route, Routes, not_found};
 
@@ -124,7 +124,7 @@ impl Router {
     /// collected at link time across the crate and its dependencies.
     #[cfg(feature = "discover")]
     pub fn discover(mut self) -> Self {
-        use topcoat_runtime::DynIsland;
+        use topcoat_runtime::runtime::DynIsland;
 
         for page in inventory::iter::<Page>().cloned() {
             self = self.page(page);

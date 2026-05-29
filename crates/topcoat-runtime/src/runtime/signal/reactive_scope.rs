@@ -3,7 +3,7 @@ use topcoat_core::context::Cx;
 use topcoat_view::runtime::{IntoViewParts, Unescaped, View, ViewPart};
 use uuid::Uuid;
 
-use crate::{Island, SignalId, Signals};
+use crate::runtime::{Island, SignalId, Signals};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 #[serde(transparent)]
