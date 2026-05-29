@@ -2,7 +2,7 @@ mod _group;
 mod api;
 mod posts;
 
-use std::time::Duration;
+use std::{cell::RefCell, time::Duration};
 
 use topcoat::{
     asset::asset,
@@ -156,10 +156,17 @@ async fn combobox_content(cx: &Cx, input: ReadSignal<String>) -> Result {
 
 #[component]
 async fn combobox(content: Island<(ReadSignal<String>,), topcoat::router::Error>) -> Result {
+    let smep = 10.0;
     view! {
         signal kek = "initial content".to_owned();
         <div>
-            <input :value=(((((5.0)))))>
+            <input
+                :value=({
+                    let x = 5.0;
+                    x + 6.0 + smep + 7.0
+                })
+                // @change=(|e| kek.with(|v| v.pip.update() = 5; ))
+            >
             track content(kek)
         </div>
     }

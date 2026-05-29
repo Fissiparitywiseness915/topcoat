@@ -1,5 +1,5 @@
 use core::fmt;
-use std::iter::once;
+use std::{borrow::Cow, iter::once};
 
 use topcoat_core::context::Cx;
 
@@ -248,10 +248,10 @@ where
     }
 }
 
-impl IntoViewParts for &str {
+impl IntoViewParts for &'static str {
     #[inline]
     fn into_view_parts(self) -> impl Iterator<Item = ViewPart> {
-        once(ViewPart::String(self.to_owned()))
+        once(ViewPart::StaticStr(self))
     }
 }
 

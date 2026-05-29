@@ -25,11 +25,11 @@ where
             .into_view_parts()
             .chain(self.key.clone().into_view_parts())
             .chain(Unescaped::new_unchecked("=\"").into_view_parts())
-            .chain(self.value.js.into_view_parts())
+            .chain(self.value.evaluated.into_view_parts())
             .chain(Unescaped::new_unchecked("\" data-topcoat-bind:").into_view_parts())
             .chain(self.key.into_view_parts())
             .chain(Unescaped::new_unchecked("=\"").into_view_parts())
-            .chain(self.value.evaluated.into_view_parts())
+            .chain(self.value.js.into_view_parts())
             .chain(Unescaped::new_unchecked("\" ").into_view_parts())
     }
 }

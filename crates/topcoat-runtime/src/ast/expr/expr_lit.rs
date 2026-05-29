@@ -13,9 +13,20 @@ impl Expr {
     ) -> syn::Result<()> {
         match &lit.lit {
             Lit::Float(inner) => {
-                quote! { ::topcoat::runtime::IntoSurrogate::into_surrogate(#inner) }
-                    .to_tokens(rust);
-                write!(js, "{inner}").unwrap();
+                quote! { ::topcoat::runtime::Interop::into_surrogate(#inner) }.to_tokens(rust);
+                write!(js, "{}", inner.base10_digits()).unwrap();
+            }
+            Lit::Int(inner) => {
+                inner.to_tokens(rust);
+                write!(js, "{}", inner.base10_digits()).unwrap();
+            }
+            Lit::Bool(inner) => {
+                inner.to_tokens(rust);
+                write!(js, "{}", inner.value).unwrap();
+            }
+            Lit::Str(inner) => {
+                inner.to_tokens(rust);
+                js.push_str(&serde_json::to_string(&inner.value()).unwrap());
             }
             other => return Err(syn::Error::new_spanned(other, "unsupported literal type")),
         }

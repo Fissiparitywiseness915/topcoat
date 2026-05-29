@@ -1,12 +1,12 @@
 #[derive(Debug, Clone)]
 pub struct Expr<T> {
     pub(crate) evaluated: T,
-    pub(crate) js: &'static str,
+    pub(crate) js: String,
 }
 
 impl<T> Expr<T> {
     #[inline]
-    pub fn new(evaluated: T, js: &'static str) -> Self {
+    pub fn new(evaluated: T, js: String) -> Self {
         Self { evaluated, js }
     }
 }
