@@ -1,5 +1,5 @@
 use core::fmt;
-use std::{borrow::Cow, iter::once};
+use std::iter::once;
 
 use topcoat_core::context::Cx;
 
@@ -27,6 +27,7 @@ use crate::runtime::{Formatter, Fragment, Unescaped};
 #[derive(Debug, Clone)]
 pub struct View {
     part: ViewPart,
+    size_hint: usize,
 }
 
 impl View {
@@ -41,6 +42,7 @@ impl View {
     pub fn empty() -> Self {
         Self {
             part: ViewPart::Empty,
+            size_hint: 0,
         }
     }
 
@@ -52,7 +54,7 @@ impl View {
     /// [`Fragment::size_hint`](crate::runtime::Fragment::size_hint), which is
     /// a lower bound, so the buffer may grow during rendering.
     pub fn render(&self, cx: &Cx) -> String {
-        let mut buf = String::with_capacity(self.size_hint());
+        let mut buf = String::with_capacity(self.size_hint);
         let mut f = Formatter::new(&mut buf);
         self.fmt(cx, &mut f);
         buf
@@ -70,7 +72,7 @@ impl Fragment for View {
 
     #[inline]
     fn size_hint(&self) -> usize {
-        self.part.size_hint()
+        self.size_hint
     }
 }
 
@@ -79,16 +81,31 @@ impl FromIterator<ViewPart> for View {
     fn from_iter<I: IntoIterator<Item = ViewPart>>(iter: I) -> Self {
         let mut iter = iter.into_iter();
         let Some(first) = iter.next() else {
+            return Self::empty();
+        };
+        let first_size_hint = first.size_hint();
+        let Some(second) = iter.next() else {
             return Self {
-                part: ViewPart::Empty,
+                part: first,
+                size_hint: first_size_hint,
             };
         };
-        let Some(second) = iter.next() else {
-            return Self { part: first };
-        };
-        let parts: Box<[ViewPart]> = [first, second].into_iter().chain(iter).collect();
+
+        let (additional, _) = iter.size_hint();
+        let mut parts = Vec::with_capacity(additional + 2);
+        let mut size_hint = first_size_hint + second.size_hint();
+
+        parts.push(first);
+        parts.push(second);
+
+        for part in iter {
+            size_hint += part.size_hint();
+            parts.push(part);
+        }
+
         Self {
-            part: ViewPart::Node(parts),
+            part: ViewPart::Node(parts.into_boxed_slice()),
+            size_hint,
         }
     }
 }
