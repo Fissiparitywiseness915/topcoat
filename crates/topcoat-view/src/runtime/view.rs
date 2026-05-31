@@ -140,7 +140,10 @@ pub enum ViewPart {
     BoxDyn(Box<dyn DynViewPart>),
     /// A sequence of view parts rendered in order.
     #[non_exhaustive]
-    Node(Box<[ViewPart]>),
+    BoxSlice(Box<[ViewPart]>),
+    /// A Vec of view parts rendered in order.
+    #[non_exhaustive]
+    Vec(Vec<ViewPart>),
 }
 
 impl ViewPart {
@@ -202,7 +205,12 @@ impl Fragment for ViewPart {
             Self::UnescapedString(inner) => inner.fmt(cx, f),
             Self::UnescapedStaticStr(inner) => inner.fmt(cx, f),
             Self::BoxDyn(inner) => Fragment::fmt(inner, cx, f),
-            Self::Node(inner) => {
+            Self::BoxSlice(inner) => {
+                for part in inner.iter() {
+                    part.fmt(cx, f);
+                }
+            }
+            Self::Vec(inner) => {
                 for part in inner.iter() {
                     part.fmt(cx, f);
                 }
@@ -234,7 +242,8 @@ impl Fragment for ViewPart {
             Self::UnescapedString(inner) => inner.len(),
             Self::UnescapedStaticStr(inner) => inner.len(),
             Self::BoxDyn(inner) => Fragment::size_hint(inner),
-            Self::Node(inner) => inner.iter().map(|part| part.size_hint()).sum(),
+            Self::BoxSlice(inner) => inner.iter().map(|part| part.size_hint()).sum(),
+            Self::Vec(inner) => inner.iter().map(|part| part.size_hint()).sum(),
         }
     }
 }
@@ -274,7 +283,8 @@ impl_from_for_view_part! {
     UnescapedStaticStr(Unescaped<&'static str>),
     UnescapedString(Unescaped<String>),
     BoxDyn(Box<dyn DynViewPart>),
-    Node(Box<[ViewPart]>),
+    BoxSlice(Box<[ViewPart]>),
+    Vec(Vec<ViewPart>),
 }
 
 impl From<View> for ViewPart {
@@ -324,7 +334,7 @@ impl From<ViewParts> for ViewPart {
         } else if value.items.is_empty() {
             ViewPart::empty()
         } else {
-            value.items.into_boxed_slice().into()
+            value.items.into()
         }
     }
 }
