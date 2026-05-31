@@ -11,8 +11,6 @@ pub(crate) trait WriteView {
 ///
 /// Adjacent literal markup is concatenated into `static_segment` and flushed as
 /// a single write whenever a dynamic chunk (expression, control flow) appears.
-/// `capacity` accumulates the lower bound of bytes the rendered view will need
-/// so the runtime can pre-allocate the output buffer.
 pub(crate) struct ViewWriter {
     pub(self) chunks: Vec<Chunk>,
     static_segment: String,
@@ -108,61 +106,17 @@ impl ViewWriter {
         self.flush();
 
         let format_expr = {
-            fn needs_vec(chunks: &[Chunk]) -> bool {
-                chunks.iter().any(|chunk| match chunk {
-                    Chunk::Expr { .. } => false,
-                    Chunk::For { body, .. } => needs_vec(&body.chunks),
-                    Chunk::Let { .. } | Chunk::If { .. } | Chunk::Match { .. } => true,
-                })
-            }
-
             if self.chunks.is_empty() {
                 // Optimized path: The view has no content.
                 quote! { ::topcoat::view::View::empty() }
-            } else if !needs_vec(&self.chunks) {
-                // No `let`/`if`/`match`: build a chained iterator of parts.
-                fn build_chain(chunks: &[Chunk]) -> TokenStream {
-                    fn chunk_to_iter(chunk: &Chunk) -> TokenStream {
-                        match chunk {
-                            Chunk::Expr { kind, tokens } => {
-                                let helper = kind.helper();
-                                quote! { #helper(#tokens) }
-                            }
-                            Chunk::For { pat, expr, body } => {
-                                let body_iter = build_chain(&body.chunks);
-                                quote! {
-                                    ::core::iter::IntoIterator::into_iter(#expr)
-                                        .flat_map(|#pat| #body_iter)
-                                }
-                            }
-                            _ => unreachable!("`let`/`if`/`match` require the vec branch"),
-                        }
-                    }
-
-                    if chunks.is_empty() {
-                        return quote! {
-                            ::core::iter::empty::<::topcoat::view::ViewPart>()
-                        };
-                    }
-                    let first = chunk_to_iter(&chunks[0]);
-                    let rest = chunks[1..].iter().map(chunk_to_iter);
-                    quote! { #first #(.chain(#rest))* }
-                }
-
-                let chain = build_chain(&self.chunks);
-                quote! {{
-                    use ::topcoat::view::internal::*;
-                    ::core::iter::Iterator::collect::<::topcoat::view::View>(#chain)
-                }}
             } else {
-                // `let`/`if`/`match` need imperative control flow; build a `Vec`.
-                fn build_vec(chunks: &[Chunk]) -> TokenStream {
+                fn build_parts(chunks: &[Chunk]) -> TokenStream {
                     let mut output = TokenStream::new();
                     for chunk in chunks {
                         match chunk {
                             Chunk::Expr { kind, tokens } => {
                                 let helper = kind.helper();
-                                quote! { __v.extend(#helper(#tokens)); }
+                                quote! { #helper(&mut __v, #tokens); }
                             }
                             Chunk::Let { pat, expr } => {
                                 quote! { let #pat = #expr; }
@@ -172,8 +126,8 @@ impl ViewWriter {
                                 then_branch: then,
                                 else_branch: r#else,
                             } => {
-                                let then_branch = build_vec(&then.chunks);
-                                let else_branch = build_vec(&r#else.chunks);
+                                let then_branch = build_parts(&then.chunks);
+                                let else_branch = build_parts(&r#else.chunks);
                                 let else_branch = (!r#else.chunks.is_empty())
                                     .then(|| quote! { else { #else_branch } });
                                 quote! {
@@ -184,7 +138,7 @@ impl ViewWriter {
                                 }
                             }
                             Chunk::For { pat, expr, body } => {
-                                let body = build_vec(&body.chunks);
+                                let body = build_parts(&body.chunks);
                                 quote! {
                                     for #pat in #expr {
                                         #body
@@ -195,7 +149,7 @@ impl ViewWriter {
                                 let arm_tokens = arms.iter().map(|arm| {
                                     let pat = &arm.pat;
                                     let guard = arm.guard.as_ref().map(|g| quote! { if #g });
-                                    let body = build_vec(&arm.body.chunks);
+                                    let body = build_parts(&arm.body.chunks);
                                     quote! {
                                         #pat #guard => { #body }
                                     }
@@ -212,18 +166,13 @@ impl ViewWriter {
                     output
                 }
 
-                let capacity = self
-                    .chunks
-                    .iter()
-                    .filter(|chunk| matches!(chunk, Chunk::Expr { .. }))
-                    .count();
-                let statements = build_vec(&self.chunks);
+                let statements = build_parts(&self.chunks);
 
                 quote! {{
                     use ::topcoat::view::internal::*;
-                    let mut __v = ::std::vec::Vec::with_capacity(#capacity);
+                    let mut __v = ::topcoat::view::ViewParts::new();
                     #statements
-                    ::topcoat::view::View::new(__v.into_boxed_slice().into())
+                    ::topcoat::view::View::new(__v)
                 }}
             }
         };

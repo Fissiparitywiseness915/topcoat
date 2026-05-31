@@ -1,6 +1,6 @@
 use serde::Serialize;
 use topcoat_core::context::Cx;
-use topcoat_view::runtime::{NodeViewParts, Unescaped, View, ViewPart};
+use topcoat_view::runtime::{NodeViewParts, Unescaped, View, ViewParts};
 use uuid::Uuid;
 
 use crate::runtime::{Island, SignalId, Signals};
@@ -46,20 +46,25 @@ impl ReactiveScope {
 }
 
 impl NodeViewParts for ReactiveScope {
-    fn into_view_parts(self) -> impl Iterator<Item = ViewPart> {
-        [
-            Unescaped::new_unchecked("<!-- ::topcoat::scope::start(").into(),
-            Unescaped::new_unchecked(serde_json::to_string(&self.id).unwrap()).into(),
-            Unescaped::new_unchecked(", ").into(),
-            Unescaped::new_unchecked(serde_json::to_string(&self.track).unwrap()).into(),
-            Unescaped::new_unchecked(", ").into(),
-            Unescaped::new_unchecked(serde_json::to_string(&self.path).unwrap()).into(),
-            Unescaped::new_unchecked(") -->").into(),
-            self.placeholder.into(),
-            Unescaped::new_unchecked("<!-- ::topcoat::scope::end(").into(),
-            Unescaped::new_unchecked(serde_json::to_string(&self.id).unwrap()).into(),
-            Unescaped::new_unchecked(") -->").into(),
-        ]
-        .into_iter()
+    fn into_view_parts(self, parts: &mut ViewParts) {
+        parts.push(Unescaped::new_unchecked("<!-- ::topcoat::scope::start("));
+        parts.push(Unescaped::new_unchecked(
+            serde_json::to_string(&self.id).unwrap(),
+        ));
+        parts.push(Unescaped::new_unchecked(", "));
+        parts.push(Unescaped::new_unchecked(
+            serde_json::to_string(&self.track).unwrap(),
+        ));
+        parts.push(Unescaped::new_unchecked(", "));
+        parts.push(Unescaped::new_unchecked(
+            serde_json::to_string(&self.path).unwrap(),
+        ));
+        parts.push(Unescaped::new_unchecked(") -->"));
+        parts.push(self.placeholder);
+        parts.push(Unescaped::new_unchecked("<!-- ::topcoat::scope::end("));
+        parts.push(Unescaped::new_unchecked(
+            serde_json::to_string(&self.id).unwrap(),
+        ));
+        parts.push(Unescaped::new_unchecked(") -->"));
     }
 }

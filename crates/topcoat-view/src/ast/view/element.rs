@@ -91,9 +91,7 @@ impl WriteView for Element {
 
                 writer.write_str_unescaped("</");
                 match name_ident {
-                    Some(ident) => {
-                        writer.write_expr(ExprKind::ElementName, quote! { #ident })
-                    }
+                    Some(ident) => writer.write_expr(ExprKind::ElementName, quote! { #ident }),
                     _ => opening_tag.name.write(writer),
                 }
                 writer.write_str_unescaped(">");

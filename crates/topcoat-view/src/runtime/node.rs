@@ -1,14 +1,13 @@
-use crate::runtime::{Unescaped, View, ViewPart};
-use core::iter::once;
+use crate::runtime::{Unescaped, View, ViewParts};
 
 pub trait NodeViewParts {
-    fn into_view_parts(self) -> impl Iterator<Item = ViewPart>;
+    fn into_view_parts(self, parts: &mut ViewParts);
 }
 
 impl NodeViewParts for View {
     #[inline]
-    fn into_view_parts(self) -> impl Iterator<Item = ViewPart> {
-        once(self.into())
+    fn into_view_parts(self, parts: &mut ViewParts) {
+        parts.push(self);
     }
 }
 
@@ -16,8 +15,8 @@ macro_rules! impl_primitive {
     ($ty:ty) => {
         impl NodeViewParts for $ty {
             #[inline]
-            fn into_view_parts(self) -> impl Iterator<Item = ViewPart> {
-                once(self.into())
+            fn into_view_parts(self, parts: &mut ViewParts) {
+                parts.push(self);
             }
         }
     };
@@ -49,8 +48,10 @@ where
     T: NodeViewParts,
 {
     #[inline]
-    fn into_view_parts(self) -> impl Iterator<Item = ViewPart> {
-        self.into_iter().flat_map(NodeViewParts::into_view_parts)
+    fn into_view_parts(self, parts: &mut ViewParts) {
+        if let Some(value) = self {
+            value.into_view_parts(parts);
+        }
     }
 }
 
@@ -59,8 +60,10 @@ where
     T: NodeViewParts,
 {
     #[inline]
-    fn into_view_parts(self) -> impl Iterator<Item = ViewPart> {
-        self.into_iter().flat_map(NodeViewParts::into_view_parts)
+    fn into_view_parts(self, parts: &mut ViewParts) {
+        for value in self {
+            value.into_view_parts(parts);
+        }
     }
 }
 
@@ -69,7 +72,7 @@ where
     T: NodeViewParts + Copy,
 {
     #[inline]
-    fn into_view_parts(self) -> impl Iterator<Item = ViewPart> {
-        (*self).into_view_parts()
+    fn into_view_parts(self, parts: &mut ViewParts) {
+        (*self).into_view_parts(parts);
     }
 }

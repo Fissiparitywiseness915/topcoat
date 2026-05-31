@@ -1,16 +1,15 @@
-use crate::runtime::{Unescaped, ViewPart};
-use core::iter::once;
+use crate::runtime::{Unescaped, ViewParts};
 
 pub trait ElementNameViewParts {
-    fn into_view_parts(self) -> impl Iterator<Item = ViewPart>;
+    fn into_view_parts(self, parts: &mut ViewParts);
 }
 
 macro_rules! impl_primitive {
     ($ty:ty) => {
         impl ElementNameViewParts for $ty {
             #[inline]
-            fn into_view_parts(self) -> impl Iterator<Item = ViewPart> {
-                once(self.into())
+            fn into_view_parts(self, parts: &mut ViewParts) {
+                parts.push(self);
             }
         }
     };

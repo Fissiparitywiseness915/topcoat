@@ -7,7 +7,7 @@ pub use reactive_scope::*;
 use std::{iter::empty, ops::Deref};
 
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
-use topcoat_view::runtime::{NodeViewParts, Unescaped, ViewPart};
+use topcoat_view::runtime::{NodeViewParts, Unescaped, ViewParts};
 use uuid::Uuid;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -65,13 +65,12 @@ impl<T> NodeViewParts for SignalDeclaration<'_, T>
 where
     T: Serialize,
 {
-    fn into_view_parts(self) -> impl Iterator<Item = ViewPart> {
-        [
-            Unescaped::new_unchecked("<!-- ::topcoat::signal(").into(),
-            Unescaped::new_unchecked(serde_json::to_string(&self.0).unwrap()).into(),
-            Unescaped::new_unchecked(") -->").into(),
-        ]
-        .into_iter()
+    fn into_view_parts(self, parts: &mut ViewParts) {
+        parts.push(Unescaped::new_unchecked("<!-- ::topcoat::signal("));
+        parts.push(Unescaped::new_unchecked(
+            serde_json::to_string(&self.0).unwrap(),
+        ));
+        parts.push(Unescaped::new_unchecked(") -->"));
     }
 }
 

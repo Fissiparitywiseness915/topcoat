@@ -1,7 +1,5 @@
-use std::iter::once;
-
 use topcoat_core::context::{Cx, app_state};
-use topcoat_view::runtime::{AttributeValueViewParts, DynViewPart, Formatter, Fragment, ViewPart};
+use topcoat_view::runtime::{AttributeValueViewParts, DynViewPart, Formatter, Fragment, ViewParts};
 
 use crate::Asset;
 
@@ -43,7 +41,7 @@ impl AttributeValueViewParts for Asset {
     }
 
     #[inline]
-    fn into_view_parts(self) -> impl Iterator<Item = ViewPart> {
-        once(ViewPart::from(Box::new(self) as Box<dyn DynViewPart>))
+    fn into_view_parts(self, parts: &mut ViewParts) {
+        parts.push(Box::new(self) as Box<dyn DynViewPart>);
     }
 }

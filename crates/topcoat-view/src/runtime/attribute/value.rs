@@ -1,10 +1,8 @@
-use std::iter::once;
-
-use crate::runtime::{Unescaped, ViewPart};
+use crate::runtime::{Unescaped, ViewParts};
 
 pub trait AttributeValueViewParts {
     fn attribute_present(&self) -> bool;
-    fn into_view_parts(self) -> impl Iterator<Item = ViewPart>;
+    fn into_view_parts(self, parts: &mut ViewParts);
 }
 
 macro_rules! impl_primitive {
@@ -16,8 +14,8 @@ macro_rules! impl_primitive {
             }
 
             #[inline]
-            fn into_view_parts(self) -> impl Iterator<Item = ViewPart> {
-                once(self.into())
+            fn into_view_parts(self, parts: &mut ViewParts) {
+                parts.push(self);
             }
         }
     };
@@ -50,8 +48,8 @@ impl AttributeValueViewParts for bool {
     }
 
     #[inline]
-    fn into_view_parts(self) -> impl Iterator<Item = ViewPart> {
-        once(self.into())
+    fn into_view_parts(self, parts: &mut ViewParts) {
+        parts.push(self);
     }
 }
 
@@ -65,9 +63,10 @@ where
     }
 
     #[inline]
-    fn into_view_parts(self) -> impl Iterator<Item = ViewPart> {
-        self.into_iter()
-            .flat_map(AttributeValueViewParts::into_view_parts)
+    fn into_view_parts(self, parts: &mut ViewParts) {
+        if let Some(value) = self {
+            value.into_view_parts(parts);
+        }
     }
 }
 
@@ -81,7 +80,7 @@ where
     }
 
     #[inline]
-    fn into_view_parts(self) -> impl Iterator<Item = ViewPart> {
-        (*self).into_view_parts()
+    fn into_view_parts(self, parts: &mut ViewParts) {
+        (*self).into_view_parts(parts);
     }
 }
