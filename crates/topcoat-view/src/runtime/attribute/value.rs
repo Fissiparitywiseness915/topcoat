@@ -1,7 +1,14 @@
 use crate::runtime::{Unescaped, ViewParts};
 
+/// Converts a value used as an attribute value into view parts.
+///
+/// Attribute values can also control presence. `false` and `None` omit the
+/// whole attribute; other built-in values are present.
 pub trait AttributeValueViewParts {
+    /// Returns whether the containing attribute should be rendered.
     fn attribute_present(&self) -> bool;
+
+    /// Appends this attribute value to `parts`.
     fn into_view_parts(self, parts: &mut ViewParts);
 }
 

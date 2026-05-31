@@ -1,6 +1,10 @@
 use crate::runtime::{Unescaped, ViewParts};
 
+/// Converts a value used as an attribute key into view parts.
+///
+/// Implement this for custom dynamic attribute-name values accepted by `view!`.
 pub trait AttributeKeyViewParts {
+    /// Appends this attribute key to `parts`.
     fn into_view_parts(self, parts: &mut ViewParts);
 }
 

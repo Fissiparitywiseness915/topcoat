@@ -8,6 +8,10 @@ pub use value::*;
 
 use crate::runtime::{Unescaped, ViewParts};
 
+/// A single HTML attribute.
+///
+/// The value decides whether the attribute is present. For example, `None`
+/// and `false` values omit the attribute.
 #[derive(Debug, Clone)]
 pub struct Attribute<K, V> {
     key: K,
@@ -15,13 +19,18 @@ pub struct Attribute<K, V> {
 }
 
 impl<K, V> Attribute<K, V> {
+    /// Creates an attribute from a key and value.
     #[inline]
     pub fn new(key: K, value: V) -> Self {
         Self { key, value }
     }
 }
 
+/// Converts one or more attributes into view parts.
+///
+/// Implement this for custom attribute collections accepted by `view!`.
 pub trait AttributeViewParts {
+    /// Appends zero or more attributes to `parts`.
     fn into_view_parts(self, parts: &mut ViewParts);
 }
 

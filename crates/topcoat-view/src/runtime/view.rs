@@ -4,12 +4,10 @@ use topcoat_core::context::Cx;
 
 use crate::runtime::{Formatter, Fragment, Unescaped};
 
-/// A piece of HTML content.
+/// A self-contained HTML fragment.
 ///
-/// A `View` contains a self-contained HTML fragment where all tags are fully
-/// closed. This means it can contain multiple sibling elements, but every
-/// opened tag must be closed so that the fragment can be safely nested inside
-/// a larger HTML document without breaking the surrounding markup.
+/// A view may contain multiple sibling nodes, but opened tags must be closed
+/// so the fragment can be nested safely inside a larger document.
 ///
 /// ```html
 /// <!-- Valid: all tags are closed, safe to nest -->
@@ -19,10 +17,6 @@ use crate::runtime::{Formatter, Fragment, Unescaped};
 /// <!-- Invalid: unclosed tag would corrupt the parent document -->
 /// <div>Hello
 /// ```
-///
-/// A `View` is inert until [`render`](Self::render) is called: constructing
-/// one only stores the underlying [`ViewPart`] tree, with no escaping or
-/// string building performed up-front.
 #[derive(Debug, Clone)]
 pub struct View {
     part: ViewPart,
@@ -30,7 +24,10 @@ pub struct View {
 }
 
 impl View {
-    /// Builds a `View` from any value that can be converted into [`ViewPart`]s.
+    /// Creates a view from accumulated view parts.
+    ///
+    /// This is usually called by generated `view!` code after collecting the
+    /// nodes and attributes for a fragment.
     #[inline]
     pub fn new(parts: ViewParts) -> Self {
         Self {
@@ -49,12 +46,6 @@ impl View {
     }
 
     /// Renders the view into an HTML string.
-    ///
-    /// Walks the underlying [`ViewPart`] tree, invoking
-    /// [`Fragment::fmt`](crate::runtime::Fragment::fmt) on each node. The
-    /// output buffer is pre-allocated based on
-    /// [`Fragment::size_hint`](crate::runtime::Fragment::size_hint), which is
-    /// a lower bound, so the buffer may grow during rendering.
     pub fn render(&self, cx: &Cx) -> String {
         let mut buf = String::with_capacity(self.size_hint);
         let mut f = Formatter::new(&mut buf);
@@ -74,83 +65,98 @@ impl Fragment for View {
     }
 }
 
-/// A single node in the lazy tree backing a [`View`].
+/// A renderable value stored in a [`View`].
 ///
-/// Each variant represents a kind of content the runtime knows how to render
-/// without allocating a trait object. Primitive types get dedicated variants
-/// so they can be stored inline; arbitrary [`Fragment`] implementations are
-/// reached via [`BoxDyn`](Self::BoxDyn), and nested structure is expressed
-/// with [`Node`](Self::Node). Like [`View`], `ViewPart`s are inert until
-/// rendered.
+/// Most code creates view parts through [`ViewParts::push`] or the `view!`
+/// macro rather than constructing enum variants directly.
 #[derive(Debug, Clone)]
 #[non_exhaustive]
 pub enum ViewPart {
+    /// Renders no content.
     #[non_exhaustive]
     Empty,
+    /// A boolean rendered as text.
     #[non_exhaustive]
     Bool(bool),
+    /// A character rendered as text.
     #[non_exhaustive]
     Char(char),
+    /// An `i8` rendered as text.
     #[non_exhaustive]
     I8(i8),
+    /// An `i16` rendered as text.
     #[non_exhaustive]
     I16(i16),
+    /// An `i32` rendered as text.
     #[non_exhaustive]
     I32(i32),
+    /// An `i64` rendered as text.
     #[non_exhaustive]
     I64(i64),
+    /// An `i128` rendered as text.
     #[non_exhaustive]
     I128(i128),
+    /// An `isize` rendered as text.
     #[non_exhaustive]
     Isize(isize),
+    /// A `u8` rendered as text.
     #[non_exhaustive]
     U8(u8),
+    /// A `u16` rendered as text.
     #[non_exhaustive]
     U16(u16),
+    /// A `u32` rendered as text.
     #[non_exhaustive]
     U32(u32),
+    /// A `u64` rendered as text.
     #[non_exhaustive]
     U64(u64),
+    /// A `u128` rendered as text.
     #[non_exhaustive]
     U128(u128),
+    /// A `usize` rendered as text.
     #[non_exhaustive]
     Usize(usize),
+    /// An `f32` rendered as text.
     #[non_exhaustive]
     F32(f32),
+    /// An `f64` rendered as text.
     #[non_exhaustive]
     F64(f64),
+    /// A borrowed string rendered as escaped text.
     #[non_exhaustive]
     StaticStr(&'static str),
+    /// An owned string rendered as escaped text.
     #[non_exhaustive]
     String(String),
+    /// A borrowed string rendered without escaping.
     #[non_exhaustive]
     UnescapedStaticStr(Unescaped<&'static str>),
+    /// An owned string rendered without escaping.
     #[non_exhaustive]
     UnescapedString(Unescaped<String>),
+    /// A custom fragment stored in a cloneable box.
     #[non_exhaustive]
     BoxDyn(Box<dyn DynViewPart>),
+    /// A sequence of view parts rendered in order.
     #[non_exhaustive]
     Node(Box<[ViewPart]>),
 }
 
 impl ViewPart {
+    /// Returns an empty view part.
     #[inline]
     pub fn empty() -> Self {
         Self::Empty
     }
 }
 
-/// Object-safe counterpart to [`Fragment`] used by [`ViewPart::BoxDyn`].
+/// A boxed [`Fragment`] that can be cloned.
 ///
-/// Allows arbitrary [`Fragment`] implementations to be stored inside a
-/// [`ViewPart`] behind a `Box<dyn ...>`. A blanket impl covers every type
-/// that is `Fragment + Debug + Clone + Send + 'static`, so user code should
-/// rarely need to implement this trait directly.
+/// This is mainly useful when a custom fragment type needs to be stored in a
+/// [`ViewPart`].
 pub trait DynViewPart: 'static + Fragment + fmt::Debug + Send {
-    /// Clones the underlying value into a fresh `Box<dyn DynViewPart>`.
-    ///
-    /// Required because `dyn DynViewPart` cannot use the standard `Clone`
-    /// trait directly.
+    /// Clones this fragment into a fresh boxed value.
     fn clone_box(&self) -> Box<dyn DynViewPart>;
 }
 
@@ -277,6 +283,10 @@ impl From<View> for ViewPart {
     }
 }
 
+/// A builder for collecting renderable values before creating a [`View`].
+///
+/// Use [`push`](Self::push) to append values, then pass the builder to
+/// [`View::new`].
 #[derive(Debug, Default, Clone)]
 pub struct ViewParts {
     first: Option<ViewPart>,
@@ -284,11 +294,13 @@ pub struct ViewParts {
 }
 
 impl ViewParts {
+    /// Creates an empty view-parts builder.
     #[inline]
     pub fn new() -> Self {
         Self::default()
     }
 
+    /// Appends a renderable part and returns the builder.
     #[inline]
     pub fn push(&mut self, part: impl Into<ViewPart>) -> &mut Self {
         let part = part.into();
