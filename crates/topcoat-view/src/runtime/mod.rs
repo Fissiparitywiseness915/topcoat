@@ -20,8 +20,8 @@ pub use view::*;
 #[doc(hidden)]
 pub mod internal {
     use crate::runtime::{
-        AttributeKeyViewParts, AttributeValueViewParts, AttributeViewParts, ElementNameViewParts,
-        NodeViewParts, Unescaped, ViewPart,
+        Attribute, AttributeKeyViewParts, AttributeValueViewParts, AttributeViewParts,
+        ElementNameViewParts, NodeViewParts, Unescaped, ViewPart,
     };
 
     #[inline(always)]
@@ -30,8 +30,10 @@ pub mod internal {
     }
 
     #[inline(always)]
-    pub fn __attributes(attributes: impl AttributeViewParts) -> impl Iterator<Item = ViewPart> {
-        attributes.into_view_parts()
+    pub fn __attribute(
+        (key, value): (impl AttributeKeyViewParts, impl AttributeValueViewParts),
+    ) -> impl Iterator<Item = ViewPart> {
+        Attribute::new(key, value).into_view_parts()
     }
 
     #[inline(always)]
@@ -46,6 +48,11 @@ pub mod internal {
         attribute_value: impl AttributeValueViewParts,
     ) -> impl Iterator<Item = ViewPart> {
         attribute_value.into_view_parts()
+    }
+
+    #[inline(always)]
+    pub fn __attributes(attributes: impl AttributeViewParts) -> impl Iterator<Item = ViewPart> {
+        attributes.into_view_parts()
     }
 
     #[inline(always)]

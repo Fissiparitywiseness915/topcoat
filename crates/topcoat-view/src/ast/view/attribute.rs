@@ -32,15 +32,7 @@ impl WriteView for Attribute {
             AttributeValue::Expr(_) => {
                 let key = &self.key;
                 let value = &self.value;
-                writer.write_expr(
-                    ExprKind::Attributes,
-                    quote! {
-                        ::topcoat::view::Attribute::new(
-                            #key,
-                            #value,
-                        )
-                    },
-                );
+                writer.write_expr(ExprKind::Attribute, quote! { (#key, #value) });
             }
         }
     }
