@@ -40,6 +40,10 @@ impl Expr {
         let mut names = NameResolver::default();
         Self::dispatch(&self.inner, &mut rust, &mut js, &mut names)?;
 
+        if !matches!(self.inner, syn::Expr::Closure(..)) {
+            rust = quote! { ::topcoat::runtime::Surrogate::into_real(#rust) }
+        }
+
         // Identifiers referenced but not declared by the expression are
         // captured from the surrounding Rust scope. Their values are encoded
         // into the JavaScript source at runtime as `const` bindings, declared
@@ -75,7 +79,7 @@ impl Expr {
             #(#rust_externals)*
             let mut __js = String::new();
             #js_head
-            let __rust = ::topcoat::runtime::Surrogate::into_real(#rust);
+            let __rust = #rust;
             __js += #js_tail;
             ::topcoat::runtime::Expr::new(__rust, __js)
         }})
