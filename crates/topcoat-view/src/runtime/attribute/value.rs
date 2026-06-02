@@ -1,4 +1,4 @@
-use crate::runtime::{Unescaped, ViewParts};
+use crate::runtime::{Unescaped, ViewPart, ViewParts};
 
 /// Converts a value used as an attribute value into view parts.
 ///
@@ -89,5 +89,22 @@ where
     #[inline]
     fn into_view_parts(self, parts: &mut ViewParts) {
         (*self).into_view_parts(parts);
+    }
+}
+
+impl AttributeValueViewParts for ViewPart {
+    fn attribute_present(&self) -> bool {
+        match self {
+            Self::Empty => false,
+            Self::Bool(false) => false,
+            Self::BoxSlice(inner) if inner.is_empty() => false,
+            Self::Vec(inner) if inner.is_empty() => false,
+            _ => true,
+        }
+    }
+
+    #[inline]
+    fn into_view_parts(self, parts: &mut ViewParts) {
+        parts.push(self);
     }
 }

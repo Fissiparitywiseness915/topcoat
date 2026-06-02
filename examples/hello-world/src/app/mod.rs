@@ -156,19 +156,14 @@ async fn combobox_content(cx: &Cx, input: ReadSignal<String>) -> Result {
 
 #[component]
 async fn combobox(content: Island<(ReadSignal<String>,), topcoat::router::Error>) -> Result {
-    let smep = "kek".to_owned();
     view! {
-        signal kek = 5.0;
+        signal input = "".to_owned();
         <div>
             <input
-                :value=(*kek.read())
-                @input=(move |e| kek.set((*kek.read()) + 1.0) )
+                :value=(*input.read())
+                @input=(|e| input.set(e.target.value) )
             >
-            // <input
-            //     :value=(signal.read())
-            //     // @change=(|e| kek.with(|v| v.pip.update() = 5; ))
-            // >
-            // track content(kek)
+            track content(input)
         </div>
     }
 }
