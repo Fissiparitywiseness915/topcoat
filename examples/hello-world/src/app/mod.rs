@@ -78,11 +78,7 @@ async fn home_page() -> Result {
 }
 
 mod about {
-    use topcoat::{
-        asset::asset,
-        router::{Result, page},
-        view::view,
-    };
+    use topcoat::{Result, asset::asset, router::page, view::view};
 
     #[page]
     async fn about_page() -> Result {

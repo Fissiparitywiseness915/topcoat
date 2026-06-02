@@ -1,4 +1,4 @@
-use topcoat_core::context::Cx;
+use topcoat_core::{context::Cx, error::Error};
 
 use crate::runtime::View;
 
@@ -8,10 +8,6 @@ use crate::runtime::View;
 /// implementations receive the current context and child content, then return
 /// a rendered [`View`] or an error.
 pub trait Component {
-    /// The error returned when rendering fails.
-    type Error;
-
     /// Renders this component with the provided context and child view.
-    fn render(self, cx: &Cx, child: View)
-    -> impl Future<Output = Result<View, Self::Error>> + Send;
+    fn render(self, cx: &Cx, child: View) -> impl Future<Output = Result<View, Error>> + Send;
 }

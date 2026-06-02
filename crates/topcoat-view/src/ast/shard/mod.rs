@@ -6,7 +6,7 @@ pub use item::*;
 
 use proc_macro2::TokenStream;
 use quote::{ToTokens, quote};
-use syn::{FnArg, Pat, ReturnType, Type};
+use syn::{FnArg, Pat, Type};
 use uuid::Uuid;
 
 use crate::ast::shard::{ShardAttr, ShardItem};
