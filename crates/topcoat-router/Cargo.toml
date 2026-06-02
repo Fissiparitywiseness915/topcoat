@@ -4,7 +4,10 @@ version = "0.1.0"
 edition = "2024"
 
 [features]
-discover = ["dep:inventory"]
+discover = [
+	"dep:inventory",
+	"topcoat-runtime/discover",
+]
 
 [dependencies]
 topcoat-asset = { workspace = true, features = ["view"] }
