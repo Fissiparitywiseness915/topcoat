@@ -6,6 +6,10 @@ export class String {
 		return new String(this.v);
 	}
 
+	toJSON(): string {
+		return this.v;
+	}
+
 	toString(): string {
 		return this.v.toString();
 	}

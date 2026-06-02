@@ -1,5 +1,4 @@
 import { F64 } from "./f64";
-// biome-ignore lint/suspicious/noShadowRestrictedNames: Surrogate type
 import { String as RuntimeString } from "./string";
 
 type EventTargetLike = globalThis.EventTarget | null;
@@ -172,7 +171,9 @@ export class EventTarget {
 	}
 
 	get text_content(): RuntimeString {
-		return new RuntimeString(this.inner instanceof Node ? (this.inner.textContent ?? "") : "");
+		return new RuntimeString(
+			this.inner instanceof Node ? (this.inner.textContent ?? "") : "",
+		);
 	}
 
 	get value(): RuntimeString {
@@ -191,7 +192,9 @@ function f64Prop(source: unknown, name: string): F64 {
 		typeof source === "object" && source !== null && name in source
 			? (source as Record<string, unknown>)[name]
 			: 0;
-	return new F64(typeof value === "number" && Number.isFinite(value) ? value : 0);
+	return new F64(
+		typeof value === "number" && Number.isFinite(value) ? value : 0,
+	);
 }
 
 function stringProp(source: unknown, name: string): RuntimeString {

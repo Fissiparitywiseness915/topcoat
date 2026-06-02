@@ -17,6 +17,10 @@ export class F64 {
 		return new F64(this.v / other.v);
 	}
 
+	toJSON(): number {
+		return this.v;
+	}
+
 	toString(): string {
 		return this.v.toString();
 	}
