@@ -149,7 +149,7 @@ impl topcoat_pretty::PrettyPrint for TemplateMatchArm<crate::ast::view::Node> {
 }
 
 #[cfg(feature = "pretty")]
-impl topcoat_pretty::PrettyPrint for TemplateMatchArm<crate::ast::view::AttributeNode> {
+impl topcoat_pretty::PrettyPrint for TemplateMatchArm<crate::ast::attributes::AttributeNode> {
     fn pretty_print(&self, printer: &mut topcoat_pretty::Printer<'_>) {
         self.pat.pretty_print(printer);
         " ".pretty_print(printer);

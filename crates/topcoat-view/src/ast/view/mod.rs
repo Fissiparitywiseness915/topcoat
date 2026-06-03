@@ -1,16 +1,8 @@
-mod attribute;
-mod attribute_key;
-mod attribute_node;
-mod attribute_nodes;
-mod attribute_value;
-mod attributes;
-mod bind_attribute;
 mod component;
 mod document_type;
 mod element;
 mod element_name;
 mod element_tag;
-mod event_handler;
 mod html_ident;
 mod node;
 mod nodes;
@@ -26,19 +18,11 @@ mod template_match;
 mod template_or_runtime_expr;
 mod view_writer;
 
-pub use attribute::*;
-pub use attribute_key::*;
-pub use attribute_node::*;
-pub use attribute_nodes::*;
-pub use attribute_value::*;
-pub use attributes::*;
-pub use bind_attribute::*;
 pub use component::*;
 pub use document_type::*;
 pub use element::*;
 pub use element_name::*;
 pub use element_tag::*;
-pub use event_handler::*;
 pub use html_ident::*;
 pub use node::*;
 pub use nodes::*;
@@ -57,8 +41,6 @@ pub(crate) use view_writer::*;
 use proc_macro2::TokenStream;
 use quote::ToTokens;
 use syn::parse::{Parse, ParseStream};
-
-use crate::ast::view::{Nodes, ViewWriter, WriteView};
 
 /// The parsed body of a `view!` invocation. Lowers to a
 /// [`runtime::View`](crate::runtime::View).

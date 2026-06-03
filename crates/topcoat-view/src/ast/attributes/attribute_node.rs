@@ -2,9 +2,10 @@ use syn::parse::{Parse, ParseStream};
 
 use crate::ast::{
     ParseOption,
+    attributes::{Attribute, AttributeNodes, BindAttribute, EventHandler},
     view::{
-        Attribute, AttributeNodes, BindAttribute, EventHandler, TemplateBreak, TemplateContinue,
-        TemplateForLoop, TemplateIf, TemplateLet, TemplateMatch, ViewWriter, WriteView,
+        TemplateBreak, TemplateContinue, TemplateForLoop, TemplateIf, TemplateLet, TemplateMatch,
+        ViewWriter, WriteView,
     },
 };
 
@@ -12,7 +13,7 @@ use crate::ast::{
 /// of every construct that can appear at attribute-list position.
 pub enum AttributeNode {
     Attribute(Attribute),
-    BindAttribute(BindAttribute),
+    BindAttribute(Box<BindAttribute>),
     EventHandler(EventHandler),
     If(Box<TemplateIf<AttributeNodes>>),
     Let(TemplateLet),

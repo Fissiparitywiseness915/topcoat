@@ -7,7 +7,8 @@ use syn::{
 
 use crate::ast::{
     ParseOption,
-    view::{AttributeKey, ExprKind, TemplateOrRuntimeExpr, ViewWriter, WriteView},
+    attributes::AttributeKey,
+    view::{ExprKind, TemplateOrRuntimeExpr, ViewWriter, WriteView},
 };
 
 pub enum EventHandlerValue {

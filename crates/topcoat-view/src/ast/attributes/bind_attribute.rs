@@ -6,7 +6,8 @@ use syn::{
 
 use crate::ast::{
     ParseOption,
-    view::{AttributeKey, ExprKind, TemplateOrRuntimeExpr, ViewWriter, WriteView},
+    attributes::AttributeKey,
+    view::{ExprKind, TemplateOrRuntimeExpr, ViewWriter, WriteView},
 };
 
 /// A `:name=(expr)` or `:name=$(expr)` attribute — a one-way binding to a DOM

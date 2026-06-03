@@ -2,7 +2,10 @@ use std::ops::Deref;
 
 use syn::parse::{Parse, ParseStream};
 
-use crate::ast::view::{AttributeNode, ViewWriter, WriteView};
+use crate::ast::{
+    attributes::AttributeNode,
+    view::{ViewWriter, WriteView},
+};
 
 /// A sequence of sibling [`AttributeNode`]s — the attribute-position counterpart
 /// of [`Nodes`](super::Nodes). Used as the body of attribute-position template

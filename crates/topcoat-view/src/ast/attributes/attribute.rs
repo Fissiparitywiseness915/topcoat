@@ -8,7 +8,8 @@ use syn::{
 
 use crate::ast::{
     ParseOption,
-    view::{AttributeKey, AttributeValue, ExprKind, ViewWriter, WriteView},
+    attributes::{AttributeKey, AttributeValue},
+    view::{ExprKind, ViewWriter, WriteView},
 };
 
 pub struct Attribute {

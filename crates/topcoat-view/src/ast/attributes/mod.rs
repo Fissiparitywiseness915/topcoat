@@ -1,13 +1,26 @@
+mod attribute;
+mod attribute_key;
+mod attribute_node;
+mod attribute_nodes;
+mod attribute_value;
+mod bind_attribute;
+mod event_handler;
+
+pub use attribute::*;
+pub use attribute_key::*;
+pub use attribute_node::*;
+pub use attribute_nodes::*;
+pub use attribute_value::*;
+pub use bind_attribute::*;
+pub use event_handler::*;
+
 use proc_macro2::TokenStream;
 use quote::{ToTokens, quote};
 use syn::parse::{Parse, ParseStream};
 
 use crate::ast::{
     ParseOption,
-    view::{
-        AttributeNode, AttributeNodes, TemplateElse, TemplateIf, TemplateMatch, ViewWriter,
-        WriteView,
-    },
+    view::{TemplateElse, TemplateIf, TemplateMatch, ViewWriter, WriteView},
 };
 
 /// The full list of attributes attached to a single tag.

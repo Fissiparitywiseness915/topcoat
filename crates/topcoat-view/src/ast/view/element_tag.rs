@@ -3,10 +3,7 @@ use syn::{
     parse::{Parse, ParseStream},
 };
 
-use crate::ast::{
-    ParseOption,
-    view::{Attributes, ElementName},
-};
+use crate::ast::{ParseOption, attributes::Attributes, view::ElementName};
 
 /// An element's opening tag: `<name attr=value ...>`.
 pub struct OpeningTag {

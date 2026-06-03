@@ -6,10 +6,7 @@ use syn::{
     token::Paren,
 };
 
-use crate::ast::view::{
-    TemplateExpr,
-    view_writer::{ExprKind, ViewWriter, WriteView},
-};
+use crate::ast::view::{ExprKind, TemplateExpr, ViewWriter, WriteView};
 
 pub enum AttributeValue {
     Expr(Box<TemplateExpr>),
