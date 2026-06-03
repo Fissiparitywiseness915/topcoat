@@ -17,7 +17,7 @@ async fn posts(cx: &Cx) -> Result {
     view! {
         <div>
             "currently on page: "
-            (PageQuery::of(cx).as_ref().unwrap().page)
+            (PageQuery::of(cx).unwrap().page)
         </div>
     }
 }

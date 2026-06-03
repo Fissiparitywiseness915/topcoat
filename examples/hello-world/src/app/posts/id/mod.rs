@@ -10,7 +10,7 @@ struct PostId(uuid::Uuid);
 
 #[page]
 async fn post_page(cx: &Cx) -> Result {
-    let post_id = PostId::of(cx).as_ref().ok_or_redirect("/invalid-id-bro")?;
+    let post_id = PostId::of(cx).ok_or_redirect("/invalid-id-bro")?;
     view! {
         "showing post with id: "
 

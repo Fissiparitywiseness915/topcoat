@@ -56,13 +56,5 @@ pub mod internal {
     pub use serde;
     pub use serde_urlencoded;
 
-    pub trait ResultExt {
-        type T;
-        type E;
-    }
-
-    impl<T, E> ResultExt for Result<T, E> {
-        type T = T;
-        type E = E;
-    }
+    pub use topcoat_core::internal::*;
 }
