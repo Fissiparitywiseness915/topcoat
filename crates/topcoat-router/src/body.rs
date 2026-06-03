@@ -1,4 +1,4 @@
-use std::{convert::Infallible, sync::Arc};
+use std::sync::Arc;
 
 use crate::Result;
 use axum::extract::{FromRequest, FromRequestParts, RawPathParams};
@@ -12,7 +12,7 @@ pub(crate) struct CxBody {
 }
 
 impl FromRequest<Arc<State>> for CxBody {
-    type Rejection = Infallible;
+    type Rejection = <RawPathParams as FromRequestParts<Arc<State>>>::Rejection;
 
     async fn from_request(
         req: axum::extract::Request,
@@ -23,7 +23,7 @@ impl FromRequest<Arc<State>> for CxBody {
         let body = Body::from(body);
 
         let mut request_state = State::new();
-        request_state.register(RawPathParams::from_request_parts(&mut parts, state).await);
+        request_state.register(RawPathParams::from_request_parts(&mut parts, state).await?);
         request_state.register(parts);
 
         let cx = Cx::new(app_state, request_state);

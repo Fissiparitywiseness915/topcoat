@@ -8,8 +8,9 @@
 
 use axum::response::Redirect;
 use http::StatusCode;
+use topcoat_core::error::Error;
 
-use crate::{IntoResponse, Response, Result, RouterError};
+use crate::{IntoResponse, Response, Result};
 
 /// Builds a temporary (HTTP 307) redirect to `uri`.
 ///
@@ -133,6 +134,8 @@ impl std::fmt::Display for RedirectError {
     }
 }
 
+impl std::error::Error for RedirectError {}
+
 impl IntoResponse for RedirectError {
     fn into_response(self) -> Response {
         self.inner.into_response()
@@ -159,6 +162,8 @@ impl std::fmt::Display for NotFoundError {
         f.write_str("not found")
     }
 }
+
+impl std::error::Error for NotFoundError {}
 
 impl IntoResponse for NotFoundError {
     fn into_response(self) -> Response {
@@ -187,6 +192,8 @@ impl std::fmt::Display for UnauthorizedError {
     }
 }
 
+impl std::error::Error for UnauthorizedError {}
+
 impl IntoResponse for UnauthorizedError {
     fn into_response(self) -> Response {
         (StatusCode::UNAUTHORIZED, "unauthorized").into_response()
@@ -214,10 +221,33 @@ impl std::fmt::Display for ForbiddenError {
     }
 }
 
+impl std::error::Error for ForbiddenError {}
+
 impl IntoResponse for ForbiddenError {
     fn into_response(self) -> Response {
         (StatusCode::FORBIDDEN, "forbidden").into_response()
     }
+}
+
+/// Turns an fallback error into a response. Returns the original error if it cannot be
+/// downcast to any fallback error type.
+///
+/// The IntoResponse trait unfortunately cannot be implemented on [`Error`] because it would clash
+/// with the axum implementation.
+pub(crate) fn fallback_error_into_response(error: Error) -> Result<Response, Error> {
+    macro_rules! try_downcast {
+        ($ident:ident as $ty:ty) => {
+            match $ident.downcast::<$ty>() {
+                Ok(error) => return Ok(error.into_response()),
+                Err(error) => error,
+            }
+        };
+    }
+    let error = try_downcast!(error as RedirectError);
+    let error = try_downcast!(error as NotFoundError);
+    let error = try_downcast!(error as UnauthorizedError);
+    let error = try_downcast!(error as ForbiddenError);
+    Err(error)
 }
 
 /// Converts an absent or failed value into a fallback response.
@@ -244,56 +274,56 @@ pub trait FallbackExt {
     type T;
 
     /// Returns `Ok(value)` if present, otherwise a temporary redirect to `uri`.
-    fn ok_or_redirect(self, uri: &str) -> Result<Self::T, RouterError>;
+    fn ok_or_redirect(self, uri: &str) -> Result<Self::T, RedirectError>;
 
     /// Returns `Ok(value)` if present, otherwise a permanent redirect to `uri`.
-    fn ok_or_redirect_permanent(self, uri: &str) -> Result<Self::T, RouterError>;
+    fn ok_or_redirect_permanent(self, uri: &str) -> Result<Self::T, RedirectError>;
 
     /// Returns `Ok(value)` if present, otherwise a not-found response.
-    fn ok_or_not_found(self) -> Result<Self::T, RouterError>;
+    fn ok_or_not_found(self) -> Result<Self::T, NotFoundError>;
 
     /// Returns `Ok(value)` if present, otherwise an unauthorized response.
-    fn ok_or_unauthorized(self) -> Result<Self::T, RouterError>;
+    fn ok_or_unauthorized(self) -> Result<Self::T, UnauthorizedError>;
 
     /// Returns `Ok(value)` if present, otherwise a forbidden response.
-    fn ok_or_forbidden(self) -> Result<Self::T, RouterError>;
+    fn ok_or_forbidden(self) -> Result<Self::T, ForbiddenError>;
 }
 
 impl<T> FallbackExt for Option<T> {
     type T = T;
 
-    fn ok_or_redirect(self, uri: &str) -> Result<Self::T, RouterError> {
+    fn ok_or_redirect(self, uri: &str) -> Result<Self::T, RedirectError> {
         match self {
             Some(value) => Ok(value),
-            None => Err(redirect(uri).into()),
+            None => Err(redirect(uri)),
         }
     }
 
-    fn ok_or_redirect_permanent(self, uri: &str) -> Result<Self::T, RouterError> {
+    fn ok_or_redirect_permanent(self, uri: &str) -> Result<Self::T, RedirectError> {
         match self {
             Some(value) => Ok(value),
-            None => Err(redirect_permanent(uri).into()),
+            None => Err(redirect_permanent(uri)),
         }
     }
 
-    fn ok_or_not_found(self) -> Result<Self::T, RouterError> {
+    fn ok_or_not_found(self) -> Result<Self::T, NotFoundError> {
         match self {
             Some(value) => Ok(value),
-            None => Err(not_found().into()),
+            None => Err(not_found()),
         }
     }
 
-    fn ok_or_unauthorized(self) -> Result<Self::T, RouterError> {
+    fn ok_or_unauthorized(self) -> Result<Self::T, UnauthorizedError> {
         match self {
             Some(value) => Ok(value),
-            None => Err(unauthorized().into()),
+            None => Err(unauthorized()),
         }
     }
 
-    fn ok_or_forbidden(self) -> Result<Self::T, RouterError> {
+    fn ok_or_forbidden(self) -> Result<Self::T, ForbiddenError> {
         match self {
             Some(value) => Ok(value),
-            None => Err(forbidden().into()),
+            None => Err(forbidden()),
         }
     }
 }
@@ -301,38 +331,38 @@ impl<T> FallbackExt for Option<T> {
 impl<T, E> FallbackExt for Result<T, E> {
     type T = T;
 
-    fn ok_or_redirect(self, uri: &str) -> Result<Self::T, RouterError> {
+    fn ok_or_redirect(self, uri: &str) -> Result<Self::T, RedirectError> {
         match self {
             Ok(value) => Ok(value),
-            Err(_) => Err(redirect(uri).into()),
+            Err(_) => Err(redirect(uri)),
         }
     }
 
-    fn ok_or_redirect_permanent(self, uri: &str) -> Result<Self::T, RouterError> {
+    fn ok_or_redirect_permanent(self, uri: &str) -> Result<Self::T, RedirectError> {
         match self {
             Ok(value) => Ok(value),
-            Err(_) => Err(redirect_permanent(uri).into()),
+            Err(_) => Err(redirect_permanent(uri)),
         }
     }
 
-    fn ok_or_not_found(self) -> Result<Self::T, RouterError> {
+    fn ok_or_not_found(self) -> Result<Self::T, NotFoundError> {
         match self {
             Ok(value) => Ok(value),
-            Err(_) => Err(not_found().into()),
+            Err(_) => Err(not_found()),
         }
     }
 
-    fn ok_or_unauthorized(self) -> Result<Self::T, RouterError> {
+    fn ok_or_unauthorized(self) -> Result<Self::T, UnauthorizedError> {
         match self {
             Ok(value) => Ok(value),
-            Err(_) => Err(unauthorized().into()),
+            Err(_) => Err(unauthorized()),
         }
     }
 
-    fn ok_or_forbidden(self) -> Result<Self::T, RouterError> {
+    fn ok_or_forbidden(self) -> Result<Self::T, ForbiddenError> {
         match self {
             Ok(value) => Ok(value),
-            Err(_) => Err(forbidden().into()),
+            Err(_) => Err(forbidden()),
         }
     }
 }
