@@ -4,7 +4,7 @@ use syn::parse::{Parse, ParseStream};
 
 use crate::ast::{
     ParseOption,
-    view::{RuntimeExpr, TemplateExpr},
+    template::{RuntimeExpr, TemplateExpr},
 };
 
 /// An expression that can either be emitted directly or wrapped for runtime use.

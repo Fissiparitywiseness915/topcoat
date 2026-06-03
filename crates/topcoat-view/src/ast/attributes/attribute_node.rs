@@ -3,10 +3,10 @@ use syn::parse::{Parse, ParseStream};
 use crate::ast::{
     ParseOption,
     attributes::{Attribute, AttributeNodes, BindAttribute, EventHandler},
-    view::{
+    template::{
         TemplateBreak, TemplateContinue, TemplateForLoop, TemplateIf, TemplateLet, TemplateMatch,
-        ViewWriter, WriteView,
     },
+    view::{ViewWriter, WriteView},
 };
 
 /// A single entry within an [`Attributes`](super::Attributes) list — the union

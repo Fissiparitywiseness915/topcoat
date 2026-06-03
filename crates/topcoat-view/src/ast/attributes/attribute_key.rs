@@ -11,7 +11,8 @@ use syn::{
 
 use crate::ast::{
     ParseOption,
-    view::{ExprKind, HtmlIdent, TemplateExpr, ViewWriter, WriteView},
+    template::TemplateExpr,
+    view::{ExprKind, HtmlIdent, ViewWriter, WriteView},
 };
 
 /// The name part of a single `name=value` attribute on an

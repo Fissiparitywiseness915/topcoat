@@ -6,7 +6,8 @@ use syn::{
 
 use crate::ast::{
     ParseOption,
-    view::{TemplateBlock, ViewWriter, WriteView},
+    template::TemplateBlock,
+    view::{ViewWriter, WriteView},
 };
 
 /// A `for pat in expr { ... }` loop in view-body position. The body is

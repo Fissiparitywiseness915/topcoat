@@ -6,10 +6,13 @@ use syn::{
 
 use crate::ast::{
     ParseOption,
+    template::{
+        RuntimeExpr, TemplateBlock, TemplateBreak, TemplateContinue, TemplateExpr, TemplateForLoop,
+        TemplateIf, TemplateLet, TemplateMatch,
+    },
     view::{
-        Component, DocumentType, Element, Nodes, ReactiveScope, RuntimeExpr, SignalDeclaration,
-        TemplateBlock, TemplateBreak, TemplateContinue, TemplateExpr, TemplateForLoop, TemplateIf,
-        TemplateLet, TemplateMatch, ViewWriter, WriteView,
+        Component, DocumentType, Element, Nodes, ReactiveScope, SignalDeclaration, ViewWriter,
+        WriteView,
     },
 };
 

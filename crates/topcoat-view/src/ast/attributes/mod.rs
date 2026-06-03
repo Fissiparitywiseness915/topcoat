@@ -20,7 +20,8 @@ use syn::parse::{Parse, ParseStream};
 
 use crate::ast::{
     ParseOption,
-    view::{TemplateElse, TemplateIf, TemplateMatch, ViewWriter, WriteView},
+    template::{TemplateElse, TemplateIf, TemplateMatch},
+    view::{ViewWriter, WriteView},
 };
 
 /// The full list of attributes attached to a single tag.

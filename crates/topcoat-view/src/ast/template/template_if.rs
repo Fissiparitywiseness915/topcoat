@@ -5,7 +5,8 @@ use syn::{
 
 use crate::ast::{
     ParseOption,
-    view::{TemplateBlock, ViewWriter, WriteView},
+    template::TemplateBlock,
+    view::{ViewWriter, WriteView},
 };
 
 /// An `if cond { ... } else { ... }` chain in view-body position.

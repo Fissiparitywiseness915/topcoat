@@ -8,7 +8,8 @@ use syn::{
 
 use crate::ast::{
     ParseOption,
-    view::{ExprKind, Nodes, RuntimeExpr, ViewWriter, WriteView},
+    template::RuntimeExpr,
+    view::{ExprKind, Nodes, ViewWriter, WriteView},
 };
 
 /// A user-defined component invocation, written as

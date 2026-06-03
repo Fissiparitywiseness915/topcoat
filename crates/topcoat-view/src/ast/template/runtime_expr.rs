@@ -7,10 +7,7 @@ use syn::{
 
 use crate::ast::{
     ParseOption,
-    view::{
-        ExprKind,
-        view_writer::{ViewWriter, WriteView},
-    },
+    view::{ExprKind, ViewWriter, WriteView},
 };
 
 /// A `$(`...`)` runtime expression, lowered through `runtime::expr!`.
