@@ -117,7 +117,7 @@ async fn user_avatar(cx: &Cx) -> Result {
 
     view! {
         <img
-            src=(user.avatar_url.clone())
+            src=(user.avatar_url)
             alt=(format!("{}'s avatar", user.name))
         >
     }
