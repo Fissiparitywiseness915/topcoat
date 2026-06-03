@@ -18,6 +18,12 @@ members = [
 [workspace.lints.rust]
 unsafe_code = "deny"
 
+[profile.dev]
+debug = 1
+
+[profile.dev.package."*"]
+opt-level = 1
+
 [workspace.dependencies]
 # Topcoat crates
 topcoat = { path = "crates/topcoat" }
