@@ -1,3 +1,4 @@
+use quote::quote;
 use syn::{
     Expr, ExprBreak, ExprContinue, Pat, Token,
     parse::{Parse, ParseStream},
@@ -59,15 +60,16 @@ impl<T: topcoat_pretty::PrettyPrint> topcoat_pretty::PrettyPrint for TemplateFor
     }
 }
 
-/// A `continue;` statement. Parsed for completeness but currently rejected.
+/// A `continue;` statement.
 pub struct TemplateContinue {
     pub expr_continue: ExprContinue,
     pub semi_token: Token![;],
 }
 
 impl WriteView for TemplateContinue {
-    fn write(&self, _writer: &mut ViewWriter) {
-        todo!();
+    fn write(&self, writer: &mut ViewWriter) {
+        let expr_continue = &self.expr_continue;
+        writer.statement(quote! { #expr_continue; });
     }
 }
 
@@ -89,20 +91,26 @@ impl ParseOption for TemplateContinue {
 #[cfg(feature = "pretty")]
 impl topcoat_pretty::PrettyPrint for TemplateContinue {
     fn pretty_print(&self, printer: &mut topcoat_pretty::Printer<'_>) {
+        use quote::ToTokens;
+
+        self.expr_continue
+            .to_token_stream()
+            .to_string()
+            .pretty_print(printer);
         self.semi_token.pretty_print(printer);
-        todo!();
     }
 }
 
-/// A `break;` statement. Parsed for completeness but currently rejected.
+/// A `break;` statement.
 pub struct TemplateBreak {
     pub expr_break: ExprBreak,
     pub semi_token: Token![;],
 }
 
 impl WriteView for TemplateBreak {
-    fn write(&self, _writer: &mut ViewWriter) {
-        todo!();
+    fn write(&self, writer: &mut ViewWriter) {
+        let expr_break = &self.expr_break;
+        writer.statement(quote! { #expr_break; });
     }
 }
 
@@ -124,7 +132,12 @@ impl ParseOption for TemplateBreak {
 #[cfg(feature = "pretty")]
 impl topcoat_pretty::PrettyPrint for TemplateBreak {
     fn pretty_print(&self, printer: &mut topcoat_pretty::Printer<'_>) {
+        use quote::ToTokens;
+
+        self.expr_break
+            .to_token_stream()
+            .to_string()
+            .pretty_print(printer);
         self.semi_token.pretty_print(printer);
-        todo!();
     }
 }

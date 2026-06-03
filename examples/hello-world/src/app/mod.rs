@@ -11,7 +11,7 @@ use topcoat::{
     router::{Slot, layout, page},
     runtime::{ReadSignal, Shard},
     tailwind,
-    view::{component, shard, view},
+    view::{attributes, component, shard, view},
 };
 
 use crate::components::app_and_request_state;
@@ -153,6 +153,10 @@ async fn combobox_content(cx: &Cx, input: ReadSignal<String>) -> Result {
 
 #[component]
 async fn combobox(content: Shard<(ReadSignal<String>,)>) -> Result {
+    let kek = attributes!(
+        pip="5"
+        :lel=(5 + 5)
+    );
     view! {
         signal input = "apple".to_owned();
         <div>
@@ -160,7 +164,6 @@ async fn combobox(content: Shard<(ReadSignal<String>,)>) -> Result {
                 :value=$(input.get())
                 @input="(e) => console.log('kek')"
             >
-            $(1.0 + 2.0)
             track content(input)
         </div>
     }

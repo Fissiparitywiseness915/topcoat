@@ -66,6 +66,11 @@ impl ViewWriter {
         });
     }
 
+    pub fn statement(&mut self, tokens: TokenStream) {
+        self.flush();
+        self.chunks.push(Chunk::Statement { tokens });
+    }
+
     pub fn for_loop(&mut self, pat: &Pat, expr: &Expr, f: impl FnOnce(&mut ViewWriter)) {
         self.flush();
         let mut body = ViewWriter::new();
@@ -120,6 +125,9 @@ impl ViewWriter {
                             }
                             Chunk::Let { pat, expr } => {
                                 quote! { let #pat = #expr; }
+                            }
+                            Chunk::Statement { tokens } => {
+                                quote! { #tokens }
                             }
                             Chunk::If {
                                 expr,
@@ -224,6 +232,9 @@ enum Chunk {
     Let {
         pat: Pat,
         expr: Box<Expr>,
+    },
+    Statement {
+        tokens: TokenStream,
     },
     For {
         pat: Pat,

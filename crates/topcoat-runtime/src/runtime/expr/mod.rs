@@ -9,4 +9,9 @@ impl<T> Expr<T> {
     pub fn new(evaluated: T, js: String) -> Self {
         Self { evaluated, js }
     }
+
+    #[inline]
+    pub fn into_evaluated_and_js(self) -> (T, String) {
+        (self.evaluated, self.js)
+    }
 }

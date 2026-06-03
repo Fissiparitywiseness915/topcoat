@@ -35,6 +35,13 @@ pub fn view(tokens: TokenStream) -> TokenStream {
 }
 
 #[cfg(feature = "view")]
+#[proc_macro]
+pub fn attributes(tokens: TokenStream) -> TokenStream {
+    let parsed = syn::parse_macro_input!(tokens as topcoat_view::ast::view::Attributes);
+    quote! { #parsed }.into()
+}
+
+#[cfg(feature = "view")]
 #[proc_macro_attribute]
 pub fn component(attr: TokenStream, item: TokenStream) -> TokenStream {
     match topcoat_view::ast::component::Component::parse(attr.into(), item.into()) {

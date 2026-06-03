@@ -1,7 +1,4 @@
-use syn::{
-    parse::{Parse, ParseStream},
-    spanned::Spanned,
-};
+use syn::parse::{Parse, ParseStream};
 
 use crate::ast::{
     ParseOption,
@@ -65,17 +62,7 @@ impl Parse for AttributeNode {
             return Err(syn::Error::new(input.span(), "expected attribute node"));
         };
 
-        match result {
-            Self::Continue(inner) => Err(syn::Error::new(
-                inner.expr_continue.span(),
-                "`continue` is currently not supported",
-            )),
-            Self::Break(inner) => Err(syn::Error::new(
-                inner.expr_break.span(),
-                "`break` is currently not supported",
-            )),
-            _ => Ok(result),
-        }
+        Ok(result)
     }
 }
 
@@ -118,13 +105,6 @@ mod tests {
         syn::parse_str(source).unwrap()
     }
 
-    fn parse_err(source: &str) -> String {
-        match syn::parse_str::<AttributeNode>(source) {
-            Ok(_) => panic!("expected parse error for `{source}`"),
-            Err(err) => err.to_string(),
-        }
-    }
-
     #[test]
     fn dispatches_each_variant() {
         assert!(matches!(parse(r#"foo="bar""#), AttributeNode::Attribute(_)));
@@ -157,6 +137,8 @@ mod tests {
             parse(r#"for x in xs { foo="bar" }"#),
             AttributeNode::ForLoop(_),
         ));
+        assert!(matches!(parse("break;"), AttributeNode::Break(_)));
+        assert!(matches!(parse("continue;"), AttributeNode::Continue(_)));
         assert!(matches!(
             parse(r#"match v { _ => foo="bar", }"#),
             AttributeNode::Match(_),
@@ -164,17 +146,11 @@ mod tests {
     }
 
     #[test]
-    fn break_in_loop_is_rejected() {
-        assert!(parse_err("break;").contains("`break` is currently not supported"));
-    }
-
-    #[test]
-    fn continue_in_loop_is_rejected() {
-        assert!(parse_err("continue;").contains("`continue` is currently not supported"));
-    }
-
-    #[test]
     fn unrecognized_token_is_rejected() {
-        assert!(parse_err("#").contains("expected attribute node"));
+        let err = match syn::parse_str::<AttributeNode>("#") {
+            Ok(_) => panic!("expected parse error"),
+            Err(err) => err,
+        };
+        assert!(err.to_string().contains("expected attribute node"));
     }
 }
