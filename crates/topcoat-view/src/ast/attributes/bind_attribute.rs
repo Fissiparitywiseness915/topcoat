@@ -44,7 +44,7 @@ impl WriteAttribute for BindAttribute {
             2,
             quote! {
                 {
-                    let __key = ::std::string::String::from(#key);
+                    let __key = ::core::convert::Into::<::std::string::String>::into(#key);
                     let (__evaluated, __js) = ::topcoat::runtime::Expr::from(#value).into_evaluated_and_js();
                     __attrs.insert(__key.clone(), __evaluated);
                     __attrs.insert(::std::format!("data-topcoat-bind:{}", __key), __js);

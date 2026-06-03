@@ -37,7 +37,7 @@ impl ToTokens for EventHandlerValue {
             Self::LitStr(inner) => quote! {
                 ::topcoat::runtime::Expr::new(
                     |_: ::topcoat::runtime::Event| {},
-                    ::std::string::String::from(#inner),
+                    ::core::convert::Into::<::std::string::String>::into(#inner),
                 )
             }
             .to_tokens(tokens),
@@ -87,7 +87,7 @@ impl WriteAttribute for EventHandler {
             1,
             quote! {
                 {
-                    let __key = ::std::string::String::from(#key);
+                    let __key = ::core::convert::Into::<::std::string::String>::into(#key);
                     let (_, __js) = ::topcoat::runtime::Expr::from(#value).into_evaluated_and_js();
                     __attrs.insert(::std::format!("data-topcoat-on:{}", __key), __js);
                 }
