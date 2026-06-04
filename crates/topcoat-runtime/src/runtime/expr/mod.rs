@@ -1,4 +1,4 @@
-use topcoat_view::runtime::{NodeViewParts, ViewPart, ViewParts};
+use topcoat_view::runtime::{NodeViewParts, Unescaped, ViewPart, ViewParts};
 
 #[derive(Debug, Clone)]
 pub struct Expr<T> {
@@ -23,6 +23,10 @@ where
     T: NodeViewParts,
 {
     fn into_view_parts(self, parts: &mut ViewParts) {
+        parts.push(Unescaped::new_unchecked("<!-- ::topcoat::expr::start(\""));
+        parts.push(self.js);
+        parts.push(Unescaped::new_unchecked("\") -->"));
         self.evaluated.into_view_parts(parts);
+        parts.push(Unescaped::new_unchecked("<!-- ::topcoat::expr::end -->"));
     }
 }

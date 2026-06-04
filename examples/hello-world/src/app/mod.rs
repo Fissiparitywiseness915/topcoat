@@ -161,12 +161,18 @@ async fn combobox(content: Shard<(ReadSignal<String>,)>) -> Result {
     let kek = attributes! { pip="4" lel="5" };
     view! {
         signal input = "apple".to_owned();
+        signal count = 0.0;
         <div>
+            <div>
+                <button @click=$(|e| { count.set(count.get() + 1.0) })>"+1"</button>
+                <button @click=$(|e| { count.set(count.get() - 1.0) })>"-1"</button>
+                <div>$(count.get())</div>
+            </div>
+
             <input
                 :value=$(input.get())
                 @input=$(|e: ::topcoat::runtime::Event| { input.set(e.target.value); })
             >
-            $(5.0 + 1.0)
             track content(input)
 
 
