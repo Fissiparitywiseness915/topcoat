@@ -11,7 +11,7 @@ use topcoat_core::{
     error::{Error, Result},
 };
 
-use crate::{Body, FromRequest, IntoResponse, bad_request, bad_request_at, headers};
+use crate::{Body, FromRequest, IntoResponse, Response, bad_request, bad_request_at, headers};
 
 /// JSON request extractor and response wrapper.
 #[derive(Debug, Clone, Copy, Default)]
@@ -79,7 +79,7 @@ impl<T> IntoResponse for Json<T>
 where
     T: Serialize,
 {
-    fn into_response(self) -> Result<crate::Response> {
+    fn into_response(self) -> Result<Response> {
         (
             [(CONTENT_TYPE, HeaderValue::from_static("application/json"))],
             serde_json::to_vec(&self.0)?,

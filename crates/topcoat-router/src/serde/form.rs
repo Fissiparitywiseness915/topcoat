@@ -8,7 +8,9 @@ use http::{
 };
 use topcoat_core::{context::Cx, error::Result};
 
-use crate::{Body, FromRequest, IntoResponse, bad_request, bad_request_at, headers, method, uri};
+use crate::{
+    Body, FromRequest, IntoResponse, Response, bad_request, bad_request_at, headers, method, uri,
+};
 
 /// `application/x-www-form-urlencoded` request extractor and response wrapper.
 #[derive(Debug, Clone, Copy, Default)]
@@ -81,7 +83,7 @@ impl<T> IntoResponse for Form<T>
 where
     T: Serialize,
 {
-    fn into_response(self) -> Result<crate::Response> {
+    fn into_response(self) -> Result<Response> {
         (
             [(
                 CONTENT_TYPE,
