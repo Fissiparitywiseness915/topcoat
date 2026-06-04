@@ -25,8 +25,8 @@ pub fn unauthorized() -> UnauthorizedError {
 
 /// An unauthorized response carried as the `Err` variant of a handler [`Result`].
 ///
-/// Construct one with [`unauthorized`], or surface one from an `Option` /
-/// `Result` via [`FallbackExt`].
+/// Construct one with [`unauthorized`], or derive one from an `Option` /
+/// `Result` via [`RouterErrorExt`].
 #[derive(Debug)]
 pub struct UnauthorizedError {
     _priv: (),

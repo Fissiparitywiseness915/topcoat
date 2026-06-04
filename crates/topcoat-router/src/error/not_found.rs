@@ -23,8 +23,8 @@ pub fn not_found() -> NotFoundError {
 
 /// A not-found response carried as the `Err` variant of a handler [`Result`].
 ///
-/// Construct one with [`not_found`], or surface one from an `Option` /
-/// `Result` via [`FallbackExt`].
+/// Construct one with [`not_found`], or derive one from an `Option` /
+/// `Result` via [`RouterErrorExt`].
 #[derive(Debug)]
 pub struct NotFoundError {
     _priv: (),

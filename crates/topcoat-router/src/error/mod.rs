@@ -46,26 +46,26 @@ pub(crate) fn error_into_response(error: Error) -> Response {
     InternalServerError::from(error).into_response()
 }
 
-/// Converts an absent or failed value into a fallback response.
+/// Converts an absent or failed value into a router error response.
 ///
-/// Implemented for [`Option`] (where `None` becomes the fallback) and
-/// [`Result`] (where any `Err` becomes the fallback, discarding the
-/// original error). Designed to be combined with `?` so a caller can fall
-/// through to a redirect, not-found, unauthorized, or forbidden response
-/// on missing or invalid state.
+/// Implemented for [`Option`] (where `None` becomes the configured error)
+/// and [`Result`] (where any `Err` is replaced, discarding the original
+/// error). Designed to be combined with `?` so a handler can return a
+/// redirect, not-found, unauthorized, or forbidden response when required
+/// state is missing or invalid.
 ///
 /// # Examples
 ///
 /// ```rust,ignore
 /// use topcoat::context::Cx;
-/// use topcoat::router::{Result, FallbackExt};
+/// use topcoat::router::{Result, RouterErrorExt};
 ///
 /// async fn fetch_user(cx: &Cx, id: u64) -> Result<User> {
 ///     let user = lookup(cx, id).await.ok_or_redirect("/users")?;
 ///     Ok(user)
 /// }
 /// ```
-pub trait FallbackExt {
+pub trait RouterErrorExt {
     /// The success type produced when the value is present.
     type T;
 
@@ -85,7 +85,7 @@ pub trait FallbackExt {
     fn ok_or_forbidden(self) -> Result<Self::T, ForbiddenError>;
 }
 
-impl<T> FallbackExt for Option<T> {
+impl<T> RouterErrorExt for Option<T> {
     type T = T;
 
     fn ok_or_redirect(self, uri: &str) -> Result<Self::T, RedirectError> {
@@ -124,7 +124,7 @@ impl<T> FallbackExt for Option<T> {
     }
 }
 
-impl<T, E> FallbackExt for Result<T, E> {
+impl<T, E> RouterErrorExt for Result<T, E> {
     type T = T;
 
     fn ok_or_redirect(self, uri: &str) -> Result<Self::T, RedirectError> {

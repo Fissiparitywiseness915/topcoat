@@ -26,8 +26,8 @@ pub fn forbidden() -> ForbiddenError {
 
 /// A forbidden response carried as the `Err` variant of a handler [`Result`].
 ///
-/// Construct one with [`forbidden`], or surface one from an `Option` /
-/// `Result` via [`FallbackExt`].
+/// Construct one with [`forbidden`], or derive one from an `Option` /
+/// `Result` via [`RouterErrorExt`].
 #[derive(Debug)]
 pub struct ForbiddenError {
     _priv: (),

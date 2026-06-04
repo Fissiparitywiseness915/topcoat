@@ -41,8 +41,8 @@ pub fn redirect_permanent(uri: &str) -> RedirectError {
 
 /// A redirect response carried as the `Err` variant of a handler [`Result`].
 ///
-/// Construct one with [`redirect`] or [`redirect_permanent`], or surface one
-/// from an `Option` / `Result` via [`FallbackExt`].
+/// Construct one with [`redirect`] or [`redirect_permanent`], or derive one
+/// from an `Option` / `Result` via [`RouterErrorExt`].
 #[derive(Debug)]
 pub struct RedirectError {
     inner: axum::response::Redirect,
