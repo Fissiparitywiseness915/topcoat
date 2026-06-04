@@ -6,6 +6,8 @@ use topcoat_core::{
     error::Result,
 };
 
+use crate::error::{BadRequestError, bad_request};
+
 pub type Body = axum::body::Body;
 
 pub(crate) struct CxBody {
@@ -14,7 +16,7 @@ pub(crate) struct CxBody {
 }
 
 impl axum::extract::FromRequest<Arc<State>> for CxBody {
-    type Rejection = <RawPathParams as axum::extract::FromRequestParts<Arc<State>>>::Rejection;
+    type Rejection = BadRequestError;
 
     async fn from_request(
         req: axum::extract::Request,
@@ -25,7 +27,11 @@ impl axum::extract::FromRequest<Arc<State>> for CxBody {
         let body = Body::from(body);
 
         let mut request_state = State::new();
-        request_state.register(RawPathParams::from_request_parts(&mut parts, state).await?);
+        request_state.register(
+            RawPathParams::from_request_parts(&mut parts, state)
+                .await
+                .map_err(|error| bad_request(error.to_string()))?,
+        );
         request_state.register(parts);
 
         let cx = Cx::new(app_state, request_state);
