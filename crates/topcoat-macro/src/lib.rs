@@ -137,7 +137,8 @@ pub fn segment(tokens: TokenStream) -> TokenStream {
 /// // src/app/posts/id/mod.rs — the `id` module becomes `{post_id}` in the URL.
 /// use topcoat::{
 ///     context::Cx,
-///     router::{RouterErrorExt, Result, page, path_param},
+///     Result,
+///     router::{RouterErrorExt, page, path_param},
 ///     view::view,
 /// };
 ///
@@ -212,7 +213,8 @@ pub fn path_param(attr: TokenStream, item: TokenStream) -> TokenStream {
 /// ```ignore
 /// use topcoat::{
 ///     context::Cx,
-///     router::{Result, page, query_params},
+///     Result,
+///     router::{page, query_params},
 ///     view::view,
 /// };
 ///

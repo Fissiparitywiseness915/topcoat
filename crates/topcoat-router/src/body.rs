@@ -1,8 +1,10 @@
 use std::sync::Arc;
 
-use crate::Result;
 use axum::extract::{FromRequestParts, RawPathParams};
-use topcoat_core::context::{Cx, State};
+use topcoat_core::{
+    context::{Cx, State},
+    error::Result,
+};
 
 pub type Body = axum::body::Body;
 

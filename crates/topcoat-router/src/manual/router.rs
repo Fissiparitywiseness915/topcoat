@@ -22,7 +22,7 @@ use crate::{
 /// Pages, layouts, and routes can be registered manually via
 /// [`page()`](Self::page), [`layout()`](Self::layout), and
 /// [`route()`](Self::route), or auto-discovered with
-/// [`discover()`](Self::discover) (requires the `discover` feature).
+/// `discover()` (requires the `discover` feature).
 ///
 /// # Examples
 ///

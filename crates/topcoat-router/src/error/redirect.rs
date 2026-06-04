@@ -6,7 +6,8 @@ use crate::{IntoResponse, Response};
 ///
 /// ```rust,ignore
 /// use topcoat::context::Cx;
-/// use topcoat::router::{Result, redirect};
+/// use topcoat::Result;
+/// use topcoat::router::redirect;
 ///
 /// async fn fetch_user(cx: &Cx, id: u64) -> Result<User> {
 ///     let Some(user) = lookup(cx, id).await else {
@@ -28,7 +29,8 @@ pub fn redirect(uri: &str) -> RedirectError {
 ///
 /// ```rust,ignore
 /// use topcoat::context::Cx;
-/// use topcoat::router::{Result, page, redirect_permanent};
+/// use topcoat::Result;
+/// use topcoat::router::{page, redirect_permanent};
 ///
 /// #[page]
 /// async fn legacy_profile(cx: &Cx) -> Result {
@@ -39,10 +41,10 @@ pub fn redirect_permanent(uri: &str) -> RedirectError {
     RedirectError::new(axum::response::Redirect::permanent(uri))
 }
 
-/// A redirect response carried as the `Err` variant of a handler [`Result`].
+/// A redirect response carried as the `Err` variant of a handler `Result`.
 ///
 /// Construct one with [`redirect`] or [`redirect_permanent`], or derive one
-/// from an `Option` / `Result` via [`RouterErrorExt`].
+/// from an `Option` / `Result` via [`crate::RouterErrorExt`].
 #[derive(Debug)]
 pub struct RedirectError {
     inner: axum::response::Redirect,

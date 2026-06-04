@@ -1,9 +1,9 @@
 use std::{borrow::Cow, collections::HashMap, pin::Pin};
 
 use http::Method;
-use topcoat_core::context::Cx;
+use topcoat_core::{context::Cx, error::Result};
 
-use crate::{Body, Path, Response, Result};
+use crate::{Body, Path, Response};
 
 /// The async handler function backing a [`Route`].
 pub type RouteHandlerFn =

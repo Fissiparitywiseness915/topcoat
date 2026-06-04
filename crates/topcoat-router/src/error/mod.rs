@@ -10,8 +10,8 @@ pub use not_found::*;
 pub use redirect::*;
 pub use unauthorized::*;
 
-use crate::{IntoResponse, Response, Result};
-use topcoat_core::error::Error;
+use crate::{IntoResponse, Response};
+use topcoat_core::error::{Error, Result};
 
 /// Turns a Result into a response.
 ///
@@ -49,8 +49,8 @@ pub(crate) fn error_into_response(error: Error) -> Response {
 /// Converts an absent or failed value into a router error response.
 ///
 /// Implemented for [`Option`] (where `None` becomes the configured error)
-/// and [`Result`] (where any `Err` is replaced, discarding the original
-/// error). Designed to be combined with `?` so a handler can return a
+/// and [`core::result::Result`] (where any `Err` is replaced, discarding the
+/// original error). Designed to be combined with `?` so a handler can return a
 /// redirect, not-found, unauthorized, or forbidden response when required
 /// state is missing or invalid.
 ///
@@ -58,7 +58,8 @@ pub(crate) fn error_into_response(error: Error) -> Response {
 ///
 /// ```rust,ignore
 /// use topcoat::context::Cx;
-/// use topcoat::router::{Result, RouterErrorExt};
+/// use topcoat::Result;
+/// use topcoat::router::RouterErrorExt;
 ///
 /// async fn fetch_user(cx: &Cx, id: u64) -> Result<User> {
 ///     let user = lookup(cx, id).await.ok_or_redirect("/users")?;

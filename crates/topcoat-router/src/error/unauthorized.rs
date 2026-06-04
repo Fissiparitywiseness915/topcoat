@@ -10,7 +10,8 @@ use crate::{IntoResponse, Response};
 ///
 /// ```rust,ignore
 /// use topcoat::context::Cx;
-/// use topcoat::router::{Result, unauthorized};
+/// use topcoat::Result;
+/// use topcoat::router::unauthorized;
 ///
 /// async fn current_user(cx: &Cx) -> Result<User> {
 ///     let Some(user) = session(cx).await else {
@@ -23,10 +24,10 @@ pub fn unauthorized() -> UnauthorizedError {
     UnauthorizedError::new()
 }
 
-/// An unauthorized response carried as the `Err` variant of a handler [`Result`].
+/// An unauthorized response carried as the `Err` variant of a handler `Result`.
 ///
 /// Construct one with [`unauthorized`], or derive one from an `Option` /
-/// `Result` via [`RouterErrorExt`].
+/// `Result` via [`crate::RouterErrorExt`].
 #[derive(Debug)]
 pub struct UnauthorizedError {
     _priv: (),

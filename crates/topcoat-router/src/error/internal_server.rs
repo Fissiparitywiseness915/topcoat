@@ -12,7 +12,8 @@ use crate::{IntoResponse, Response};
 ///
 /// ```rust,ignore
 /// use topcoat::context::Cx;
-/// use topcoat::router::{Result, internal_server_error};
+/// use topcoat::Result;
+/// use topcoat::router::internal_server_error;
 ///
 /// async fn load_dashboard(cx: &Cx) -> Result<Dashboard> {
 ///     let dashboard = fetch_dashboard(cx)
@@ -26,7 +27,7 @@ pub fn internal_server_error(error: impl Into<Error>) -> InternalServerError {
     InternalServerError::new(error.into())
 }
 
-/// An internal-server-error response carried as the `Err` variant of a handler [`Result`].
+/// An internal-server-error response carried as the `Err` variant of a handler `Result`.
 ///
 /// Construct one with [`internal_server_error`].
 #[derive(Debug)]

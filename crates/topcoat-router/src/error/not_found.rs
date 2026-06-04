@@ -8,7 +8,8 @@ use crate::{IntoResponse, Response};
 ///
 /// ```rust,ignore
 /// use topcoat::context::Cx;
-/// use topcoat::router::{Result, not_found};
+/// use topcoat::Result;
+/// use topcoat::router::not_found;
 ///
 /// async fn fetch_user(cx: &Cx, id: u64) -> Result<User> {
 ///     let Some(user) = lookup(cx, id).await else {
@@ -21,10 +22,10 @@ pub fn not_found() -> NotFoundError {
     NotFoundError::new()
 }
 
-/// A not-found response carried as the `Err` variant of a handler [`Result`].
+/// A not-found response carried as the `Err` variant of a handler `Result`.
 ///
 /// Construct one with [`not_found`], or derive one from an `Option` /
-/// `Result` via [`RouterErrorExt`].
+/// `Result` via [`crate::RouterErrorExt`].
 #[derive(Debug)]
 pub struct NotFoundError {
     _priv: (),
