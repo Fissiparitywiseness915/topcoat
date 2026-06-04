@@ -99,37 +99,13 @@ A request to `/settings/profile` renders: `root_layout` > `settings_layout` > `p
 An API route is an async function annotated with `#[route]` and an explicit HTTP method and path:
 
 ```rust
-use serde::{Deserialize, Serialize};
-use topcoat::{
-    Result,
-    router::{Json, route},
-};
-
-#[derive(Deserialize, Serialize)]
-struct CreatePost {
-    title: String,
-}
-
-#[route(POST "/api/posts")]
-async fn create_post(Json(input): Json<CreatePost>) -> Result<Json<CreatePost>> {
-    Ok(Json(input))
-}
-```
-
-The method is written before the path:
-
-```rust
 #[route(GET "/api/health")]
 async fn health() -> Result<&'static str> {
     Ok("ok")
 }
 ```
 
-Route functions may take `cx: &Cx` and, alongside it, at most one request body parameter. The request parameter can be any type that implements `FromRequest`; the built-in `Json<T>` and `Form<T>` wrappers cover the common cases.
-
-Route functions return `Result<T>` where `T: IntoResponse`. The macro converts the successful value into an HTTP response automatically. For JSON responses, return `Result<Json<T>>`; a raw `Result<T>` only works if `T` itself implements `IntoResponse`.
-
-Request and response bodies are covered in more detail in [Request and response bodies](./request_response.md).
+Route functions can also read request bodies and return structured responses. That works the same way for explicit router paths and module-router paths; see [Request and response bodies](./request_response.md).
 
 ## Manual registration
 
@@ -145,7 +121,7 @@ pub fn router() -> Router {
         .page(home)
         .page(about)
         .page(profile)
-        .route(create_post)
+        .route(health)
 }
 ```
 
@@ -185,10 +161,9 @@ let axum_router: axum::Router = router.into();
 ## Example: full manual setup
 
 ```rust
-use serde::{Deserialize, Serialize};
 use topcoat::{
     Result,
-    router::{Json, Router, Slot, layout, page, route},
+    router::{Router, Slot, layout, page, route},
     view::view,
 };
 
@@ -223,14 +198,9 @@ async fn user_profile() -> Result {
     view! { <h1>"User profile"</h1> }
 }
 
-#[derive(Deserialize, Serialize)]
-struct CreateUser {
-    name: String,
-}
-
-#[route(POST "/api/users")]
-async fn create_user(Json(input): Json<CreateUser>) -> Result<Json<CreateUser>> {
-    Ok(Json(input))
+#[route(GET "/api/health")]
+async fn health() -> Result<&'static str> {
+    Ok("ok")
 }
 
 pub fn router() -> Router {
@@ -239,7 +209,7 @@ pub fn router() -> Router {
         .page(home)
         .page(users_list)
         .page(user_profile)
-        .route(create_user)
+        .route(health)
 }
 ```
 
