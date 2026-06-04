@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use crate::Result;
-use axum::extract::{FromRequest, FromRequestParts, RawPathParams};
+use axum::extract::{FromRequestParts, RawPathParams};
 use topcoat_core::context::{Cx, State};
 
 pub type Body = axum::body::Body;
@@ -11,8 +11,8 @@ pub(crate) struct CxBody {
     pub(crate) body: Body,
 }
 
-impl FromRequest<Arc<State>> for CxBody {
-    type Rejection = <RawPathParams as FromRequestParts<Arc<State>>>::Rejection;
+impl axum::extract::FromRequest<Arc<State>> for CxBody {
+    type Rejection = <RawPathParams as axum::extract::FromRequestParts<Arc<State>>>::Rejection;
 
     async fn from_request(
         req: axum::extract::Request,
@@ -31,11 +31,11 @@ impl FromRequest<Arc<State>> for CxBody {
     }
 }
 
-pub trait FromBody: Sized {
+pub trait FromRequest: Sized {
     fn from_body(cx: &Cx, body: Body) -> impl Future<Output = Result<Self>> + Send;
 }
 
-impl FromBody for Body {
+impl FromRequest for Body {
     async fn from_body(_cx: &Cx, body: Body) -> Result<Self> {
         Ok(body)
     }

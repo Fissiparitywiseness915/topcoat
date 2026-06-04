@@ -164,9 +164,9 @@ async fn combobox(content: Shard<(ReadSignal<String>,)>) -> Result {
         signal count = 0.0;
         <div>
             <div>
-                <button @click=$(|e| { count.set(count.get() + 1.0) })>"+1"</button>
-                <button @click=$(|e| { count.set(count.get() - 1.0) })>"-1"</button>
-                <div>$(count.get())</div>
+                <button @click=$(|_e| { count.set(count.get() + 1.0) })>"+1"</button>
+                <button @click=$(|_e| { count.set(count.get() - 1.0) })>"-1"</button>
+                $(count.get() * 2.0)
             </div>
 
             <input

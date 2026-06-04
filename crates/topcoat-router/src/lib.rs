@@ -8,8 +8,7 @@ mod response;
 mod state;
 
 pub use body::*;
-use error::*;
-pub use fallback::*;
+pub use error::*;
 pub use manual::*;
 pub use module::*;
 pub use path::*;

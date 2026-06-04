@@ -2,7 +2,7 @@ import { setupBinding } from "./binding";
 import { type CommentMarker, parseComment } from "./comment";
 import { setupEventHandler } from "./event";
 import { ReactiveScope, type Scope } from "./scope";
-import { setupTextExpression } from "./text-expression";
+import { setupTextExpression } from "./text";
 
 type PendingTextExpression = {
 	start: Comment;
