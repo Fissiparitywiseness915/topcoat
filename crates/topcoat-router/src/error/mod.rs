@@ -1,9 +1,11 @@
+mod bad_request;
 mod forbidden;
 mod internal_server;
 mod not_found;
 mod redirect;
 mod unauthorized;
 
+pub use bad_request::*;
 pub use forbidden::*;
 pub use internal_server::*;
 pub use not_found::*;
@@ -38,6 +40,7 @@ pub(crate) fn error_into_response(error: Error) -> Response {
         };
     }
     let error = try_downcast!(error as ForbiddenError);
+    let error = try_downcast!(error as BadRequestError);
     let error = try_downcast!(error as InternalServerError);
     let error = try_downcast!(error as NotFoundError);
     let error = try_downcast!(error as RedirectError);
@@ -51,8 +54,8 @@ pub(crate) fn error_into_response(error: Error) -> Response {
 /// Implemented for [`Option`] (where `None` becomes the configured error)
 /// and [`core::result::Result`] (where any `Err` is replaced, discarding the
 /// original error). Designed to be combined with `?` so a handler can return a
-/// redirect, not-found, unauthorized, or forbidden response when required
-/// state is missing or invalid.
+/// redirect, not-found, unauthorized, forbidden, or bad-request response when
+/// required state is missing or invalid.
 ///
 /// # Examples
 ///
@@ -84,6 +87,9 @@ pub trait RouterErrorExt {
 
     /// Returns `Ok(value)` if present, otherwise a forbidden response.
     fn ok_or_forbidden(self) -> Result<Self::T, ForbiddenError>;
+
+    /// Returns `Ok(value)` if present, otherwise a bad-request response.
+    fn ok_or_bad_request(self, description: impl Into<String>) -> Result<Self::T, BadRequestError>;
 }
 
 impl<T> RouterErrorExt for Option<T> {
@@ -123,6 +129,13 @@ impl<T> RouterErrorExt for Option<T> {
             None => Err(forbidden()),
         }
     }
+
+    fn ok_or_bad_request(self, description: impl Into<String>) -> Result<Self::T, BadRequestError> {
+        match self {
+            Some(value) => Ok(value),
+            None => Err(bad_request(description)),
+        }
+    }
 }
 
 impl<T, E> RouterErrorExt for Result<T, E> {
@@ -160,6 +173,13 @@ impl<T, E> RouterErrorExt for Result<T, E> {
         match self {
             Ok(value) => Ok(value),
             Err(_) => Err(forbidden()),
+        }
+    }
+
+    fn ok_or_bad_request(self, description: impl Into<String>) -> Result<Self::T, BadRequestError> {
+        match self {
+            Ok(value) => Ok(value),
+            Err(_) => Err(bad_request(description)),
         }
     }
 }

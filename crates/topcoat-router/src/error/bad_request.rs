@@ -1,0 +1,59 @@
+use http::StatusCode;
+
+use crate::{IntoResponse, Response};
+
+/// Builds a bad-request (HTTP 400) response with a client-safe description.
+///
+/// Use this when the caller supplied invalid input and the response should
+/// explain what was wrong.
+///
+/// # Examples
+///
+/// ```rust,ignore
+/// use topcoat::Result;
+/// use topcoat::router::bad_request;
+///
+/// async fn update_user(name: String) -> Result {
+///     if name.trim().is_empty() {
+///         return Err(bad_request("name cannot be empty").into());
+///     }
+///
+///     Ok(())
+/// }
+/// ```
+pub fn bad_request(description: impl Into<String>) -> BadRequestError {
+    BadRequestError::new(description.into())
+}
+
+/// A bad-request response carried as the `Err` variant of a handler `Result`.
+///
+/// Construct one with [`bad_request`].
+#[derive(Debug)]
+pub struct BadRequestError {
+    description: String,
+}
+
+impl BadRequestError {
+    fn new(description: String) -> Self {
+        Self { description }
+    }
+
+    /// Returns the client-safe description of what was wrong with the request.
+    pub fn description(&self) -> &str {
+        &self.description
+    }
+}
+
+impl std::fmt::Display for BadRequestError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "bad request: {}", self.description)
+    }
+}
+
+impl std::error::Error for BadRequestError {}
+
+impl IntoResponse for BadRequestError {
+    fn into_response(self) -> Response {
+        (StatusCode::BAD_REQUEST, self.to_string()).into_response()
+    }
+}
