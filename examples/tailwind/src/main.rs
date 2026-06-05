@@ -23,6 +23,7 @@ async fn root_layout(slot: Slot<'_>) -> Result {
     view! {
         <html>
             <head>
+                topcoat::dev::script()
                 <link rel="stylesheet" href=(tailwind::stylesheet!())>
             </head>
             <body class="p-8 font-sans">

@@ -12,6 +12,7 @@ members = [
     "crates/topcoat-tailwind",
     "crates/topcoat-view",
 
+    "examples/assets",
     "examples/hello-world",
     "examples/manual-router",
     "examples/module-router",
