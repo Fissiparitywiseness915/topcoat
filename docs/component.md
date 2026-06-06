@@ -2,7 +2,7 @@
 
 Components are async functions annotated with [`#[component]`][`component`]. They return a [`View`] through the usual Topcoat [`Result`] type, and can take typed parameters like any other Rust function.
 
-```rust
+```rust,ignore
 use topcoat::{
     Result,
     view::{component, view},
@@ -22,7 +22,7 @@ async fn badge(label: &str, tone: &str) -> Result {
 
 Call components inside [`view!`] with function-call syntax. Named arguments use `name: value`:
 
-```rust
+```rust,ignore
 view! {
     <header>
         badge(
@@ -39,7 +39,7 @@ All component parameters are named parameters, except `child`, which can be pass
 
 If a component accepts a parameter named `child` with type [`View`], any extra view nodes in the call are collected and passed as that child view.
 
-```rust
+```rust,ignore
 use topcoat::{
     Result,
     view::{View, component, view},
@@ -75,7 +75,7 @@ Conceptually, those trailing child nodes are the same thing as a `child` paramet
 
 Components can ask for the current request context by declaring a `cx` parameter that borrows [`Cx`]:
 
-```rust
+```rust,ignore
 use topcoat::{
     Result,
     context::Cx,

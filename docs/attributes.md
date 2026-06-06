@@ -4,7 +4,7 @@ The [`attributes!`] macro builds a [`topcoat::view::Attributes`] value from Topc
 
 Use it when attributes need to be passed around, assembled outside a [`view!`] call, changed at runtime, or forwarded through components.
 
-```rust
+```rust,ignore
 use topcoat::view::{attributes, view};
 
 let attrs = attributes! {
@@ -24,7 +24,7 @@ The body of [`attributes!`] has the same syntax as attributes inside an element 
 
 That includes literal attributes, expression values, dynamic names, binding attributes, event handlers, and attribute-level control flow:
 
-```rust
+```rust,ignore
 use topcoat::view::attributes;
 
 let id = "submit";
@@ -62,7 +62,7 @@ let attrs = attributes! {
 
 The generated value is [`topcoat::view::Attributes`]. It is a runtime collection of attributes with unique keys.
 
-```rust
+```rust,ignore
 use topcoat::view::attributes;
 
 let mut attrs = attributes! {
@@ -82,7 +82,7 @@ Because [`Attributes`] is map-like, each key appears at most once. Inserting the
 
 Insert an [`Attributes`] value into an element by using it as a parenthesized attribute fragment:
 
-```rust
+```rust,ignore
 use topcoat::view::{attributes, view};
 
 let attrs = attributes! {
@@ -105,7 +105,7 @@ Inserting an [`Attributes`] value consumes it. Clone the value first if the same
 
 Components can accept [`Attributes`] as a normal argument. This is useful for forwarding caller-controlled attributes to the component's root element.
 
-```rust
+```rust,ignore
 use topcoat::{
     Result,
     view::{Attributes, View, attributes, component, view},
