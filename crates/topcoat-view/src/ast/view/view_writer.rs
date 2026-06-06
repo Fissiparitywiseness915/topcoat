@@ -188,7 +188,7 @@ impl ViewWriter {
         if self.nested {
             format_expr
         } else {
-            quote! { async { Ok(#format_expr) }.await }
+            quote! { async { ::topcoat::Result::Ok(#format_expr) }.await }
         }
     }
 }
