@@ -14,7 +14,11 @@ export class Procedure<A extends unknown[] = unknown[], R = unknown> {
 				{
 					method: "POST",
 					headers: { "Content-Type": "application/json" },
-					body: JSON.stringify(args),
+					body: JSON.stringify(
+						args.map((arg) =>
+							(arg as { dehydrate: () => unknown }).dehydrate(),
+						),
+					),
 				},
 			);
 			if (!response.ok) {
@@ -23,11 +27,11 @@ export class Procedure<A extends unknown[] = unknown[], R = unknown> {
 				);
 			}
 
-			return this.cx.s(await response.json()) as R;
+			return this.cx.hydrate(await response.json()) as R;
 		});
 	}
 
-	toJSON(): { t: "Procedure"; id: string } {
+	dehydrate(): { t: "Procedure"; id: string } {
 		return { t: "Procedure", id: this.id };
 	}
 }

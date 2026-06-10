@@ -19,49 +19,59 @@ export * from "./ref";
 export * from "./result";
 export * from "./signal";
 
-export type SerializedSurrogate =
-	| { t: "bool"; v: boolean }
-	| { t: "f64"; v: number }
+export type DehydratedSurrogate =
+	| boolean
+	| number
 	| { t: "i32"; v: number }
 	| { t: "str"; v: string }
-	| { t: "String"; v: string }
-	| { t: "Option"; v: SerializedSurrogate | null }
+	| string
+	| { t: "Option"; v: DehydratedSurrogate | null }
 	| {
 			t: "Result";
-			v: { ok: SerializedSurrogate } | { err: SerializedSurrogate };
+			v: { ok: DehydratedSurrogate } | { err: DehydratedSurrogate };
 	  }
-	| { t: "Signal"; id: SignalId; v?: SerializedSurrogate }
+	| { t: "Signal"; id: SignalId; v?: DehydratedSurrogate }
 	| { t: "Procedure"; id: string };
 
-export function deserializeSurrogate(
-	value: SerializedSurrogate,
+export function hydrateSurrogate(
+	value: DehydratedSurrogate,
 	cx: Context,
 ): unknown {
-	switch (value.t) {
-		case "bool":
-			return new Bool(value.v);
-		case "f64":
-			return new F64(value.v);
-		case "str":
-			return new Str(value.v);
-		case "String":
-			return new String(value.v);
-		case "Option":
-			return value.v === null
-				? Option.none()
-				: Option.some(deserializeSurrogate(value.v, cx));
-		case "Result":
-			return "ok" in value.v
-				? Result.from_ok(deserializeSurrogate(value.v.ok, cx))
-				: Result.from_err(deserializeSurrogate(value.v.err, cx));
-		case "Signal":
-			return new RuntimeWriteSignal(
-				value.id,
-				cx.getRegistry().handle(value.id),
-			);
-		case "Procedure":
-			return new Procedure(cx, value.id);
-		default:
-			throw new Error(`Unknown surrogate type: ${(value as { t: unknown }).t}`);
+	switch (typeof value) {
+		case "string":
+			return new String(value);
+		case "number":
+			return new F64(value);
+		case "boolean":
+			return new Bool(value);
+		case "bigint":
+		case "symbol":
+		case "undefined":
+		case "function":
+			throw new Error(`Unknown surrogate type: ${typeof value}`);
+		case "object":
+			switch (value.t) {
+				case "str":
+					return new Str(value.v);
+				case "Option":
+					return value.v === null
+						? Option.none()
+						: Option.some(hydrateSurrogate(value.v, cx));
+				case "Result":
+					return "ok" in value.v
+						? Result.from_ok(hydrateSurrogate(value.v.ok, cx))
+						: Result.from_err(hydrateSurrogate(value.v.err, cx));
+				case "Signal":
+					return new RuntimeWriteSignal(
+						value.id,
+						cx.getRegistry().handle(value.id),
+					);
+				case "Procedure":
+					return new Procedure(cx, value.id);
+				default:
+					throw new Error(
+						`Unknown surrogate type: ${(value as { t: unknown }).t}`,
+					);
+			}
 	}
 }
