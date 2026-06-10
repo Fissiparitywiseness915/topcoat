@@ -6,6 +6,7 @@ mod option;
 mod result;
 mod signal;
 mod string;
+mod tuple;
 
 use serde::{Deserialize, Serialize, de};
 
@@ -30,6 +31,7 @@ pub trait Surrogate {
     fn into_real(self) -> Self::Real;
 }
 
+#[macro_export]
 macro_rules! impl_surrogate {
     (
         $({$($g:tt)*})? $real:ty, $surrogate:ty
@@ -58,6 +60,7 @@ macro_rules! impl_surrogate {
 }
 pub(crate) use impl_surrogate;
 
+#[macro_export]
 macro_rules! impl_surrogate_ref {
     (
         $({$($g:tt)*})? $real:ty, $surrogate:ty
@@ -86,6 +89,7 @@ macro_rules! impl_surrogate_ref {
 }
 pub(crate) use impl_surrogate_ref;
 
+#[macro_export]
 macro_rules! impl_surrogate_mut {
     (
         $({$($g:tt)*})? $real:ty, $surrogate:ty

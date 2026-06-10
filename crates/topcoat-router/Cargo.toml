@@ -14,11 +14,14 @@ parsing = [
 	"dep:syn",
 	"topcoat-core/parsing",
 ]
+runtime = [
+	"dep:topcoat-runtime",
+]
 
 [dependencies]
 topcoat-asset = { workspace = true, features = ["view"] }
 topcoat-core.workspace = true
-topcoat-runtime.workspace = true
+topcoat-runtime = { workspace = true, optional = true }
 topcoat-view = { workspace = true, features = ["axum"] }
 
 axum.workspace = true
@@ -37,6 +40,7 @@ syn = { workspace = true, optional = true, features = ["full"] }
 thiserror.workspace = true
 tokio.workspace = true
 tower.workspace = true
+uuid = { workspace = true, features = ["v4"] }
 
 [lints]
 workspace = true

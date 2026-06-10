@@ -1,14 +1,11 @@
 use std::{any::Any, sync::Arc};
 
 use axum::{
-    extract::Query,
     response::Html,
     routing::{MethodFilter, get, on},
 };
-use serde::Deserialize;
 use topcoat_asset::{AssetBundle, AssetResolver, ServeAssetBundle};
 use topcoat_core::runtime::context::{MaybeAborted, State, WatchAbort};
-use topcoat_runtime::runtime::{DynShard, EncodedSignals, Shards};
 
 use crate::runtime::{
     CxBody, Layout, Layouts, Page, Pages, Route, Routes, not_found, result_into_response,
@@ -55,7 +52,10 @@ pub struct Router {
     layouts: Layouts,
     routes: Routes,
 
-    shards: Shards,
+    #[cfg(feature = "runtime")]
+    shards: topcoat_runtime::runtime::Shards,
+    #[cfg(feature = "runtime")]
+    actions: crate::runtime::Actions,
 
     assets: AssetBundle,
     state: State,
@@ -71,7 +71,10 @@ impl Router {
             pages: Pages::new(),
             layouts: Layouts::new(),
             routes: Routes::new(),
-            shards: Shards::new(),
+            #[cfg(feature = "runtime")]
+            shards: topcoat_runtime::runtime::Shards::new(),
+            #[cfg(feature = "runtime")]
+            actions: crate::runtime::Actions::new(),
             assets: AssetBundle::empty(),
             state,
         }
@@ -117,18 +120,20 @@ impl Router {
         self
     }
 
-    pub fn shard(mut self, shard: &'static dyn DynShard) -> Self {
+    #[cfg(feature = "runtime")]
+    pub fn shard(mut self, shard: &'static dyn topcoat_runtime::runtime::DynShard) -> Self {
         self.shards.register(shard);
         self
     }
 
-    /// Discovers and registers all `#[page]`, `#[layout]`, `#[route]`, and
-    /// `#[shard]` items
-    /// collected at link time across the crate and its dependencies.
+    #[cfg(feature = "runtime")]
+    pub fn action(mut self, action: impl Into<crate::runtime::ErasedAction>) -> Self {
+        self.actions.register(action);
+        self
+    }
+
     #[cfg(feature = "discover")]
     pub fn discover(mut self) -> Self {
-        use topcoat_runtime::runtime::DynShard;
-
         for page in inventory::iter::<Page>().cloned() {
             self = self.page(page);
         }
@@ -139,8 +144,16 @@ impl Router {
             self = self.route(route);
         }
 
-        for shard in inventory::iter::<&'static dyn DynShard>().cloned() {
-            self = self.shard(shard);
+        #[cfg(feature = "runtime")]
+        {
+            for shard in
+                inventory::iter::<&'static dyn topcoat_runtime::runtime::DynShard>().cloned()
+            {
+                self = self.shard(shard);
+            }
+            for action in inventory::iter::<crate::runtime::ErasedAction>().cloned() {
+                self = self.action(action);
+            }
         }
 
         self
@@ -257,30 +270,56 @@ impl From<Router> for axum::Router {
             );
         }
 
-        let mut shard_router = axum::Router::new();
-        for shard in value.shards {
-            #[derive(Deserialize)]
-            struct SignalsQuery {
-                signals: String,
+        #[cfg(feature = "runtime")]
+        {
+            for route in value.actions.into_iter().map(Route::from) {
+                axum_router = axum_router.route(
+                    &route.path().to_axum_path(),
+                    on(
+                        MethodFilter::try_from(route.method().clone())
+                            .unwrap_or_else(|_| panic!("unsupported method {:?}", route.method())),
+                        async move |CxBody { cx, body }: CxBody| {
+                            let result = WatchAbort::new(&cx, route.handle(&cx, body)).await;
+
+                            match result {
+                                MaybeAborted::Completed(result) => result_into_response(result),
+                                MaybeAborted::Aborted(_value) => {
+                                    panic!("request was aborted with an unrecognized type");
+                                }
+                            }
+                        },
+                    ),
+                );
             }
 
-            shard_router = shard_router.route(
-                &("/".to_owned() + shard.id().as_str()),
-                get(
-                    async |Query(query): Query<SignalsQuery>, CxBody { cx, body: _ }: CxBody| {
-                        let signal_param = query.signals;
-                        // todo: handle errors properly
+            let mut shard_router = axum::Router::new();
+            for shard in value.shards {
+                #[derive(serde::Deserialize)]
+                struct SignalsQuery {
+                    signals: String,
+                }
 
-                        let result = shard
-                            .dyn_render(&cx, EncodedSignals::new(signal_param))
-                            .await;
+                shard_router = shard_router.route(
+                    &("/".to_owned() + shard.id().as_str()),
+                    get(
+                        async |axum::extract::Query(query): axum::extract::Query<SignalsQuery>,
+                               CxBody { cx, body: _ }: CxBody| {
+                            use topcoat_runtime::runtime::EncodedSignals;
 
-                        result_into_response(result.map(|view| Html(view.render(&cx))))
-                    },
-                ),
-            );
+                            let signal_param = query.signals;
+                            // todo: handle errors properly
+
+                            let result = shard
+                                .dyn_render(&cx, EncodedSignals::new(signal_param))
+                                .await;
+
+                            result_into_response(result.map(|view| Html(view.render(&cx))))
+                        },
+                    ),
+                );
+            }
+            axum_router = axum_router.nest("/_topcoat/shards", shard_router);
         }
-        axum_router = axum_router.nest("/_topcoat/shards", shard_router);
 
         axum_router = axum_router.fallback(async move |CxBody { cx: _, body: _ }: CxBody| {
             axum::response::IntoResponse::into_response(not_found())
