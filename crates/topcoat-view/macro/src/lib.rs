@@ -595,6 +595,48 @@ pub fn attributes(tokens: TokenStream) -> TokenStream {
 /// Conceptually, those trailing child nodes are the same thing as a `child` parameter whose value
 /// is a [`view! { ... }`][`view!`] containing those nodes.
 ///
+/// ## Props
+///
+/// The macro turns the function's parameters (except `cx`) into a generated props struct named
+/// after the component in PascalCase plus `Props` (`badge` becomes `BadgeProps`), which derives
+/// [`Props`] to get a typestate builder. Component calls in [`view!`] go through that builder, so
+/// leaving out a parameter is a compile error naming the missing property.
+///
+/// Parameters can use the same attributes as [`Props`] fields:
+///
+/// - `#[default]` makes the parameter optional; when not passed, it gets `Default::default()`.
+/// - `#[into]` lets callers pass anything that converts via `Into`.
+///
+/// ```rust,ignore
+/// #[component]
+/// async fn badge(#[into] label: String, #[default] tone: Tone) -> Result {
+///     // ...
+/// }
+/// ```
+///
+/// ## Generics
+///
+/// Components can be generic; the function's generics carry over to the props struct. Because
+/// component futures must be `Send`, type parameters stored in props need a `Send` bound (and
+/// `Sync` when the view borrows them):
+///
+/// ```rust,ignore
+/// #[component]
+/// async fn count<T: Send + Sync>(items: Vec<T>) -> Result {
+///     view! { <span>(items.len())</span> }
+/// }
+/// ```
+///
+/// `impl Trait` parameters work too. Each occurrence is lifted into a generic type parameter on
+/// the props struct, keeping its bounds and adding `Send`:
+///
+/// ```rust,ignore
+/// #[component]
+/// async fn shout(label: impl Into<String>) -> Result {
+///     view! { <b>(label.into().to_uppercase())</b> }
+/// }
+/// ```
+///
 /// ## Request Context
 ///
 /// Components can ask for the current request context by declaring a `cx` parameter that borrows
@@ -617,6 +659,7 @@ pub fn attributes(tokens: TokenStream) -> TokenStream {
 /// ```
 ///
 /// [`Cx`]: ../context/struct.Cx.html
+/// [`Props`]: derive.Props.html
 /// [`Result`]: ../type.Result.html
 /// [`View`]: struct.View.html
 /// [`component`]: attr.component.html
@@ -624,6 +667,85 @@ pub fn attributes(tokens: TokenStream) -> TokenStream {
 #[proc_macro_attribute]
 pub fn component(attr: TokenStream, item: TokenStream) -> TokenStream {
     match topcoat_view::ast::component::Component::parse(attr.into(), item.into()) {
+        Ok(value) => quote! { #value }.into(),
+        Err(error) => error.to_compile_error().into(),
+    }
+}
+
+/// Derives a typestate builder for a props struct.
+///
+/// For a struct `ButtonProps`, the derive generates a `ButtonPropsBuilder` whose `build()` method
+/// only becomes available once every required property has been set. Forgetting a property is a
+/// compile error, not a runtime panic.
+///
+/// ```rust,ignore
+/// use topcoat::view::Props;
+///
+/// #[derive(Props)]
+/// struct ButtonProps {
+///     #[into]
+///     label: String,
+///     kind: ButtonKind,
+///     #[default]
+///     disabled: bool,
+/// }
+///
+/// let props = ButtonProps::builder()
+///     .label("Save")
+///     .kind(ButtonKind::Primary)
+///     .build();
+/// ```
+///
+/// ## Field Attributes
+///
+/// - `#[default]` makes a property optional. If it is not set, the field is filled with
+///   [`Default::default()`]. The field's type must implement [`Default`].
+/// - `#[into]` makes the generated setter accept `impl Into<T>` instead of `T`, so
+///   `.label("Save")` works for a `String` field.
+///
+/// Both attributes can be combined on the same field.
+///
+/// ## Typestate
+///
+/// The builder tracks each required property in a type parameter that flips to [`Set`] when the
+/// property's setter is called. `build()` requires every marker to implement [`IsSet`], so this
+/// fails to compile:
+///
+/// ```rust,ignore
+/// // error: missing required property `kind`
+/// let props = ButtonProps::builder().label("Save").build();
+/// ```
+///
+/// Setters can be called more than once; later calls replace the earlier value.
+///
+/// ## Generics
+///
+/// Generic structs are supported. The struct's generics, bounds, and `where` clauses carry over
+/// to the builder:
+///
+/// ```rust,ignore
+/// #[derive(Props)]
+/// struct ListProps<T: Clone> {
+///     items: Vec<T>,
+///     #[default]
+///     compact: bool,
+/// }
+/// ```
+///
+/// ## The `Props` Trait
+///
+/// The derive also implements the [`Props`] trait, whose associated `Builder` type names the
+/// builder in its initial state. The generated `builder()` function is available both as an
+/// inherent function and through the trait.
+///
+/// [`Default`]: https://doc.rust-lang.org/std/default/trait.Default.html
+/// [`Default::default()`]: https://doc.rust-lang.org/std/default/trait.Default.html#tymethod.default
+/// [`IsSet`]: trait.IsSet.html
+/// [`Props`]: trait.Props.html
+/// [`Set`]: struct.Set.html
+#[proc_macro_derive(Props, attributes(default, into))]
+pub fn props(item: TokenStream) -> TokenStream {
+    match topcoat_view::ast::props::Props::parse(item.into()) {
         Ok(value) => quote! { #value }.into(),
         Err(error) => error.to_compile_error().into(),
     }
