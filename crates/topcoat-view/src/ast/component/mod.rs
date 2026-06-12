@@ -58,6 +58,8 @@ impl ToTokens for Component {
             span = ident.span()
         );
 
+        let attrs = item.attrs;
+        item.attrs = vec![];
         item.sig.generics.params.insert(0, parse_quote! { '__cx });
         item.sig
             .inputs
@@ -133,6 +135,7 @@ impl ToTokens for Component {
         });
 
         quote! {
+            #(#attrs)*
             #[derive(::topcoat::view::Props)]
             #vis struct #props_ident #impl_generics #where_clause {
                 #(#fields),*
