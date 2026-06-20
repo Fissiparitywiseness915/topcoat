@@ -120,7 +120,12 @@ impl Path {
     /// );
     /// ```
     pub fn segments(&self) -> impl Iterator<Item = PathSegment<'_>> {
-        self.inner.split("/").skip(1).map(PathSegment::new)
+        // The path was validated on construction, so its segments need no
+        // re-validation here.
+        self.inner
+            .split("/")
+            .skip(1)
+            .map(PathSegment::from_str_unchecked)
     }
 
     /// Converts this path to a `matchit`-compatible route string, stripping group
@@ -362,41 +367,47 @@ pub enum PathSegment<'a> {
 impl<'a> PathSegment<'a> {
     /// Parses a single path segment string into a [`PathSegment`].
     ///
+    /// This is the panicking counterpart of [`try_from_str`](PathSegment::try_from_str).
+    ///
     /// # Panics
     ///
-    /// Panics if the segment is malformed:
-    /// - Empty string
-    /// - Missing closing `}` or `)`
-    /// - Invalid identifier (empty name, starts with a digit, contains non-alphanumeric/underscore
-    ///   characters)
-    /// - Unexpected brackets in a static segment (e.g. `foo{bar}`)
-    pub fn new(s: &'a str) -> Self {
-        if s.starts_with('{') {
-            if !s.ends_with('}') {
-                panic!("invalid segment: missing closing `}}` in `{s}`");
+    /// Panics if `s` is not a well-formed segment; see [`PathError`] for the
+    /// conditions that are rejected.
+    pub fn from_str(s: &'a str) -> Self {
+        match Self::try_from_str(s) {
+            Ok(segment) => segment,
+            Err(err) => panic!("{}", err.message()),
+        }
+    }
+
+    /// Parses a single path segment string into a [`PathSegment`], validating it.
+    ///
+    /// Returns [`PathError`] if `s` is not a well-formed segment: an empty string,
+    /// a `{…}`/`(…)` segment missing its closing bracket, a static segment that
+    /// contains a bracket, or a name that is not a valid identifier.
+    pub fn try_from_str(s: &'a str) -> Result<Self, PathError> {
+        // Validate first, then extract the variant from the now-known-valid input.
+        validate_segment(s.as_bytes(), 0, s.len())?;
+        Ok(Self::from_str_unchecked(s))
+    }
+
+    /// Parses a single path segment string into a [`PathSegment`] without
+    /// validating it.
+    ///
+    /// Unlike [`from_str`](PathSegment::from_str), this performs no validation;
+    /// the caller must pass an already-valid segment (for example one produced by
+    /// [`Path::segments`]). A malformed input is parsed on a best-effort basis and
+    /// yields a nonsensical segment rather than an error.
+    pub fn from_str_unchecked(s: &'a str) -> Self {
+        if let Some(inner) = s.strip_prefix('{') {
+            let inner = inner.strip_suffix('}').unwrap_or(inner);
+            match inner.strip_prefix('*') {
+                Some(name) => PathSegment::CatchAll(name),
+                None => PathSegment::Param(inner),
             }
-            let inner = &s[1..s.len() - 1];
-            if let Some(name) = inner.strip_prefix('*') {
-                assert_valid_ident(name, "catch-all", s);
-                PathSegment::CatchAll(name)
-            } else {
-                assert_valid_ident(inner, "param", s);
-                PathSegment::Param(inner)
-            }
-        } else if s.starts_with('(') {
-            if !s.ends_with(')') {
-                panic!("invalid segment: missing closing `)` in `{s}`");
-            }
-            let inner = &s[1..s.len() - 1];
-            assert_valid_ident(inner, "group", s);
-            PathSegment::Group(inner)
+        } else if let Some(inner) = s.strip_prefix('(') {
+            PathSegment::Group(inner.strip_suffix(')').unwrap_or(inner))
         } else {
-            if s.is_empty() {
-                panic!("invalid segment: empty string");
-            }
-            if s.contains('{') || s.contains('}') || s.contains('(') || s.contains(')') {
-                panic!("invalid segment: unexpected brackets in `{s}`");
-            }
             PathSegment::Static(s)
         }
     }
@@ -470,9 +481,9 @@ impl<'a> PathSegment<'a> {
     }
 }
 
-/// Validates a single segment `bytes[start..end)` of a [`Path`], applying the
-/// same rules as [`PathSegment::new`]. Operates on bytes (rather than a `&str`
-/// subslice) so it can run in the `const` context of [`Path::try_from_str`].
+/// Validates a single segment `bytes[start..end)` of a [`Path`]. Operates on
+/// bytes (rather than a `&str` subslice) so it can run in the `const` context of
+/// [`Path::try_from_str`], and is shared with [`PathSegment::try_from_str`].
 const fn validate_segment(bytes: &[u8], start: usize, end: usize) -> Result<(), PathError> {
     if start >= end {
         return Err(PathError::EmptySegment);
@@ -530,26 +541,6 @@ const fn validate_ident(bytes: &[u8], start: usize, end: usize) -> Result<(), Pa
         i += 1;
     }
     Ok(())
-}
-
-fn assert_valid_ident(name: &str, kind: &str, raw: &str) {
-    if name.is_empty() {
-        panic!("invalid segment: {kind} name must not be empty in `{raw}`");
-    }
-    let mut chars = name.chars();
-    let first = chars.next().unwrap();
-    if !first.is_ascii_alphabetic() && first != '_' {
-        panic!(
-            "invalid segment: {kind} name `{name}` must start with a letter or underscore in `{raw}`"
-        );
-    }
-    for ch in chars {
-        if !ch.is_ascii_alphanumeric() && ch != '_' {
-            panic!(
-                "invalid segment: {kind} name `{name}` contains invalid character `{ch}` in `{raw}`"
-            );
-        }
-    }
 }
 
 impl Display for PathSegment<'_> {
@@ -751,34 +742,34 @@ mod tests {
 
     #[test]
     fn static_segment() {
-        let seg = PathSegment::new("dashboard");
+        let seg = PathSegment::from_str("dashboard");
         assert!(seg.is_static());
         assert_eq!(seg.as_static(), Some(&"dashboard"));
     }
 
     #[test]
     fn param_segment() {
-        let seg = PathSegment::new("{id}");
+        let seg = PathSegment::from_str("{id}");
         assert!(seg.is_param());
         assert_eq!(seg.as_param(), Some(&"id"));
     }
 
     #[test]
     fn param_with_underscore() {
-        let seg = PathSegment::new("{user_id}");
+        let seg = PathSegment::from_str("{user_id}");
         assert!(seg.is_param());
         assert_eq!(seg.as_param(), Some(&"user_id"));
     }
 
     #[test]
     fn catch_all_segment() {
-        let seg = PathSegment::new("{*rest}");
+        let seg = PathSegment::from_str("{*rest}");
         assert!(matches!(seg, PathSegment::CatchAll("rest")));
     }
 
     #[test]
     fn group_segment() {
-        let seg = PathSegment::new("(auth)");
+        let seg = PathSegment::from_str("(auth)");
         assert!(seg.is_group());
         assert_eq!(seg.as_group(), Some(&"auth"));
     }
@@ -786,79 +777,79 @@ mod tests {
     #[test]
     fn display_roundtrip() {
         for input in ["dashboard", "{id}", "{*rest}", "(auth)"] {
-            assert_eq!(PathSegment::new(input).to_string(), input);
+            assert_eq!(PathSegment::from_str(input).to_string(), input);
         }
     }
 
     #[test]
     #[should_panic(expected = "missing closing `}`")]
     fn param_missing_close() {
-        PathSegment::new("{id");
+        PathSegment::from_str("{id");
     }
 
     #[test]
     #[should_panic(expected = "missing closing `)`")]
     fn group_missing_close() {
-        PathSegment::new("(auth");
+        PathSegment::from_str("(auth");
     }
 
     #[test]
-    #[should_panic(expected = "invalid segment: empty string")]
+    #[should_panic(expected = "empty segment")]
     fn empty_segment() {
-        PathSegment::new("");
+        PathSegment::from_str("");
     }
 
     #[test]
-    #[should_panic(expected = "unexpected brackets")]
+    #[should_panic(expected = "unexpected bracket")]
     fn static_with_braces() {
-        PathSegment::new("foo{bar}");
+        PathSegment::from_str("foo{bar}");
     }
 
     #[test]
     #[should_panic(expected = "name must not be empty")]
     fn param_empty_name() {
-        PathSegment::new("{}");
+        PathSegment::from_str("{}");
     }
 
     #[test]
     #[should_panic(expected = "name must not be empty")]
     fn group_empty_name() {
-        PathSegment::new("()");
+        PathSegment::from_str("()");
     }
 
     #[test]
     #[should_panic(expected = "name must not be empty")]
     fn catch_all_empty_name() {
-        PathSegment::new("{*}");
+        PathSegment::from_str("{*}");
     }
 
     #[test]
     #[should_panic(expected = "must start with a letter or underscore")]
     fn param_invalid_start() {
-        PathSegment::new("{0id}");
+        PathSegment::from_str("{0id}");
     }
 
     #[test]
-    #[should_panic(expected = "contains invalid character")]
+    #[should_panic(expected = "contains an invalid character")]
     fn param_invalid_char() {
-        PathSegment::new("{id-name}");
+        PathSegment::from_str("{id-name}");
     }
 
     #[test]
     #[should_panic(expected = "must start with a letter or underscore")]
     fn group_invalid_start() {
-        PathSegment::new("(0auth)");
+        PathSegment::from_str("(0auth)");
     }
 
     #[test]
-    #[should_panic(expected = "contains invalid character")]
+    #[should_panic(expected = "contains an invalid character")]
     fn group_invalid_char() {
-        PathSegment::new("(my-group)");
+        PathSegment::from_str("(my-group)");
     }
 
     #[test]
     fn underscore_leading_ident() {
-        let seg = PathSegment::new("{_private}");
+        let seg = PathSegment::from_str("{_private}");
         assert!(seg.is_param());
         assert_eq!(seg.as_param(), Some(&"_private"));
     }
