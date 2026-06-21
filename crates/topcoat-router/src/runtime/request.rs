@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use axum::extract::{FromRequestParts, RawPathParams};
 use topcoat_core::runtime::{
-    context::{Cx, State},
+    context::{ContextMap, Cx},
     error::Result,
 };
 
@@ -18,26 +18,24 @@ pub(crate) struct CxBody {
     pub(crate) body: Body,
 }
 
-impl axum::extract::FromRequest<Arc<State>> for CxBody {
+impl axum::extract::FromRequest<Arc<ContextMap>> for CxBody {
     type Rejection = BadRequestError;
 
     async fn from_request(
         req: axum::extract::Request,
-        state: &Arc<State>,
+        context: &Arc<ContextMap>,
     ) -> Result<Self, Self::Rejection> {
-        let app_state = state.clone();
-        let (mut parts, body) = req.into_parts();
-        let body = Body::from(body);
+        let mut cx = Cx::new(context.clone(), ContextMap::new());
 
-        let mut request_state = State::new();
-        request_state.register(
-            RawPathParams::from_request_parts(&mut parts, state)
+        let (mut parts, body) = req.into_parts();
+
+        cx.insert(
+            RawPathParams::from_request_parts(&mut parts, context)
                 .await
                 .map_err(|error| bad_request(error.to_string()))?,
         );
-        request_state.register(parts);
+        cx.insert(parts);
 
-        let cx = Cx::new(app_state, request_state);
         Ok(Self { cx, body })
     }
 }
