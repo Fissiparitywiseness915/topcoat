@@ -1,8 +1,8 @@
-[`Router`] is the finalized routing table that dispatches incoming requests. Build one with [`Router::builder`], register pages, layouts, layers, and API routes, call [`build`](RouterBuilder::build), then pass it to [`start`](crate::start).
+A [`Router`] handles incoming requests. Build one with [`Router::builder`], register pages, layouts, layers, and API routes, call [`build`](RouterBuilder::build), then pass it to [`start`](crate::start).
 
-For most apps, the recommended way to define routes is the [`module_router!`] macro. It derives the routing table from your module tree instead of defining each URL path by hand. This guide describes the [`Router`] builder it sits on top of — manual registration and auto-discovery.
+For most apps, the recommended way to define routes is the [`module_router!`] macro. It derives the routing table from your module tree instead of defining each URL path by hand.
 
-You can register handlers in two ways: **manually** (explicit paths, full control) or with **auto-discovery** (the `discover` feature collects annotated items automatically).
+You can register handlers in two ways: **manually** or with **auto-discovery** (the `discover` feature collects annotated items automatically).
 
 # Paths
 
@@ -52,51 +52,20 @@ async fn create_user(cx: &Cx, Json(input): Json<CreateUser>) -> Result<Json<User
 
 The context and the body parameter are both optional and may appear in either order, but there can be at most one body parameter, because the body is a stream that can only be consumed once. Pages use the same [`FromRequest`] parsing, but return a rendered view rather than an [`IntoResponse`] value.
 
-## Reading the request body
-
-Each extractor is a [`FromRequest`] type; see its own documentation for the exact content types, parsing rules, and examples.
-
-| Extractor | Body |
-|---|---|
-| [`Json<T>`](Json) | JSON (`application/json`), deserialized into `T`. |
-| [`Form<T>`](Form) | URL-encoded form data; reads the query string for `GET`/`HEAD`. |
-| [`RawForm`] | The raw bytes of a URL-encoded body, without deserializing. |
-| `Multipart` | `multipart/form-data`, for file uploads (behind the `multipart` feature). |
-| [`Body`] | The raw, unbuffered body stream. |
-| [`Bytes`] / [`BytesMut`] | The fully buffered body. |
-| [`String`] | The fully buffered body decoded as UTF-8. |
-
-Wrap [`Json`], [`Form`], or `Multipart` in [`Option`] to make the body optional: the extractor yields [`None`] when the request carries no body of that kind, and still reports an error when a body is present but malformed. Implement [`OptionalFromRequest`] to give a custom extractor the same behavior.
-
-When none of the built-in extractors fit, implement [`FromRequest`] for your own type to parse the request however you need.
-
-## Returning a response
-
-A route returns `Result<T>` where `T:` [`IntoResponse`]. Topcoat implements [`IntoResponse`] for common shapes — strings, status codes, byte buffers, [`Body`], [`Response`], and tuples like `(StatusCode, value)` and `(headers, value)` — as well as the wrappers [`Json<T>`](Json), [`Form<T>`](Form), and [`Html<T>`](Html).
-
-```rust
-# use topcoat::{Result, router::{Json, route}};
-# #[derive(serde::Serialize)] struct User {}
-#[route(GET "/api/user")]
-async fn user() -> Result<Json<User>> {
-    Ok(Json(User { /* ... */ }))
-}
-```
-
-Returning a bare value only works if its type implements [`IntoResponse`]; a plain `Result<User>` is not serialized as JSON unless `User` itself does so. Implement [`IntoResponse`] for a domain type when it should control its own status, headers, or body.
-
 # Path and query parameters
 
-Handlers read typed values out of the URL with two attributes. Each generates an `of(cx)` accessor whose result is parsed once and memoized for the rest of the request:
+Two attribute macros declare typed structs for reading values out of a request. You declare a struct, then read it with a free function from any handler that has a `cx`:
 
-- [`#[path_param]`](path_param) — a typed view of a single path segment, like the `{post_id}` in `/posts/{post_id}`.
-- [`#[query_params]`](query_params) — a typed view of the request's query string, deserialized into a struct.
+- [`#[path_param]`](macro@path_param) — one dynamic path segment (like the `{post_id}` in `/posts/{post_id}`), read with [`path_param::<T>(cx)`](fn@path_param).
+- [`#[query_params]`](macro@query_params) — the request's query string deserialized into a struct, read with [`query_params::<T>(cx)`](fn@query_params).
+
+Both parse lazily and memoize the result for the rest of the request.
 
 ```rust
 use topcoat::{
     Result,
     context::Cx,
-    router::{page, path_param, query_params},
+    router::{RouterErrorExt, page, path_param, query_params},
     view::view,
 };
 
@@ -110,13 +79,13 @@ struct PostQuery {
 
 #[page("/posts/{post_id}")]
 async fn post(cx: &Cx) -> Result {
-    let post_id = PostId::of(cx).unwrap();
-    let query = PostQuery::of(cx).unwrap();
+    let post_id = path_param::<PostId>(cx).ok_or_bad_request("invalid post id")?;
+    let query = query_params::<PostQuery>(cx).ok_or_bad_request("invalid query string")?;
     view! { /* ... */ }
 }
 ```
 
-See [`#[path_param]`](path_param) and [`#[query_params]`](query_params) for how parameters pair with the URL (module router versus explicit paths), the exact return types, and their requirements.
+See [`#[path_param]`](macro@path_param) and [`#[query_params]`](macro@query_params) for details.
 
 # Pages
 
