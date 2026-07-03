@@ -77,7 +77,7 @@ let router = Router::builder()
 
 # Build flow
 
-`BuildConfig::render()` is intended to run from `build.rs`. It requires Cargo's `OUT_DIR` and `CARGO_MANIFEST_DIR` environment variables.
+`BuildConfig::render()` is intended to run from `build.rs`. It reads Cargo's `OUT_DIR` and `CARGO_MANIFEST_DIR` environment variables where a default depends on them; a fully custom configuration (executable, input, output, and cwd) runs without either.
 
 The default build does this:
 
@@ -96,7 +96,18 @@ The default build does this:
 
 4. Writes the output to `$OUT_DIR/tailwind.css`.
 
-The default Tailwind CLI version is pinned by Topcoat to `4.3.0`. The downloaded binary is cached inside Cargo's build output directory as `tailwindcss-<version>`.
+The default Tailwind CLI version is pinned by Topcoat to `4.3.2`. The downloaded binary is cached inside Cargo's build output directory as `tailwindcss-<version>`.
+
+# CLI executable
+
+By default, Topcoat downloads the Tailwind CLI from GitHub. `BuildConfig` offers alternatives:
+
+- `version("4.3.2")` — pin the release to download.
+- `version_checksum("4.3.2", "b800b065…")` — additionally verify the downloaded binary's SHA-256.
+- `executable("tailwindcss")` — use a preinstalled CLI instead of downloading. A bare name is resolved through `PATH`; relative paths resolve against the package root.
+- `executable_env("TAILWIND_CLI")` — like `executable`, with the value read from an environment variable at build time.
+
+A user-provided executable is used as-is: no download happens and no network access is needed, which suits offline and sandboxed builds.
 
 # Class scanning
 
@@ -105,24 +116,20 @@ Topcoat does not inspect `view!` macros or extract class names itself. Class det
 By default, Topcoat passes:
 
 ```text
---cwd $CARGO_MANIFEST_DIR/src
+--cwd $CARGO_MANIFEST_DIR
 ```
 
-So Tailwind scans from your crate's `src` directory. This works with classes in Rust source files, including literal `class="..."` values in `view!` markup. Classes assembled dynamically at runtime are still invisible to Tailwind unless you include them through your Tailwind input/configuration.
+So Tailwind scans from your package root: classes are found in Rust source files, including literal `class="..."` values in `view!` markup. Classes assembled dynamically at runtime are invisible to Tailwind.
 
-If your templates, components, or shared UI live somewhere else, change the working directory:
+The scan skips files matched by `.gitignore` — that is what keeps it out of `target/`. In a checkout without an ignore file it reads build artifacts, which is slow and can resurrect classes from previous builds; scope the scan down with `.cwd("src")` in that case.
 
-```rust,no_run
-# #[allow(clippy::needless_doctest_main)]
-fn main() {
-    topcoat::tailwind::BuildConfig::new()
-        .cwd(".")
-        .render()
-        .unwrap();
-}
+For precise control, use a custom input CSS with Tailwind's own source directives, e.g. to scan only Rust files:
+
+```css
+@import "tailwindcss" source(none);
+
+@source "./src/**/*.rs";
 ```
-
-For more precise control, use a custom input CSS file and Tailwind's own source configuration features from that file.
 
 # Custom input CSS
 
@@ -148,89 +155,11 @@ Example input:
 }
 ```
 
-The input file is registered with Cargo as `rerun-if-changed`, so changing it reruns the build script.
-
-# Configuration
-
-`BuildConfig` exposes the options that Topcoat passes to the CLI:
-
-| Method | Default | Meaning |
-|---|---:|---|
-| `version("4.3.0")` | `4.3.0` | Tailwind CLI release to download, without the leading `v`. |
-| `input(path)` | generated in `OUT_DIR` | CSS input passed with `-i`. |
-| `output(path)` | `$OUT_DIR/tailwind.css` | CSS output passed with `-o`. |
-| `cwd(path)` | `$CARGO_MANIFEST_DIR/src` | Working directory passed with `--cwd`. |
-| `optimize(bool)` | `false` | Adds `--optimize` when true. |
-| `minify(bool)` | `true` | Adds `--minify` when true. |
-
-For example:
-
-```rust,no_run
-# #[allow(clippy::needless_doctest_main)]
-fn main() {
-    topcoat::tailwind::BuildConfig::new()
-        .version("4.3.0")
-        .input("src/styles/app.css")
-        .cwd(".")
-        .optimize(true)
-        .minify(true)
-        .render()
-        .unwrap();
-}
-```
-
-# Custom output paths
-
-The convenience macro `tailwind::stylesheet!()` assumes the default output path:
-
-```text
-$OUT_DIR/tailwind.css
-```
-
-If you change `output(...)`, link the same file with `asset!` instead of `tailwind::stylesheet!()`:
-
-```rust,ignore
-use topcoat::asset::asset;
-
-view! {
-    <link
-        rel="stylesheet"
-        href=(asset!(concat!(env!("OUT_DIR"), "/app.css")))
-    >
-}
-```
-
-Keep the build script and the linked asset path in sync:
-
-```rust,no_run
-# #[allow(clippy::needless_doctest_main)]
-fn main() {
-    let out_dir = std::path::PathBuf::from(std::env::var_os("OUT_DIR").unwrap());
-
-    topcoat::tailwind::BuildConfig::new()
-        .output(out_dir.join("app.css"))
-        .render()
-        .unwrap();
-}
-```
-
 # Rebuild behavior
 
-`BuildConfig::render()` prints Cargo directives for:
+`BuildConfig::render()` prints no Cargo `rerun-if-*` directives. Cargo therefore applies its default: the build script reruns whenever any non-ignored file in the package changes. That default respects `.gitignore`, always excludes `target/`, and notices created and deleted files, so class changes anywhere in the package — including in new files — regenerate the Tailwind output.
 
-- the input CSS file
-- the configured Tailwind working directory
+Printing any `rerun-if-*` directive from your build script replaces that default with exactly the paths and variables you list. Keep that in mind when combining the Tailwind build with your own directives; in particular, a directory directive is scanned recursively without respecting `.gitignore`, so never print one for a directory containing `target/`. Two situations require directives of your own:
 
-With the default `cwd`, any change under `src` reruns the build script and regenerates Tailwind output. `topcoat dev` also watches source directories, rebuilds the Rust binary, rebundles assets, and restarts the app after a successful build.
-
-# Supported platforms
-
-Topcoat downloads the Tailwind CLI asset that matches the host platform. The currently supported targets are:
-
-| OS | Architecture |
-|---|---|
-| macOS | `x86_64`, `aarch64` |
-| Linux | `x86_64`, `aarch64`, `arm` |
-| Windows | `x86_64`, `aarch64` |
-
-Unsupported platforms fail during the build script before Tailwind runs.
+- `ExecutableSource::Env`: print `cargo:rerun-if-env-changed=<name>` if changing the variable should rerun the build script.
+- A `cwd` or `input` outside the package: Cargo's default only tracks package files, so print `cargo:rerun-if-changed` for the external paths.
