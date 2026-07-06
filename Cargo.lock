@@ -842,6 +842,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "icon"
+version = "0.1.0"
+dependencies = [
+ "tokio",
+ "topcoat",
+]
+
+[[package]]
 name = "id-arena"
 version = "2.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1766,6 +1774,9 @@ dependencies = [
  "topcoat-font-fontsource-macro",
  "topcoat-font-macro",
  "topcoat-htmx",
+ "topcoat-icon",
+ "topcoat-icon-iconify",
+ "topcoat-icon-iconify-macro",
  "topcoat-router",
  "topcoat-router-macro",
  "topcoat-runtime",
@@ -1928,6 +1939,39 @@ dependencies = [
  "topcoat",
  "topcoat-core",
  "topcoat-router",
+]
+
+[[package]]
+name = "topcoat-icon"
+version = "0.1.0"
+dependencies = [
+ "topcoat-view",
+]
+
+[[package]]
+name = "topcoat-icon-iconify"
+version = "0.1.0"
+dependencies = [
+ "heck",
+ "proc-macro2",
+ "quote",
+ "serde",
+ "serde_json",
+ "syn",
+ "thiserror",
+ "topcoat",
+ "ureq",
+]
+
+[[package]]
+name = "topcoat-icon-iconify-macro"
+version = "0.1.0"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+ "topcoat",
+ "topcoat-icon-iconify",
 ]
 
 [[package]]

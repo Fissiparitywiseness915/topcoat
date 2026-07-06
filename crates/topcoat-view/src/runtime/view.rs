@@ -44,6 +44,17 @@ impl View {
         Self::default()
     }
 
+    /// Creates a view from a `&'static str` without escaping it and without checking for syntax
+    /// errors.
+    #[inline]
+    #[must_use]
+    pub const fn unescaped_unchecked(body: &'static str) -> Self {
+        Self {
+            part: ViewPart::UnescapedStaticStr(Unescaped::new_unchecked(body)),
+            size_hint: body.len(),
+        }
+    }
+
     /// Renders the view into an HTML string.
     pub fn render(&self, cx: &Cx) -> String {
         let mut buf = String::with_capacity(self.size_hint);
