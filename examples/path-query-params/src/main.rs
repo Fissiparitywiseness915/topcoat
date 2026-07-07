@@ -1,10 +1,7 @@
 use topcoat::{
     Result,
     context::Cx,
-    router::{
-        Router, RouterBuilderDiscoverExt, RouterErrorExt, Slot, layout, page, path_param,
-        query_params,
-    },
+    router::{Router, RouterBuilderDiscoverExt, Slot, layout, page, path_param, query_params},
     view::view,
 };
 
@@ -47,7 +44,8 @@ async fn home() -> Result {
 // --- Query params -----------------------------------------------------------
 
 // #[query_params] parses URL query strings into a typed struct.
-#[query_params]
+// A query string that fails to parse redirects back here with it cleared.
+#[query_params(error = redirect("?"))]
 struct PostsQuery {
     page: Option<u32>,
     q: Option<String>,
@@ -55,7 +53,7 @@ struct PostsQuery {
 
 #[page("/posts")]
 async fn posts(cx: &Cx) -> Result {
-    let query = query_params::<PostsQuery>(cx).ok_or_bad_request("invalid query string")?;
+    let query = query_params::<PostsQuery>(cx)?;
 
     view! {
         <h1>"Posts"</h1>
@@ -74,17 +72,17 @@ async fn posts(cx: &Cx) -> Result {
 // --- Path params ------------------------------------------------------------
 
 // #[path_param] reads a matching {post_id} URL segment and parses it as u32.
-#[path_param]
+#[path_param(error = bad_request("Post ID must be a number!"))]
 struct PostId(u32);
 
 #[page("/posts/{post_id}")]
 async fn post(cx: &Cx) -> Result {
-    let post_id = path_param::<PostId>(cx).ok_or_bad_request("post_id must be a number")?;
+    let post_id = path_param::<PostId>(cx)?;
 
     view! {
         <h1>
             "Post "
-            (post_id.to_string())
+            (post_id)
         </h1>
         <p>"parsed from the {post_id} path segment"</p>
         <p><a href="/posts?page=1">"all posts"</a></p>
