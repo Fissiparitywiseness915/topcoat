@@ -1,4 +1,5 @@
 use std::borrow::Cow;
+use std::ops::Index;
 use std::pin::Pin;
 
 use topcoat_core::runtime::{context::Cx, error::Result};
@@ -94,6 +95,51 @@ impl Layer for LayerFn {
 #[cfg(feature = "discover")]
 inventory::collect!(LayerFn);
 
+/// The identifier of a [`Layer`] registered on a router.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) struct LayerId(usize);
+
+/// The layers registered on a router, in registration order, indexed by
+/// [`LayerId`].
+///
+/// Layers are [`push`](Self::push)ed as the router is built, then only queried:
+/// [`for_path`](Self::for_path) selects the layers wrapping a request path, and
+/// indexing by [`LayerId`] resolves a selected id back to its layer.
+#[derive(Default)]
+pub(crate) struct Layers {
+    layers: Vec<Box<dyn Layer>>,
+}
+
+impl Layers {
+    /// Registers `layer`, returning the [`LayerId`] that now identifies it.
+    pub(crate) fn push(&mut self, layer: Box<dyn Layer>) -> LayerId {
+        let id = LayerId(self.layers.len());
+        self.layers.push(layer);
+        id
+    }
+
+    /// Selects the layers whose path is a prefix of `path`, ordered least- to
+    /// most-specific so the outermost layer runs first. Among layers that share a
+    /// path, the most recently registered runs first.
+    pub(crate) fn for_path(&self, path: &Path) -> Vec<LayerId> {
+        let mut ids: Vec<LayerId> = (0..self.layers.len())
+            .map(LayerId)
+            .filter(|&LayerId(i)| path.starts_with(self.layers[i].path()))
+            .rev()
+            .collect();
+        ids.sort_by_key(|&LayerId(i)| self.layers[i].path().len());
+        ids
+    }
+}
+
+impl Index<LayerId> for Layers {
+    type Output = dyn Layer;
+
+    fn index(&self, LayerId(index): LayerId) -> &Self::Output {
+        &*self.layers[index]
+    }
+}
+
 /// What a [`Next`] chain runs once its layers are exhausted.
 ///
 /// The layers wrapping a path are the same whether or not the request resolves
@@ -117,11 +163,11 @@ pub(crate) enum Terminal<'a> {
 /// Passed as the `next` argument to [`Layer::handle`]. Call [`run`](Self::run)
 /// to invoke the next layer, or the terminal once the layers are exhausted.
 pub struct Next<'a> {
-    /// The router's full layer list, indexed by `indices`.
-    layers: &'a [Box<dyn Layer>],
-    /// The layers wrapping this request, as indices into `layers`, ordered from
+    /// The router's full layer table, indexed by the ids in `indices`.
+    layers: &'a Layers,
+    /// The layers wrapping this request, as ids into `layers`, ordered from
     /// least- to most-specific so the outermost layer runs first.
-    indices: &'a [usize],
+    indices: &'a [LayerId],
     /// What runs once the layers are exhausted.
     terminal: Terminal<'a>,
 }
@@ -133,8 +179,8 @@ impl<'a> Next<'a> {
     /// `indices` must be ordered from least- to most-specific (ascending path
     /// length), so the outermost layer runs first.
     pub(crate) fn new(
-        layers: &'a [Box<dyn Layer>],
-        indices: &'a [usize],
+        layers: &'a Layers,
+        indices: &'a [LayerId],
         terminal: Terminal<'a>,
     ) -> Self {
         Self {
@@ -148,7 +194,7 @@ impl<'a> Next<'a> {
     /// remain.
     pub fn run(self, cx: &'a mut Cx, body: Body) -> LayerFuture<'a> {
         match self.indices.split_first() {
-            Some((&index, rest)) => self.layers[index].handle(
+            Some((&id, rest)) => self.layers[id].handle(
                 cx,
                 body,
                 Next {

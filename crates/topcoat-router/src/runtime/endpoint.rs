@@ -2,6 +2,8 @@ use std::{collections::HashMap, sync::Arc};
 
 use http::Method;
 
+use crate::runtime::LayerId;
+
 /// The index of a registered route, with [`usize::MAX`] reserved to mean
 /// "none".
 ///
@@ -85,15 +87,15 @@ pub(crate) struct Endpoint {
     other: HashMap<Method, usize>,
     /// Interned, cheaply clonable path parameter keys for this endpoint.
     path_params: Box<[Arc<str>]>,
-    /// The layers wrapping every route at this path, as indices into the
-    /// router's layer list, precomputed at build time and ordered from
-    /// least- to most-specific so the outermost layer runs first. Shared by
-    /// every method at the path, including the `405` fallback.
-    layers: Box<[usize]>,
+    /// The layers wrapping every route at this path, as ids into the router's
+    /// layer table, precomputed at build time and ordered from least- to
+    /// most-specific so the outermost layer runs first. Shared by every method
+    /// at the path, including the `405` fallback.
+    layers: Box<[LayerId]>,
 }
 
 impl Endpoint {
-    pub(crate) fn new(path_params: Box<[Arc<str>]>, layers: Box<[usize]>) -> Self {
+    pub(crate) fn new(path_params: Box<[Arc<str>]>, layers: Box<[LayerId]>) -> Self {
         Self {
             standard: Default::default(),
             other: HashMap::new(),
@@ -143,9 +145,9 @@ impl Endpoint {
         &self.path_params
     }
 
-    /// Returns the precomputed layer stack wrapping this path's routes, as
-    /// indices into the router's layer list.
-    pub(crate) fn layers(&self) -> &[usize] {
+    /// Returns the precomputed layer stack wrapping this path's routes, as ids
+    /// into the router's layer table.
+    pub(crate) fn layers(&self) -> &[LayerId] {
         &self.layers
     }
 }

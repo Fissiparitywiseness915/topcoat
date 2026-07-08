@@ -6,8 +6,8 @@ use std::sync::Arc;
 use topcoat_core::runtime::context::{ContextMap, Cx};
 
 use crate::runtime::{
-    Endpoint, Layer, LayoutFn, Next, PageFn, PageWithLayouts, Path, PathSegment, RawPathParams,
-    Request, Response, Route, Terminal, respond,
+    Endpoint, Layer, LayerId, Layers, LayoutFn, Next, PageFn, PageWithLayouts, Path, PathSegment,
+    RawPathParams, Request, Response, Route, Terminal, respond,
 };
 
 /// A finalized Topcoat routing table.
@@ -35,9 +35,9 @@ pub struct Router {
     /// The endpoint handling each path, matched against the request URL and
     /// indexing into `routes` by HTTP method.
     endpoints: matchit::Router<Endpoint>,
-    /// The layers wrapping every matched route, in registration order; the
-    /// last-registered layer is the outermost and runs first.
-    layers: Vec<Box<dyn Layer>>,
+    /// The layers registered on this router, wrapping matched routes by path
+    /// prefix.
+    layers: Layers,
     /// The values shared by every request, read back via
     /// [`app_context`](topcoat_core::runtime::context::app_context).
     app_context: Arc<ContextMap>,
@@ -64,7 +64,7 @@ impl Router {
         // matches (a route) or not (405), so both flow through the same layers.
         // An unmatched path (404) has no precomputed stack, so its layers are
         // selected from the request path on this cold path.
-        let not_found_layers: Box<[usize]>;
+        let not_found_layers: Vec<LayerId>;
         let (layers, terminal, path_params) =
             if let Ok(matched) = self.endpoints.at(parts.uri.path()) {
                 let endpoint = matched.value;
@@ -80,7 +80,7 @@ impl Router {
                 };
                 (matched.value.layers(), terminal, path_params)
             } else {
-                not_found_layers = layers_for(request_path(&parts.uri), &self.layers);
+                not_found_layers = self.layers.for_path(request_path(&parts.uri));
                 (
                     &*not_found_layers,
                     Terminal::NotFound,
@@ -102,20 +102,6 @@ impl Router {
 /// when it is malformed so layer selection still resolves the root layers.
 fn request_path(uri: &http::Uri) -> &Path {
     Path::from_str(uri.path()).unwrap_or(Path::new("/"))
-}
-
-/// Selects the layers whose path is a prefix of `path`, as indices into
-/// `layers`, ordered least- to most-specific so the outermost layer runs first.
-///
-/// Reversing the filtered indices before the stable sort means that among
-/// layers sharing a path the most recently registered ends up outermost.
-fn layers_for(path: &Path, layers: &[Box<dyn Layer>]) -> Box<[usize]> {
-    let mut indices: Box<[usize]> = (0..layers.len())
-        .filter(|&i| path.starts_with(layers[i].path()))
-        .rev()
-        .collect();
-    indices.sort_by_key(|&i| layers[i].path().len());
-    indices
 }
 
 /// Builds a [`Router`] for a Topcoat application.
@@ -153,7 +139,7 @@ pub struct RouterBuilder {
     routes: Vec<Box<dyn Route>>,
     pages: Vec<PageFn>,
     layouts: Vec<LayoutFn>,
-    layers: Vec<Box<dyn Layer>>,
+    layers: Layers,
     context: ContextMap,
 }
 
@@ -168,7 +154,7 @@ impl RouterBuilder {
             routes: Vec::new(),
             pages: Vec::new(),
             layouts: Vec::new(),
-            layers: Vec::new(),
+            layers: Layers::default(),
             context,
         }
     }
@@ -422,7 +408,7 @@ impl RouterBuilder {
                             _ => None,
                         })
                         .collect();
-                    let layers = layers_for(route.path(), &layers);
+                    let layers = layers.for_path(route.path()).into_boxed_slice();
                     Endpoint::new(path_params, layers)
                 });
 
@@ -606,62 +592,6 @@ mod tests {
         // A doubled slash leaves an empty segment, which is not a valid `Path`.
         let uri: http::Uri = "/a//b".parse().unwrap();
         assert_eq!(request_path(&uri), Path::new("/"));
-    }
-
-    // -- layers_for --
-
-    /// A layer that only carries a path; its `handle` is never invoked by
-    /// `layers_for`, which inspects paths alone.
-    struct PathLayer(&'static Path);
-
-    impl Layer for PathLayer {
-        fn path(&self) -> &Path {
-            self.0
-        }
-
-        fn handle<'a>(&'a self, _cx: &'a mut Cx, _body: Body, _next: Next<'a>) -> LayerFuture<'a> {
-            unreachable!("layers_for never runs a layer")
-        }
-    }
-
-    fn path_layers(paths: &[&'static str]) -> Vec<Box<dyn Layer>> {
-        paths
-            .iter()
-            .map(|&p| Box::new(PathLayer(Path::new(p))) as Box<dyn Layer>)
-            .collect()
-    }
-
-    #[test]
-    fn layers_for_selects_prefixes_least_specific_first() {
-        let layers = path_layers(&["/admin", "/", "/admin/users", "/other"]);
-        // For `/admin/users/1` the matching layers are `/`, `/admin`,
-        // `/admin/users`, ordered by ascending path length (outermost first).
-        let indices = layers_for(Path::new("/admin/users/1"), &layers);
-        assert_eq!(indices, vec![1, 0, 2].into_boxed_slice());
-    }
-
-    #[test]
-    fn layers_for_excludes_non_prefixes() {
-        let layers = path_layers(&["/admin", "/blog"]);
-        assert_eq!(
-            layers_for(Path::new("/admin/x"), &layers),
-            vec![0].into_boxed_slice()
-        );
-        assert_eq!(
-            layers_for(Path::new("/marketing"), &layers),
-            Vec::<usize>::new().into_boxed_slice()
-        );
-    }
-
-    #[test]
-    fn layers_for_orders_same_path_most_recent_first() {
-        // Two layers share the root path; the later-registered one (index 1)
-        // ends up outermost.
-        let layers = path_layers(&["/", "/"]);
-        assert_eq!(
-            layers_for(Path::new("/anything"), &layers),
-            vec![1, 0].into_boxed_slice()
-        );
     }
 
     // -- RouterBuilder --
