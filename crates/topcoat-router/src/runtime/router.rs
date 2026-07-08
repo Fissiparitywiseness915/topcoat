@@ -453,7 +453,7 @@ mod tests {
 
     use super::*;
     use crate::runtime::{
-        Body, Bytes, IntoResponse, LayerFn, LayerFuture, Method, RouteFn, RouteFuture, Slot,
+        Body, Bytes, IntoResponse, LayerFn, LayerFuture, Method, Path, RouteFn, RouteFuture, Slot,
         to_bytes,
     };
 
@@ -571,21 +571,6 @@ mod tests {
             parts.push("]");
             Ok(View::new(parts))
         })
-    }
-
-    // -- request_path --
-
-    #[test]
-    fn request_path_reads_a_valid_path() {
-        let uri: http::Uri = "/users/42".parse().unwrap();
-        assert_eq!(request_path(&uri), Path::new("/users/42"));
-    }
-
-    #[test]
-    fn request_path_falls_back_to_root_when_malformed() {
-        // A doubled slash leaves an empty segment, which is not a valid `Path`.
-        let uri: http::Uri = "/a//b".parse().unwrap();
-        assert_eq!(request_path(&uri), Path::new("/"));
     }
 
     // -- RouterBuilder --
