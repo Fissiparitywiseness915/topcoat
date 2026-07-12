@@ -16,6 +16,9 @@ use syn::{
 };
 
 use topcoat_core_grammar::ParseOption;
+use topcoat_core_grammar::paths::{
+    topcoat_font, topcoat_font_fontsource, topcoat_font_fontsource_macro, topcoat_font_macro,
+};
 
 use crate::font_face::{Display, FamilyName, Host};
 
@@ -114,7 +117,7 @@ impl ToTokens for FontsourceFont {
                         for subset in &subsets {
                             let subset = subset.as_ref().map(|subset| quote! { , subset: #subset });
                             faces.push(quote! {
-                                ::topcoat::font::fontsource::fontsource_font_face!(
+                                #topcoat_font_fontsource_macro::fontsource_font_face!(
                                     #family_ident,
                                     weight: #weight,
                                     style: #style
@@ -134,15 +137,15 @@ impl ToTokens for FontsourceFont {
         // With no faces the compiler is already reporting the cause (an
         // unknown family or an empty axis), so emit a well-typed empty list.
         let faces = if faces.is_empty() {
-            quote! { ::std::vec::Vec::<::topcoat::font::FontFace>::new() }
+            quote! { ::std::vec::Vec::<#topcoat_font::FontFace>::new() }
         } else {
             quote! { ::std::vec![#(#faces),*] }
         };
 
         quote! {{
-            const FAMILY: &'static ::topcoat::font::fontsource::Family = &#family_path;
+            const FAMILY: &'static #topcoat_font_fontsource::Family = &#family_path;
             #(#checks)*
-            ::topcoat::font::font!(FAMILY.name, #faces)
+            #topcoat_font_macro::font!(FAMILY.name, #faces)
         }}
         .to_tokens(tokens);
     }
