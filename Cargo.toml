@@ -94,11 +94,7 @@ debug = 1
 debug = false
 
 [workspace.dependencies]
-# Topcoat crates
-# No version requirement: the facade is only ever a dev-dependency of the
-# other crates (for doctests). A versioned dev-dep would make release-plz see
-# a dependency cycle; leaving it versionless means cargo strips it at publish.
-topcoat = { path = "crates/topcoat" }
+topcoat = { version = "0.0.1", path = "crates/topcoat" }
 topcoat-asset = { version = "0.0.1", path = "crates/topcoat-asset" }
 topcoat-cookie = { version = "0.0.1", path = "crates/topcoat-cookie" }
 topcoat-core = { version = "0.0.1", path = "crates/topcoat-core" }

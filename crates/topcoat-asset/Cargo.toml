@@ -42,7 +42,7 @@ toml.workspace = true
 ureq = { workspace = true, optional = true }
 
 [dev-dependencies]
-topcoat = { workspace = true, features = ["asset"] }
+topcoat = { path = "../topcoat", features = ["asset"] }
 
 [lints]
 workspace = true

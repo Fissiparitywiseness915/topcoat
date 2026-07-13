@@ -23,7 +23,7 @@ pin-project-lite.workspace = true
 tokio = { workspace = true, features = ["sync"] }
 
 [dev-dependencies]
-topcoat.workspace = true
+topcoat = { path = "../topcoat" }
 tokio = { workspace = true, features = ["macros", "rt"] }
 
 [lints]
