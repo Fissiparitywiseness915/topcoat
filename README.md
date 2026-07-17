@@ -21,11 +21,11 @@
 
 </div>
 
-[crates-badge]: https://img.shields.io/crates/v/topcoat.svg
+[crates-badge]: https://img.shields.io/crates/v/topcoat.svg?style=flat-square
 [crates-url]: https://crates.io/crates/topcoat
-[mit-badge]: https://img.shields.io/badge/license-MIT-blue.svg
+[mit-badge]: https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square
 [mit-url]: https://github.com/tokio-rs/topcoat/blob/main/LICENSE
-[actions-badge]: https://github.com/tokio-rs/topcoat/workflows/CI/badge.svg
+[actions-badge]: https://img.shields.io/github/actions/workflow/status/tokio-rs/topcoat/ci.yml?branch=main&style=flat-square
 [actions-url]: https://github.com/tokio-rs/topcoat/actions?query=workflow%3ACI+branch%3Amain
 [discord-badge]: https://img.shields.io/discord/500028886025895936.svg?logo=discord&style=flat-square
 [discord-url]: https://discord.gg/tokio
