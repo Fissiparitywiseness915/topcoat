@@ -63,6 +63,44 @@ async fn hello(name: &str) -> Result {
 
 ## What makes Topcoat different
 
+### Hassle-free client reactivity
+
+In Topcoat, all markup is rendered on the server. This means your components can be async, access the database and do not require you to maintain an API. However, that does not mean you need to sacrifice user experience through high latency. Use type-safe Rust expressions running in the browser to instantly update your UI:
+
+```rust,ignore
+view! {
+    signal open = false;
+
+    // Click to reveal the answer.
+    <h3 @click=$(|_e| open.set(!open.get()))>"What is Topcoat?"</h3>
+    <p :hidden=$(!open.get())>"A fullstack Rust framework."</p>
+}
+```
+
+Or, rerender parts of the page on interaction:
+
+```rust,ignore
+view! {
+    signal query = String::new();
+
+    <input @input=$(|e: Event| query.set(e.target.value))>
+
+    // Search results HTML updates every time the user's text input changes.
+    search_results(query: $(query.get()))
+}
+
+#[shard]
+async fn search_results(cx: &Cx, query: String) -> Result {
+    view! {
+        <ul>
+            for product in search_products(cx, &query).await? {
+                <li>(product.name)</li>
+            }
+        </ul>
+    }
+}
+```
+
 ### Powerful, unsurprising HTML templates
 
 The `view!` macro stays true to HTML and Rust. Use familiar Rust control flow as part of your templates:
