@@ -103,7 +103,7 @@ view! { <link rel="stylesheet" href=(topcoat::tailwind::stylesheet!())> }
 - [Source code formatting](https://github.com/tokio-rs/topcoat/blob/main/crates/topcoat-cli/docs/fmt.md): `topcoat fmt` for macro bodies.
 
 **Rendering**
-- [The `view!` macro](https://docs.rs/topcoat/latest/topcoat/view/index.html): templating syntax, control flow, conditional attributes.
+- [The `view!` macro](https://docs.rs/topcoat/latest/topcoat/view/macro.view.html): templating syntax, control flow, conditional attributes.
 - [The `#[component]` macro](https://docs.rs/topcoat/latest/topcoat/view/attr.component.html): async functions as components, with child content.
 - [The `attributes!` macro](https://docs.rs/topcoat/latest/topcoat/view/macro.attributes.html): reusable runtime attribute fragments.
 - [The `class!` macro](https://docs.rs/topcoat/latest/topcoat/view/macro.class.html): space-separated class lists from static and conditional entries.

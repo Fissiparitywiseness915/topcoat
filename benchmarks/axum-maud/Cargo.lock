@@ -750,7 +750,7 @@ dependencies = [
 
 [[package]]
 name = "topcoat-core"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "anyhow",
  "anymap3",
@@ -762,7 +762,7 @@ dependencies = [
 
 [[package]]
 name = "topcoat-tailwind"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "sha2",
  "thiserror",
