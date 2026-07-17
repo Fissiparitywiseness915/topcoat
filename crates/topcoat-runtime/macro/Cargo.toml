@@ -29,3 +29,6 @@ topcoat = { workspace = true, features = ["runtime", "view"] }
 
 [lints]
 workspace = true
+
+[package.metadata.cargo-udeps.ignore]
+development = ["topcoat"]
