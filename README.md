@@ -81,7 +81,7 @@ view! {
 }
 ```
 
-Use the `topcoat fmt` CLI command to automatically format `view!` snippets across your codebase.
+Use the `topcoat fmt` CLI command to automatically format `view!` snippets (and other macros) across your codebase.
 
 ### Module-based routing
 
@@ -111,6 +111,8 @@ const FERRIS: Asset = asset!("./ferris.png");
 
 view! { <img src=(FERRIS)> }
 ```
+
+Topcoat also ships with utilities for web fonts and icons, as well as easy integrations for [Fontsource](https://fontsource.org/) (Google Fonts) and [Iconify](https://icon-sets.iconify.design/).
 
 
 ### Built-in Tailwind support
