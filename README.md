@@ -32,7 +32,7 @@
 
 > Early-stage and experimental. Expect breaking changes.
 
-See the [Getting started guide](https://github.com/tokio-rs/topcoat/blob/main/crates/topcoat/docs/getting_started.md) to set up a new project.
+Topcoat makes building web apps in Rust simple and productive, giving you a complete framework instead of a stack of crates to assemble yourself.
 
 ```rust,ignore
 use topcoat::{
