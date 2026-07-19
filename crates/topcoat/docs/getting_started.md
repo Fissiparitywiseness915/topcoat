@@ -86,4 +86,10 @@ To override the bind address, set `HOST` and `PORT` before running:
 HOST=0.0.0.0 PORT=8080 topcoat dev
 ```
 
-More documentation is available in the [README](https://github.com/tokio-rs/topcoat/tree/main#learn-topcoat).
+## Improving build times
+
+As your app grows, so does the time each rebuild takes. The [build performance chapter](https://doc.rust-lang.org/cargo/guide/build-performance.html) of the Cargo book collects general advice for speeding up compilation, most of which applies directly to a Topcoat project.
+
+## Where to next
+
+More documentation is available in the [README](https://github.com/tokio-rs/topcoat/tree/main#learn-topcoat), which links a guide for every part of the framework.
